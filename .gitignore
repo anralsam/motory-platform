@@ -9,4 +9,5 @@
 # نظام التشغيل والمحرر
 .DS_Store
 node_modules/
+.next/
 *.log

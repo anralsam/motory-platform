@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>لوحة العامل — VOLD MOTOR</title>
+<link href="https://fonts.googleapis.com/css2?family=Almarai:wght@300;400;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#0f172a;--muted:#64748b;--line:#e2e8f0;--bg:#f6f8fa;--paper:#fff;--blue:#2563eb;--green:#1f883d}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Almarai',system-ui,sans-serif;background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased}
+.wrap{max-width:560px;margin:0 auto;padding:16px 14px 60px}
+.top{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:14px 4px 18px}
+.top .who{display:flex;align-items:center;gap:11px}
+.top .av{width:42px;height:42px;border-radius:11px;background:var(--blue);color:#fff;display:grid;place-items:center;font-weight:800;font-size:1.1rem;flex:none}
+.top .nm{font-weight:800;font-size:.98rem}
+.top .ce{font-size:.78rem;color:var(--muted);font-weight:600}
+.top .out{background:none;border:1px solid var(--line);border-radius:10px;width:40px;height:40px;display:grid;place-items:center;color:var(--muted);cursor:pointer}
+.card{background:var(--paper);border:1px solid var(--line);border-radius:16px;padding:18px 16px;box-shadow:0 1px 3px rgba(0,0,0,.04);margin-bottom:16px}
+.card h2{font-size:1.05rem;font-weight:800;margin-bottom:4px}
+.card .sub{font-size:.82rem;color:var(--muted);font-weight:600;margin-bottom:16px}
+.fld{margin-bottom:14px}
+.fld label{display:block;font-size:.82rem;font-weight:800;color:var(--ink);margin-bottom:7px}
+.fld input,.fld select{width:100%;border:1.5px solid var(--line);border-radius:11px;padding:11px 13px;font-family:inherit;font-size:.93rem;font-weight:600;color:var(--ink);background:var(--bg);outline:0;min-height:46px}
+.fld input:focus,.fld select:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(37,99,235,.12);background:#fff}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:11px}
+/* Strict plate */
+.plate{display:flex;align-items:stretch;gap:0;border:2px solid var(--ink);border-radius:12px;overflow:hidden;background:#fff;direction:ltr}
+.plate .pl-d{flex:1.2;border:0;text-align:center;font-size:1.5rem;font-weight:800;letter-spacing:.18em;color:var(--ink);background:#fff;outline:0;min-height:56px;font-family:'Almarai',monospace}
+.plate .pl-l{flex:1;border:0;border-inline-start:2px solid var(--ink);text-align:center;font-size:1.5rem;font-weight:800;letter-spacing:.18em;text-transform:uppercase;color:var(--ink);background:#f8fafc;outline:0;min-height:56px;font-family:'Almarai',monospace}
+.plate .pl-d::placeholder,.plate .pl-l::placeholder{color:#cbd5e1;font-weight:700;letter-spacing:normal;font-size:.85rem}
+.plate-hint{font-size:.74rem;color:var(--muted);margin-top:6px;text-align:center}
+.btn{width:100%;border:0;border-radius:12px;padding:14px;font-family:inherit;font-size:1rem;font-weight:800;cursor:pointer;background:var(--green);color:#fff;box-shadow:0 6px 18px rgba(31,136,61,.25)}
+.btn:disabled{opacity:.6;cursor:not-allowed}
+.err{display:none;background:#ffebe9;border:1px solid #fca5a5;color:#b91c1c;border-radius:10px;padding:10px 13px;font-size:.85rem;font-weight:700;margin-bottom:12px}
+.ok{display:none;background:#dafbe1;border:1px solid #86efac;color:#15803d;border-radius:10px;padding:10px 13px;font-size:.85rem;font-weight:700;margin-bottom:12px}
+.rec{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:11px 0;border-bottom:1px solid var(--line)}
+.rec:last-child{border-bottom:0}
+.rec .pn{font-weight:800;direction:ltr}
+.rec .rs{font-size:.78rem;color:var(--muted);font-weight:600}
+.rec .rp{font-weight:800;color:var(--green);direction:ltr}
+.muted-empty{text-align:center;color:var(--muted);font-size:.86rem;padding:18px 0}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase-client.js"></script>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <div class="who">
+      <div class="av" id="w-av">ع</div>
+      <div><div class="nm" id="w-name">العامل</div><div class="ce" id="w-center">—</div></div>
+    </div>
+    <button class="out" onclick="logout()" title="خروج"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></button>
+  </div>
+
+  <div class="card">
+    <h2>تسجيل عملية جديدة</h2>
+    <div class="sub">سجّل بيانات المركبة والخدمة المنفّذة</div>
+    <div class="err" id="err"></div>
+    <div class="ok" id="ok"></div>
+
+    <div class="fld">
+      <label>لوحة المركبة *</label>
+      <div class="plate">
+        <input class="pl-d" id="p-num" inputmode="numeric" maxlength="4" placeholder="1234" autocomplete="off">
+        <input class="pl-l" id="p-let" maxlength="3" placeholder="ABC" autocomplete="off" autocapitalize="characters" spellcheck="false">
+      </div>
+      <div class="plate-hint">3 حروف إنجليزية + 4 أرقام · مثال: ABC 1234</div>
+    </div>
+
+    <div class="row2">
+      <div class="fld"><label>الماركة *</label><select id="v-brand" onchange="onBrand()"><option value="">اختر…</option></select></div>
+      <div class="fld"><label>الموديل *</label><select id="v-model"><option value="">اختر الماركة أولاً</option></select></div>
+    </div>
+    <div class="row2">
+      <div class="fld"><label>سنة الصنع</label><select id="v-year"></select></div>
+      <div class="fld"><label>اللون</label><select id="v-color"></select></div>
+    </div>
+
+    <div class="fld"><label>الخدمة *</label><select id="s-service" onchange="onService()"><option value="">اختر…</option></select></div>
+    <div class="row2">
+      <div class="fld"><label>السعر (ر.س) *</label><input id="s-price" type="number" min="0" inputmode="numeric" placeholder="0" style="direction:ltr;text-align:right"></div>
+      <div class="fld"><label>جوال العميل</label><input id="c-phone" type="tel" inputmode="numeric" placeholder="05xxxxxxxx" style="direction:ltr;text-align:right"></div>
+    </div>
+    <div class="fld"><label>اسم العميل</label><input id="c-name" type="text" placeholder="اختياري"></div>
+
+    <button class="btn" id="save" onclick="saveVisit(this)">حفظ العملية</button>
+  </div>
+
+  <div class="card">
+    <h2 style="margin-bottom:14px">عمليات اليوم</h2>
+    <div id="recent"><div class="muted-empty">لا توجد عمليات اليوم بعد</div></div>
+  </div>
+</div>
+
+<script>
+const _sb = window._supabase;
+let CENTER_ID = null;
+
+const VEH = {
+  "تويوتا":["كورولا","كامري","يارس","هايلكس","لاندكروزر","راف4","افالون","برادو","فورتشنر"],
+  "هيونداي":["النترا","سوناتا","اكسنت","توسان","سنتافي","كريتا","i10","H1"],
+  "كيا":["سيراتو","اوبتيما","سبورتاج","سورنتو","ريو","بيكانتو","كرنفال"],
+  "نيسان":["التيما","صني","باترول","اكستريل","سنترا","ماكسيما"],
+  "هوندا":["اكورد","سيفيك","CR-V","بايلوت"],
+  "فورد":["تورس","اكسبلورر","F-150","موستانج","ايدج"],
+  "شفروليه":["تاهو","سوبربان","كابريس","ماليبو","سلفرادو","كامارو"],
+  "جي ام سي":["يوكن","سييرا","اكاديا"],
+  "لكزس":["ES","LS","RX","LX","GX","IS"],
+  "مرسيدس":["C-Class","E-Class","S-Class","GLE","GLC","G-Class"],
+  "بي ام دبليو":["الفئة 3","الفئة 5","الفئة 7","X5","X6"],
+  "مازда":["مازda3","مازda6","CX-5","CX-9"],
+  "ميتسوبيشي":["لانسر","باجيرو","اتراج","L200"],
+  "أخرى":["—"]
+};
+const COLORS = ["أبيض","أسود","فضي","رمادي","أزرق","أحمر","بني","ذهبي","أخضر","بيج"];
+
+function logout(){ _sb.auth.signOut().then(()=>location.href='login.html?mode=login'); }
+function showErr(m){ const e=document.getElementById('err'); e.textContent=m; e.style.display='block'; document.getElementById('ok').style.display='none'; }
+function showOk(m){ const e=document.getElementById('ok'); e.textContent=m; e.style.display='block'; document.getElementById('err').style.display='none'; }
+
+/* strict plate inputs */
+document.getElementById('p-let').addEventListener('input',function(){ this.value=this.value.replace(/[^a-zA-Z]/g,'').toUpperCase().slice(0,3); });
+document.getElementById('p-num').addEventListener('input',function(){ this.value=this.value.replace(/\D/g,'').slice(0,4); });
+
+function fillVehicle(){
+  const b=document.getElementById('v-brand'); b.innerHTML='<option value="">اختر…</option>'+Object.keys(VEH).map(k=>`<option>${k}</option>`).join('');
+  const y=document.getElementById('v-year'); const now=new Date().getFullYear(); let o='<option value="">—</option>'; for(let i=now+1;i>=2000;i--) o+=`<option>${i}</option>`; y.innerHTML=o;
+  const c=document.getElementById('v-color'); c.innerHTML='<option value="">—</option>'+COLORS.map(x=>`<option>${x}</option>`).join('');
+}
+function onBrand(){
+  const b=document.getElementById('v-brand').value;
+  const m=document.getElementById('v-model');
+  if(!b||!VEH[b]){ m.innerHTML='<option value="">اختر الماركة أولاً</option>'; return; }
+  m.innerHTML='<option value="">اختر…</option>'+VEH[b].map(x=>`<option>${x}</option>`).join('');
+}
+
+let SERVICES=[];
+async function loadServices(){
+  try{ const {data,error}=await _sb.from('services').select('service_name,cost').eq('merchant_id',CENTER_ID).eq('is_active',true).order('id'); if(error)throw error; SERVICES=data||[]; }
+  catch(e){ SERVICES=[]; }
+  const sel=document.getElementById('s-service');
+  sel.innerHTML='<option value="">اختر…</option>'+SERVICES.map((s,i)=>`<option value="${i}">${s.service_name}</option>`).join('');
+}
+function onService(){
+  const i=document.getElementById('s-service').value;
+  if(i!=='' && SERVICES[i]) document.getElementById('s-price').value=Number(SERVICES[i].cost)||0;
+}
+
+async function loadRecent(){
+  const box=document.getElementById('recent');
+  try{
+    // Price-free task queue (RBAC: technicians must not see financial data)
+    const {data,error}=await _sb.rpc('worker_recent_visits',{p_limit:20});
+    if(error)throw error;
+    if(!data||!data.length){ box.innerHTML='<div class="muted-empty">لا توجد عمليات اليوم بعد</div>'; return; }
+    box.innerHTML=data.map(v=>`<div class="rec"><div><div class="pn">${v.plate||'—'}</div><div class="rs">${v.service_type||''}</div></div><div class="rt">${new Date(v.created_at).toLocaleTimeString('ar-SA',{hour:'2-digit',minute:'2-digit'})}</div></div>`).join('');
+  }catch(e){ box.innerHTML='<div class="muted-empty">تعذّر التحميل</div>'; }
+}
+
+async function saveVisit(btn){
+  document.getElementById('err').style.display='none'; document.getElementById('ok').style.display='none';
+  const let3=document.getElementById('p-let').value.trim().toUpperCase();
+  const num4=document.getElementById('p-num').value.trim();
+  const brand=document.getElementById('v-brand').value;
+  const model=document.getElementById('v-model').value;
+  const year=document.getElementById('v-year').value;
+  const color=document.getElementById('v-color').value;
+  const si=document.getElementById('s-service').value;
+  const price=parseFloat(document.getElementById('s-price').value);
+  const cname=document.getElementById('c-name').value.trim();
+  const cphone=document.getElementById('c-phone').value.trim();
+
+  if(let3.length!==3 || num4.length!==4){ showErr('لوحة المركبة غير صحيحة (3 حروف + 4 أرقام)'); return; }
+  if(!brand||!model){ showErr('اختر الماركة والموديل'); return; }
+  if(si===''){ showErr('اختر الخدمة'); return; }
+  if(isNaN(price)||price<0){ showErr('أدخل سعراً صحيحاً'); return; }
+
+  const plate=let3+' '+num4;
+  const service=SERVICES[si]?.service_name||'';
+  const notes=[brand,model,year,color?('- '+color):''].filter(Boolean).join(' ');
+  btn.disabled=true; const o=btn.textContent; btn.textContent='جاري الحفظ...';
+  try{
+    const {error}=await _sb.from('visits').insert({
+      merchant_id:CENTER_ID, plate, customer_name:cname||null, phone:cphone||null,
+      service_type:service, price, discount:0, notes
+    });
+    if(error)throw error;
+    showOk('✅ تم تسجيل العملية بنجاح');
+    ['p-let','p-num','c-name','c-phone'].forEach(id=>document.getElementById(id).value='');
+    document.getElementById('s-service').value=''; document.getElementById('s-price').value='';
+    document.getElementById('v-brand').value=''; onBrand(); document.getElementById('v-year').value=''; document.getElementById('v-color').value='';
+    loadRecent();
+  }catch(e){ showErr('تعذّر الحفظ: '+(e.message||'')); }
+  finally{ btn.disabled=false; btn.textContent=o; }
+}
+
+(async()=>{
+  const {data:{session}}=await _sb.auth.getSession();
+  if(!session){ location.href='login.html?mode=login'; return; }
+  const meta=session.user.user_metadata||{};
+  if(meta.role!=='worker' || !meta.center_id){ location.href='dashboard.html'; return; }
+  CENTER_ID=meta.center_id;
+  document.getElementById('w-name').textContent=meta.full_name||session.user.email||'العامل';
+  document.getElementById('w-av').textContent=(meta.full_name||'ع').charAt(0);
+  document.getElementById('w-center').textContent=meta.center_name?('مركز: '+meta.center_name):'';
+  fillVehicle();
+  await loadServices();
+  loadRecent();
+})();
+</script>
+  <script src="brand.js"></script>
+</body>
+</html>

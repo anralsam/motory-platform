@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>التقارير — VOLD MOTOR</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Almarai:wght@300;400;700;800&&&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<style>
+.period-tabs{display:flex;gap:6px;background:var(--paper);border:1.5px solid var(--line);border-radius:14px;padding:5px;max-width:100%;margin-bottom:24px;overflow-x:auto;scrollbar-width:none}
+.period-tabs::-webkit-scrollbar{display:none}
+.period-tab{flex:none;white-space:nowrap;padding:7px 16px;border-radius:10px;border:none;background:transparent;font-family:inherit;font-size:.88rem;font-weight:700;color:var(--muted);cursor:pointer;transition:.15s}
+.period-tab.active{background:var(--violet);color:#fff}
+.period-tab:hover:not(.active){color:var(--ink)}
+.report-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:24px}
+.chart-card{background:var(--paper);border:1.5px solid var(--line);border-radius:18px;padding:22px 24px}
+.chart-card h3{font-size:1rem;font-weight:700;color:var(--ink);margin-bottom:4px}
+.chart-card .sub{font-size:.83rem;color:var(--muted);margin-bottom:18px}
+.kpi-big{background:var(--paper);border:1.5px solid var(--line);border-radius:18px;padding:22px 24px;display:flex;flex-direction:column;gap:4px}
+.kpi-big .k-label{font-size:.82rem;color:var(--muted);font-weight:700}
+.kpi-big .k-val{font-size:2rem;font-weight:700;color:var(--ink);font-family:'Nippo',sans-serif;letter-spacing:.03em}
+.kpi-big .k-bar{height:4px;border-radius:99px;background:var(--line);margin-top:8px;overflow:hidden}
+.kpi-big .k-bar-fill{height:100%;border-radius:99px;background:var(--violet);transition:width .6s}
+.summary-strip{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px}
+.svc-row{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--line)}
+.svc-row:last-child{border:0}
+.svc-row .sn{font-size:.9rem;font-weight:800;color:var(--ink);min-width:100px}
+.bar-wrap{flex:1;background:var(--line);border-radius:99px;height:8px;overflow:hidden}
+.bar-fill{height:100%;border-radius:99px;background:var(--violet);transition:width .7s ease}
+.svc-row .sv{font-size:.85rem;font-weight:800;color:var(--muted);min-width:60px;text-align:left}
+.export-btn{display:flex;align-items:center;gap:7px;padding:10px 18px;border-radius:10px;border:1.5px solid var(--line);background:var(--paper);font-family:inherit;font-size:.88rem;font-weight:700;color:var(--ink);cursor:pointer;transition:.15s;min-height:44px}
+.export-btn:hover{border-color:var(--violet);color:var(--violet)}
+.range-select{display:flex;align-items:center;gap:10px;margin-bottom:20px;flex-wrap:wrap}
+.range-select label{font-size:.88rem;font-weight:700;color:var(--muted)}
+.range-select input[type=date]{padding:9px 14px;border-radius:10px;border:1.5px solid var(--line);background:var(--lilac);font-family:inherit;font-size:.9rem;font-weight:700;color:var(--ink);min-height:44px}
+.range-select input[type=date]:focus{outline:none;border-color:var(--violet)}
+/* ── Section heading ───────────────────────────── */
+.sec-head{display:flex;align-items:center;gap:12px;margin:6px 0 16px}
+.sec-head .sh-ico{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;flex:none}
+.sec-head h2{font-size:1.18rem;font-weight:800;color:var(--ink);line-height:1.2}
+.sec-head p{font-size:.83rem;color:var(--muted);margin-top:2px}
+
+/* ── AI Insights cards ─────────────────────────── */
+.ai-wrap{background:linear-gradient(135deg,#f5f3ff 0%,#eff6ff 100%);border:1.5px solid #e0e7ff;border-radius:20px;padding:22px 22px 24px;margin-bottom:24px}
+.ai-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.ai-card{background:#fff;border:1.5px solid var(--line);border-radius:16px;padding:18px;display:flex;flex-direction:column;gap:10px;position:relative;overflow:hidden;box-shadow:0 1px 3px rgba(16,24,40,.04)}
+.ai-card::before{content:"";position:absolute;inset-inline-start:0;top:0;bottom:0;width:4px}
+.ai-card.warn::before{background:#f59e0b}
+.ai-card.info::before{background:#3b82f6}
+.ai-card.danger::before{background:#ef4444}
+.ai-card .ai-top{display:flex;align-items:center;gap:10px}
+.ai-card .ai-ic{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;flex:none}
+.ai-card.warn .ai-ic{background:rgba(245,158,11,.12);color:#d97706}
+.ai-card.info .ai-ic{background:rgba(59,130,246,.12);color:#2563eb}
+.ai-card.danger .ai-ic{background:rgba(239,68,68,.12);color:#dc2626}
+.ai-card .ai-tag{font-size:.72rem;font-weight:800;padding:3px 9px;border-radius:99px}
+.ai-card.warn .ai-tag{background:rgba(245,158,11,.12);color:#b45309}
+.ai-card.info .ai-tag{background:rgba(59,130,246,.12);color:#1d4ed8}
+.ai-card.danger .ai-tag{background:rgba(239,68,68,.12);color:#b91c1c}
+.ai-card .ai-title{font-size:.95rem;font-weight:800;color:var(--ink)}
+.ai-card .ai-body{font-size:.86rem;line-height:1.6;color:#475569}
+.ai-card .ai-act{margin-top:auto;display:inline-flex;align-items:center;gap:6px;font-size:.8rem;font-weight:800;color:var(--violet);background:none;border:0;cursor:pointer;padding:0}
+.ai-badge{display:inline-flex;align-items:center;gap:6px;font-size:.7rem;font-weight:800;color:#6d28d9;background:rgba(124,58,237,.1);padding:4px 10px;border-radius:99px}
+
+/* ── Exportable reports table ──────────────────── */
+.rep-card{background:var(--paper);border:1.5px solid var(--line);border-radius:18px;overflow:hidden;margin-bottom:24px}
+.rep-card .rep-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:18px 22px;border-bottom:1.5px solid var(--line);flex-wrap:wrap}
+.rep-table{width:100%;border-collapse:collapse}
+.rep-table th{background:var(--lilac);font-size:.78rem;font-weight:800;color:var(--muted);padding:11px 18px;text-align:start;border-bottom:1.5px solid var(--line)}
+.rep-table td{padding:14px 18px;border-bottom:1px solid var(--line);font-size:.9rem;vertical-align:middle}
+.rep-table tr:last-child td{border-bottom:0}
+.rep-ico{width:38px;height:38px;border-radius:10px;display:grid;place-items:center;flex:none}
+.rep-name{font-weight:800;color:var(--ink)}
+.rep-desc{font-size:.8rem;color:var(--muted);margin-top:1px}
+.btn-pdf{display:inline-flex;align-items:center;gap:8px;padding:11px 20px;border-radius:11px;border:0;background:var(--violet);color:#fff;font-family:inherit;font-size:.9rem;font-weight:800;cursor:pointer;transition:.15s;min-height:44px;box-shadow:0 4px 14px rgba(124,58,237,.25)}
+.btn-pdf:hover{filter:brightness(1.05)}
+.btn-row-exp{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border-radius:9px;border:1.5px solid var(--line);background:var(--paper);font-family:inherit;font-size:.82rem;font-weight:800;color:var(--ink);cursor:pointer;transition:.15s}
+.btn-row-exp:hover{border-color:var(--violet);color:var(--violet)}
+
+@media(max-width:860px){.report-grid{grid-template-columns:1fr}.ai-grid{grid-template-columns:1fr}}
+@media(max-width:640px){.summary-strip{grid-template-columns:repeat(2,1fr)}}
+@media print{
+  .sidebar,.topbar,.period-tabs,.range-select,.export-btn,.btn-pdf,.btn-row-exp,.ai-act,.burger-btn{display:none!important}
+  .main-area{margin:0!important}.page-content{padding:10px!important}
+  .ai-wrap{background:#fff!important;border:1px solid #ddd}
+}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+<script src="roles.js"></script>
+<script src="supabase-client.js"></script>
+<script src="lang.js" defer></script>
+</head>
+<body>
+<div class="app-layout">
+
+<!-- SIDEBAR -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-logo" style="display:flex;align-items:center;gap:9px;direction:ltr;justify-content:flex-start;font-family:'Nippo',sans-serif">
+    <svg width="28" height="28" viewBox="0 0 48 48" fill="none" aria-hidden="true" style="flex:none"><path d="M6 10 L24 42 L42 10" stroke="url(#sbg)" stroke-width="4.8" stroke-linecap="round" stroke-linejoin="round"/><defs><linearGradient id="sbg" x1="6" y1="10" x2="42" y2="42" gradientUnits="userSpaceOnUse"><stop stop-color="#FAFAFA"/><stop offset=".55" stop-color="#3b82f6"/><stop offset="1" stop-color="#2563eb"/></linearGradient></defs></svg>
+    <span style="display:inline-flex;align-items:center;gap:.35em;line-height:1"><span style="font-weight:800;font-size:1.12rem;letter-spacing:.02em;color:var(--ink)">VOLD</span><span style="font-weight:300;font-size:1.12rem;letter-spacing:.16em;color:var(--ink)">MOTOR</span></span>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-section">
+      <a href="dashboard.html" class="nav-item"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg> <span data-i18n="d.nav.dash">لوحة التحكم</span></a>
+      <a href="services.html" class="nav-item"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94z"/></svg> <span>الخدمات</span></a>
+      <a href="customers.html" class="nav-item"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg> <span data-i18n="d.nav.cust">العملاء</span></a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label" data-i18n="side.sec.manage">الإدارة</div>
+      <a href="expenses.html" class="nav-item"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg> <span data-i18n="d.nav.exp">المصروفات</span></a>
+      <a href="reports.html" class="nav-item active"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg> <span data-i18n="d.nav.rep">التقارير</span></a>
+      <a href="settings.html" class="nav-item"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg> <span data-i18n="d.nav.set">الإعدادات</span></a>
+    </div>
+  </nav>
+  <div class="sidebar-user">
+    <div class="avatar" style="background:#3b82f6" id="sb-avatar">م</div>
+    <div class="info"><b id="sb-name">جاري...</b><span>VOLD MOTOR</span></div>
+    <a href="#" onclick="doLogout();return false;" title="خروج"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#7a7875" stroke-width="2.2" stroke-linecap="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></a>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<div class="main-area">
+  <div class="topbar">
+    <div style="display:flex;align-items:center;gap:14px">
+      <button class="burger-btn" onclick="document.getElementById('sidebar').classList.toggle('open')"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M3 6h18M3 12h18M3 18h18"/></svg></button>
+      <a href="dashboard.html" class="back-btn">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>
+        <span data-i18n="c.back">العودة</span>
+      </a>
+      <span class="topbar-title" data-i18n="d.nav.rep">التقارير</span>
+    </div>
+    <div class="topbar-actions">
+      <button class="lang-toggle-dash" onclick="toggleLang()" title="Switch to English" style="background:none;border:1.5px solid var(--line);border-radius:8px;padding:5px 12px;font-family:'Nippo',sans-serif;font-size:.95rem;letter-spacing:.06em;color:var(--ink);cursor:pointer;transition:.15s;margin-inline-end:8px">EN</button>
+      <button class="export-btn" onclick="exportCSV()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        <span data-i18n="r.exportCsv">تصدير CSV</span>
+      </button>
+      <button class="export-btn" onclick="window.print()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+        <span data-i18n="r.print">طباعة</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="page-content">
+
+    <!-- Period Tabs -->
+    <div class="period-tabs">
+      <button class="period-tab" data-p="day" onclick="setPeriod('day')">اليوم</button>
+      <button class="period-tab" data-p="week" onclick="setPeriod('week')">أسبوع</button>
+      <button class="period-tab active" data-p="month" onclick="setPeriod('month')">شهر</button>
+      <button class="period-tab" data-p="3m" onclick="setPeriod('3m')">٣ أشهر</button>
+      <button class="period-tab" data-p="6m" onclick="setPeriod('6m')">٦ أشهر</button>
+      <button class="period-tab" data-p="year" onclick="setPeriod('year')">سنة</button>
+      <button class="period-tab" data-p="all" onclick="setPeriod('all')">الكل</button>
+      <button class="period-tab" data-p="custom" onclick="setPeriod('custom')">مخصص</button>
+    </div>
+
+    <!-- Custom Range -->
+    <div class="range-select" id="custom-range" style="display:none">
+      <label data-i18n="r.from">من:</label>
+      <input type="date" id="date-from">
+      <label data-i18n="r.to">إلى:</label>
+      <input type="date" id="date-to">
+      <button class="btn btn-violet btn-sm" onclick="loadReport()" data-i18n="r.apply">تطبيق</button>
+    </div>
+
+    <!-- KPIs -->
+    <div class="summary-strip fade-in">
+      <div class="kpi-big">
+        <span class="k-label" data-i18n="r.totalRev">إجمالي الإيرادات</span>
+        <span class="k-val" id="kpi-rev">—</span>
+        <span style="font-size:.8rem;color:var(--muted);font-weight:700" data-i18n="a.sar">ريال سعودي</span>
+        <div class="k-bar"><div class="k-bar-fill" id="kpi-rev-bar" style="width:0%"></div></div>
+      </div>
+      <div class="kpi-big">
+        <span class="k-label" data-i18n="r.totalExp">إجمالي المصروفات</span>
+        <span class="k-val" id="kpi-exp">—</span>
+        <span style="font-size:.8rem;color:var(--muted);font-weight:700" data-i18n="a.sar">ريال سعودي</span>
+        <div class="k-bar"><div class="k-bar-fill" id="kpi-exp-bar" style="width:0%;background:#f59e0b"></div></div>
+      </div>
+      <div class="kpi-big">
+        <span class="k-label" data-i18n="stat.netProfit">صافي الربح</span>
+        <span class="k-val" id="kpi-profit" style="color:#10b981">—</span>
+        <span style="font-size:.8rem;color:var(--muted);font-weight:700" data-i18n="a.sar">ريال سعودي</span>
+        <div class="k-bar"><div class="k-bar-fill" id="kpi-profit-bar" style="width:0%;background:#10b981"></div></div>
+      </div>
+      <div class="kpi-big">
+        <span class="k-label" data-i18n="r.carCount">عدد السيارات</span>
+        <span class="k-val" id="kpi-cars" style="color:#3b82f6">—</span>
+        <span style="font-size:.8rem;color:var(--muted);font-weight:700" data-i18n="r.visit">زيارة</span>
+        <div class="k-bar"><div class="k-bar-fill" style="width:60%;background:#3b82f6"></div></div>
+      </div>
+    </div>
+
+    <!-- ═══ AI System Analysis (Crown Jewel) ═══ -->
+    <div class="sec-head fade-in">
+      <span class="sh-ico" style="background:linear-gradient(135deg,#7c3aed,#3b82f6)">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3 3 3 0 0 0-3 3 3 3 0 0 0 0 6 3 3 0 0 0 3 3 3 3 0 0 0 6 0 3 3 0 0 0 3-3 3 3 0 0 0 0-6 3 3 0 0 0-3-3 3 3 0 0 0-3-3z"/><path d="M12 8v8M8 12h8"/></svg>
+      </span>
+      <div>
+        <h2>تحليل النظام الذكي</h2>
+        <p>رؤى مدعومة بالذكاء الاصطناعي مبنية على أنماط عملياتك</p>
+      </div>
+    </div>
+    <div class="ai-wrap fade-in">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px">
+        <span class="ai-badge"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 3v4M3 5h4M6 17v4M4 19h4M13 3l2.5 6.5L22 12l-6.5 2.5L13 21l-2.5-6.5L4 12l6.5-2.5L13 3z"/></svg> VOLD AI · مُحدّث الآن</span>
+        <span style="font-size:.78rem;color:var(--muted);font-weight:700" id="ai-scope">يحلّل بيانات الفرع الحالي</span>
+      </div>
+      <div class="ai-grid" id="ai-grid"></div>
+    </div>
+
+    <!-- ═══ Exportable Reports ═══ -->
+    <div class="rep-card fade-in">
+      <div class="rep-head">
+        <div>
+          <h3 style="font-size:1.05rem;font-weight:800;color:var(--ink)">التقارير والفواتير</h3>
+          <p style="font-size:.82rem;color:var(--muted);margin-top:2px">قائمة التقارير القابلة للتصدير لهذه الفترة</p>
+        </div>
+        <button class="btn-pdf" onclick="window.print()">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V2h12v7M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+          طباعة / تصدير PDF
+        </button>
+      </div>
+      <div style="overflow-x:auto">
+        <table class="rep-table">
+          <thead>
+            <tr><th>التقرير</th><th>الفترة</th><th>عدد السجلات</th><th>الإجمالي</th><th></th></tr>
+          </thead>
+          <tbody id="rep-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Revenue + Services Charts -->
+    <div class="report-grid fade-in">
+      <div class="chart-card">
+        <h3 data-i18n="r.revVsExp">الإيرادات والمصروفات</h3>
+        <div class="sub" id="chart-period-lbl" data-i18n="i.thisMonth">هذا الشهر</div>
+        <canvas id="revChart" height="220"></canvas>
+      </div>
+      <div class="chart-card">
+        <h3 data-i18n="r.svcDist">توزيع الخدمات</h3>
+        <div class="sub" data-i18n="r.mostReq">الأكثر طلباً</div>
+        <canvas id="svcChart" height="220"></canvas>
+      </div>
+    </div>
+
+    <!-- Services List + Visits Table -->
+    <div class="report-grid fade-in">
+      <div class="chart-card">
+        <h3 data-i18n="r.svcRank">ترتيب الخدمات</h3>
+        <div class="sub" data-i18n="r.byOrders">حسب عدد الطلبات</div>
+        <div id="svc-list"></div>
+      </div>
+      <div class="chart-card" style="padding:0;overflow:hidden">
+        <div style="padding:18px 22px 12px"><h3 style="margin:0" data-i18n="r.lastVisits">آخر الزيارات</h3></div>
+        <div style="overflow-x:auto">
+          <table style="width:100%;border-collapse:collapse">
+            <thead>
+              <tr>
+                <th style="background:var(--paper);font-size:.8rem;font-weight:800;color:var(--muted);padding:10px 16px;text-align:right;border-bottom:1.5px solid var(--line)" data-i18n="r.thPlate">اللوحة</th>
+                <th style="background:var(--paper);font-size:.8rem;font-weight:800;color:var(--muted);padding:10px 16px;text-align:right;border-bottom:1.5px solid var(--line)" data-i18n="r.thService">الخدمة</th>
+                <th style="background:var(--paper);font-size:.8rem;font-weight:800;color:var(--muted);padding:10px 16px;text-align:right;border-bottom:1.5px solid var(--line)" data-i18n="r.thNet">الصافي</th>
+                <th style="background:var(--paper);font-size:.8rem;font-weight:800;color:var(--muted);padding:10px 16px;text-align:right;border-bottom:1.5px solid var(--line)" data-i18n="a.date">التاريخ</th>
+              </tr>
+            </thead>
+            <tbody id="visits-tbody">
+              <tr><td colspan="4" style="text-align:center;padding:24px;color:var(--muted)" data-i18n="r.loading">جاري التحميل...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Expenses Chart + Table -->
+    <div class="report-grid fade-in">
+      <div class="chart-card">
+        <h3 data-i18n="r.expDist">توزيع المصروفات</h3>
+        <div class="sub" data-i18n="r.byCategory">حسب الفئة</div>
+        <canvas id="expChart" height="220"></canvas>
+      </div>
+      <div class="chart-card" style="padding:0;overflow:hidden">
+        <div style="padding:18px 22px 12px"><h3 style="margin:0" data-i18n="r.lastExp">آخر المصروفات</h3></div>
+        <div style="overflow-x:auto">
+          <table style="width:100%;border-collapse:collapse">
+            <thead>
+              <tr>
+                <th style="background:var(--paper);font-size:.8rem;font-weight:800;color:var(--muted);padding:10px 16px;text-align:right;border-bottom:1.5px solid var(--line)" data-i18n="i.thCat">الفئة</th>
+                <th style="background:var(--paper);font-size:.8rem;font-weight:800;color:var(--muted);padding:10px 16px;text-align:right;border-bottom:1.5px solid var(--line)" data-i18n="e.desc">الوصف</th>
+                <th style="background:var(--paper);font-size:.8rem;font-weight:800;color:var(--muted);padding:10px 16px;text-align:right;border-bottom:1.5px solid var(--line)" data-i18n="r.thAmount">المبلغ</th>
+                <th style="background:var(--paper);font-size:.8rem;font-weight:800;color:var(--muted);padding:10px 16px;text-align:right;border-bottom:1.5px solid var(--line)" data-i18n="a.date">التاريخ</th>
+              </tr>
+            </thead>
+            <tbody id="exp-tbody">
+              <tr><td colspan="4" style="text-align:center;padding:24px;color:var(--muted)" data-i18n="r.loading">جاري التحميل...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+</div>
+
+<script>
+const _sb = window._supabase;
+let SESSION, MERCHANT_ID;
+let currentPeriod = 'month';
+let allVisits = [], allExpenses = [];
+let revChartObj, svcChartObj, expChartObj;
+
+const SVC_LABELS = {wash:'غسيل',tint:'تظليل',polish:'تلميع',oil:'تغيير زيت',tire:'بناشر',ceramic:'حماية طلاء'};
+const EXP_LABELS = {rent:'إيجار',electric:'كهرباء',water:'ماء',salaries:'رواتب',supplies:'مستلزمات',other:'أخرى'};
+const COLORS = ['#3b82f6','#f59e0b','#10b981','#3b82f6','#ec4899','#78716c'];
+
+async function requireAuth(){
+  const {data:{session}} = await _sb.auth.getSession();
+  if(!session){location.href='login.html?mode=login';return null;}
+  return session;
+}
+function doLogout(){_sb.auth.signOut().then(()=>location.href='login.html?mode=login');}
+function fmt(n){return (n||0).toLocaleString('ar-SA',{maximumFractionDigits:0});}
+
+function setPeriod(p){
+  currentPeriod=p;
+  document.querySelectorAll('.period-tab').forEach(t=>{
+    t.classList.toggle('active', t.dataset.p===p);
+  });
+  document.getElementById('custom-range').style.display=p==='custom'?'flex':'none';
+  if(p!=='custom') loadReport();
+}
+
+function getRange(){
+  const today=new Date(), pad=n=>String(n).padStart(2,'0');
+  const ymd=d=>`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+  if(currentPeriod==='day'){
+    const t=ymd(today);
+    return{from:t+'T00:00:00',to:t+'T23:59:59',label:'اليوم',unit:'hour'};
+  }
+  if(currentPeriod==='week'){
+    const f=new Date(today); f.setDate(today.getDate()-6);
+    return{from:ymd(f)+'T00:00:00',to:ymd(today)+'T23:59:59',label:'آخر أسبوع',unit:'day'};
+  }
+  if(currentPeriod==='month'){
+    const first=new Date(today.getFullYear(),today.getMonth(),1);
+    return{from:ymd(first)+'T00:00:00',to:ymd(today)+'T23:59:59',
+      label:today.toLocaleString('ar-SA',{month:'long',year:'numeric'}),unit:'day'};
+  }
+  if(currentPeriod==='3m'){
+    const f=new Date(today); f.setMonth(today.getMonth()-3);
+    return{from:ymd(f)+'T00:00:00',to:ymd(today)+'T23:59:59',label:'آخر ٣ أشهر',unit:'month'};
+  }
+  if(currentPeriod==='6m'){
+    const f=new Date(today); f.setMonth(today.getMonth()-6);
+    return{from:ymd(f)+'T00:00:00',to:ymd(today)+'T23:59:59',label:'آخر ٦ أشهر',unit:'month'};
+  }
+  if(currentPeriod==='year'){
+    const first=new Date(today.getFullYear(),0,1);
+    return{from:ymd(first)+'T00:00:00',to:ymd(today)+'T23:59:59',
+      label:`سنة ${today.getFullYear()}`,unit:'month'};
+  }
+  if(currentPeriod==='all'){
+    return{from:'2000-01-01T00:00:00',to:ymd(today)+'T23:59:59',label:'كل الفترة',unit:'month'};
+  }
+  const f=document.getElementById('date-from').value;
+  const t2=document.getElementById('date-to').value;
+  if(!f||!t2) return null;
+  return{from:f+'T00:00:00',to:t2+'T23:59:59',label:`${f} — ${t2}`,unit:'day'};
+}
+
+function activeBranch(){ try{ return localStorage.getItem('vm_active_branch')||'all'; }catch(e){ return 'all'; } }
+let _repStats = { range:null, revTotal:0, vat:0, visitCount:0, staff:[], ordersDone:0 };
+
+async function loadReport(){
+  const range=getRange(); if(!range) return;
+  document.getElementById('chart-period-lbl').textContent=range.label;
+  const branch=activeBranch();
+  const onB=(q)=> branch==='all' ? q : q.eq('branch_id',branch);
+
+  const [{data:visits},{data:expenses},{data:workers},{data:orders}]=await Promise.all([
+    onB(_sb.from('visits').select('*').eq('merchant_id',MERCHANT_ID))
+      .gte('created_at',range.from).lte('created_at',range.to).order('created_at',{ascending:false}),
+    onB(_sb.from('expenses').select('*').eq('merchant_id',MERCHANT_ID))
+      .gte('expense_date',range.from.slice(0,10)).lte('expense_date',range.to.slice(0,10))
+      .order('expense_date',{ascending:false}),
+    _sb.from('workers').select('user_id,full_name,email,role,status').eq('center_id',MERCHANT_ID),
+    onB(_sb.from('orders').select('assigned_to,status,created_at').eq('merchant_id',MERCHANT_ID))
+      .gte('created_at',range.from).lte('created_at',range.to)
+  ]);
+  allVisits=visits||[]; allExpenses=expenses||[];
+
+  const totalRev=allVisits.reduce((s,r)=>s+(r.price-(r.discount||0)),0);
+  const totalExp=allExpenses.reduce((s,e)=>s+e.amount,0);
+  const profit=totalRev-totalExp;
+
+  document.getElementById('kpi-rev').textContent=fmt(totalRev)+' ر.س';
+  document.getElementById('kpi-exp').textContent=fmt(totalExp)+' ر.س';
+  document.getElementById('kpi-profit').textContent=fmt(profit)+' ر.س';
+  document.getElementById('kpi-profit').style.color=profit>=0?'#10b981':'#ef4444';
+  document.getElementById('kpi-cars').textContent=allVisits.length.toLocaleString('ar-SA');
+  const mx=Math.max(totalRev,1);
+  document.getElementById('kpi-rev-bar').style.width='100%';
+  document.getElementById('kpi-exp-bar').style.width=Math.min(100,totalExp/mx*100)+'%';
+  document.getElementById('kpi-profit-bar').style.width=Math.max(0,Math.min(100,profit/mx*100))+'%';
+
+  // Staff performance: completed orders per worker (within period)
+  const ords=orders||[];
+  const staff=(workers||[]).filter(w=>w.status!=='inactive'&&w.user_id).map(w=>{
+    const done=ords.filter(o=>o.assigned_to===w.user_id&&o.status==='completed').length;
+    const active=ords.filter(o=>o.assigned_to===w.user_id).length;
+    return { name:w.full_name||w.email||'موظف', role:w.role, done, active };
+  }).sort((a,b)=>b.done-a.done);
+  _repStats = { range, revTotal:totalRev, vat:Math.round(totalRev*0.15), visitCount:allVisits.length,
+                staff, ordersDone:ords.filter(o=>o.status==='completed').length };
+
+  drawRevChart(range); drawSvcChart(); drawExpChart();
+  renderVisitsTable(); renderExpTable(); renderSvcList();
+  renderReportsTable(); renderAIInsights();
+}
+
+// ── Exportable reports table ────────────────────────────────────────────────────
+function renderReportsTable(){
+  const s=_repStats, lbl=s.range?s.range.label:'';
+  const rows=[
+    { ic:'#3b82f6', icon:'<path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/>', name:'تقرير المبيعات', desc:'الزيارات والإيرادات الصافية', recs:s.visitCount, total:fmt(s.revTotal)+' ر.س', fn:'exportSalesCSV()' },
+    { ic:'#10b981', icon:'<path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>', name:'تقرير الضرائب', desc:'ضريبة القيمة المضافة 15%', recs:s.visitCount, total:fmt(s.vat)+' ر.س', fn:'exportTaxCSV()' },
+    { ic:'#f59e0b', icon:'<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>', name:'تقرير أداء الموظفين', desc:'الطلبات المنجزة لكل فني', recs:s.staff.length, total:fmt(s.ordersDone)+' طلب منجز', fn:'exportStaffCSV()' },
+  ];
+  document.getElementById('rep-tbody').innerHTML = rows.map(r=>`
+    <tr>
+      <td>
+        <div style="display:flex;align-items:center;gap:12px">
+          <span class="rep-ico" style="background:${r.ic}1a"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="${r.ic}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">${r.icon}</svg></span>
+          <div><div class="rep-name">${r.name}</div><div class="rep-desc">${r.desc}</div></div>
+        </div>
+      </td>
+      <td style="color:var(--muted)">${lbl}</td>
+      <td style="font-weight:800">${(r.recs||0).toLocaleString('ar-SA')}</td>
+      <td style="font-weight:900;color:var(--violet)">${r.total}</td>
+      <td style="text-align:left"><button class="btn-row-exp" onclick="${r.fn}"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg> CSV</button></td>
+    </tr>`).join('');
+}
+
+// ── AI System Analysis (simulated insights) ─────────────────────────────────────
+function renderAIInsights(){
+  const cards=[
+    { type:'info', tag:'أوقات الذروة والركود', icon:'<rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>',
+      title:'فرصة في وقت الركود',
+      body:"لوحظ ركود يوم الثلاثاء من 9 ص إلى 12 م. نقترح إطلاق عرض ترويجي للغسيل في هذا الوقت.",
+      act:'إنشاء عرض ترويجي', go:"location.href='messages.html'" },
+    { type:'warn', tag:'تحسين توزيع الفريق', icon:'<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/>',
+      title:'ضغط عمل مرتفع',
+      body:"ضغط العمل عالي جداً يوم الجمعة مقارنة بعدد العمال. نقترح زيادة المناوبات.",
+      act:'إدارة الفريق والمناوبات', go:"location.href='team.html'" },
+    { type:'danger', tag:'اختناقات ووقت الانتظار', icon:'<circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/>',
+      title:'ارتفاع زمن الخدمة',
+      body:"متوسط وقت الصيانة لخدمة 'تغيير الزيت' ارتفع إلى 45 دقيقة. يرجى مراجعة أداء الفريق.",
+      act:'مراجعة الطلبات', go:"location.href='orders.html'" },
+  ];
+  document.getElementById('ai-grid').innerHTML = cards.map(c=>`
+    <div class="ai-card ${c.type}">
+      <div class="ai-top">
+        <span class="ai-ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">${c.icon}</svg></span>
+        <span class="ai-tag">${c.tag}</span>
+      </div>
+      <div class="ai-title">${c.title}</div>
+      <div class="ai-body">${c.body}</div>
+      <button class="ai-act" onclick="${c.go}">${c.act}
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M9 18l6-6-6-6"/></svg>
+      </button>
+    </div>`).join('');
+}
+
+// ── CSV exporters ───────────────────────────────────────────────────────────────
+function downloadCSV(name, rows){
+  const csv=rows.map(r=>r.map(c=>{const s=String(c==null?'':c);return /[",\n]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s;}).join(',')).join('\n');
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob(['﻿'+csv],{type:'text/csv;charset=utf-8'}));
+  a.download=`voldmotor-${name}-${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
+}
+function exportSalesCSV(){
+  const rows=[['اللوحة','الخدمة','السعر','الخصم','الصافي','التاريخ']];
+  allVisits.forEach(v=>rows.push([v.plate||'',SVC_LABELS[v.service_type]||v.service_type||'',v.price||0,v.discount||0,(v.price||0)-(v.discount||0),(v.created_at||'').slice(0,10)]));
+  rows.push(['','','','','','']); rows.push(['الإجمالي','','','','',_repStats.revTotal]);
+  downloadCSV('sales',rows);
+}
+function exportTaxCSV(){
+  const s=_repStats, net=Math.round(s.revTotal/1.15), vat=s.revTotal-net;
+  downloadCSV('tax',[
+    ['تقرير ضريبة القيمة المضافة (15%)'],
+    ['الفترة', s.range?s.range.label:''],
+    [''],
+    ['البند','المبلغ (ر.س)'],
+    ['إجمالي المبيعات (شامل الضريبة)', s.revTotal],
+    ['صافي المبيعات (قبل الضريبة)', net],
+    ['ضريبة القيمة المضافة المستحقة', vat],
+    ['عدد الفواتير', s.visitCount],
+  ]);
+}
+function exportStaffCSV(){
+  const rows=[['الموظف','الدور','طلبات مُسندة','طلبات منجزة','نسبة الإنجاز']];
+  _repStats.staff.forEach(w=>rows.push([w.name, w.role==='manager'?'مشرف':'فني', w.active, w.done, (w.active?Math.round(w.done/w.active*100):0)+'%']));
+  if(!_repStats.staff.length) rows.push(['لا يوجد موظفون','','','','']);
+  downloadCSV('staff',rows);
+}
+
+function buildSeries(range){
+  const labels=[],revData=[],expData=[];
+  const from=new Date(range.from), to=new Date(range.to);
+  const pad=n=>String(n).padStart(2,'0');
+
+  if(range.unit==='hour'){
+    for(let h=0;h<24;h++){
+      labels.push(`${h}:00`);
+      revData.push(allVisits.filter(v=>new Date(v.created_at).getHours()===h)
+        .reduce((s,r)=>s+(r.price-(r.discount||0)),0));
+      expData.push(0);
+    }
+  } else if(range.unit==='day'){
+    const cur=new Date(from);
+    while(cur<=to){
+      const ds=`${cur.getFullYear()}-${pad(cur.getMonth()+1)}-${pad(cur.getDate())}`;
+      labels.push(`${cur.getDate()}/${cur.getMonth()+1}`);
+      revData.push(allVisits.filter(v=>v.created_at.slice(0,10)===ds).reduce((s,r)=>s+(r.price-(r.discount||0)),0));
+      expData.push(allExpenses.filter(e=>e.expense_date===ds).reduce((s,e)=>s+e.amount,0));
+      cur.setDate(cur.getDate()+1);
+    }
+  } else {
+    for(let m=0;m<12;m++){
+      labels.push(new Date(2024,m).toLocaleString('ar-SA',{month:'short'}));
+      const yr=from.getFullYear(), ms=`${yr}-${pad(m+1)}`;
+      revData.push(allVisits.filter(v=>v.created_at.slice(0,7)===ms).reduce((s,r)=>s+(r.price-(r.discount||0)),0));
+      expData.push(allExpenses.filter(e=>e.expense_date.slice(0,7)===ms).reduce((s,e)=>s+e.amount,0));
+    }
+  }
+  return{labels,revData,expData};
+}
+
+function drawRevChart(range){
+  const{labels,revData,expData}=buildSeries(range);
+  const ctx=document.getElementById('revChart').getContext('2d');
+  if(revChartObj) revChartObj.destroy();
+  revChartObj=new Chart(ctx,{type:'bar',data:{labels,datasets:[
+    {label:'الإيرادات',data:revData,backgroundColor:'rgba(59,130,246,0.8)',borderRadius:5,borderSkipped:false},
+    {label:'المصروفات',data:expData,backgroundColor:'rgba(245,158,11,0.7)',borderRadius:5,borderSkipped:false}
+  ]},options:{responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{position:'bottom',labels:{font:{family:'Almarai',size:12},usePointStyle:true}}},
+    scales:{x:{grid:{display:false},ticks:{font:{family:'Almarai',size:11}}},
+      y:{grid:{color:'#E5E7EB'},ticks:{font:{family:'Almarai',size:11},callback:v=>v.toLocaleString('ar-SA')}}}}});
+}
+
+function drawSvcChart(){
+  const counts={};
+  allVisits.forEach(v=>{if(v.service_type) counts[v.service_type]=(counts[v.service_type]||0)+1;});
+  const labels=Object.keys(counts).map(k=>SVC_LABELS[k]||k), data=Object.values(counts);
+  const ctx=document.getElementById('svcChart').getContext('2d');
+  if(svcChartObj) svcChartObj.destroy();
+  if(!data.length){ctx.clearRect(0,0,400,220);ctx.fillStyle='#9e9994';ctx.font='14px Almarai';ctx.textAlign='center';ctx.fillText('لا توجد بيانات',200,110);return;}
+  svcChartObj=new Chart(ctx,{type:'doughnut',data:{labels,datasets:[{data,backgroundColor:COLORS,borderWidth:2,borderColor:'#fff'}]},
+    options:{responsive:true,maintainAspectRatio:false,cutout:'60%',
+      plugins:{legend:{position:'bottom',labels:{font:{family:'Almarai',size:12},usePointStyle:true}}}}});
+}
+
+function drawExpChart(){
+  const cats={};
+  allExpenses.forEach(e=>{cats[e.category]=(cats[e.category]||0)+e.amount;});
+  const labels=Object.keys(cats).map(k=>EXP_LABELS[k]||k), data=Object.values(cats);
+  const ctx=document.getElementById('expChart').getContext('2d');
+  if(expChartObj) expChartObj.destroy();
+  if(!data.length){ctx.clearRect(0,0,400,220);ctx.fillStyle='#9e9994';ctx.font='14px Almarai';ctx.textAlign='center';ctx.fillText('لا توجد مصروفات',200,110);return;}
+  expChartObj=new Chart(ctx,{type:'pie',data:{labels,datasets:[{data,backgroundColor:COLORS.slice(0,data.length),borderWidth:2,borderColor:'#fff'}]},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{position:'bottom',labels:{font:{family:'Almarai',size:12},usePointStyle:true}}}}});
+}
+
+function renderSvcList(){
+  const counts={};
+  allVisits.forEach(v=>{if(v.service_type) counts[v.service_type]=(counts[v.service_type]||0)+1;});
+  const sorted=Object.entries(counts).sort((a,b)=>b[1]-a[1]);
+  const max=sorted[0]?.[1]||1;
+  const el=document.getElementById('svc-list');
+  if(!sorted.length){el.innerHTML='<p style="color:var(--muted);text-align:center;padding:20px">لا توجد بيانات</p>';return;}
+  el.innerHTML=sorted.map(([k,v])=>`
+    <div class="svc-row">
+      <span class="sn">${SVC_LABELS[k]||k}</span>
+      <div class="bar-wrap"><div class="bar-fill" style="width:${v/max*100}%"></div></div>
+      <span class="sv">${v.toLocaleString('ar-SA')} مرة</span>
+    </div>`).join('');
+}
+
+function renderVisitsTable(){
+  const el=document.getElementById('visits-tbody');
+  if(!allVisits.length){el.innerHTML='<tr><td colspan="4" style="text-align:center;padding:24px;color:var(--muted)">لا توجد زيارات في هذه الفترة</td></tr>';return;}
+  el.innerHTML=allVisits.slice(0,25).map(v=>{
+    const net=(v.price-(v.discount||0)).toLocaleString('ar-SA');
+    const svcs=SVC_LABELS[v.service_type]||v.service_type||'—';
+    const dt=new Date(v.created_at).toLocaleDateString('ar-SA');
+    return`<tr>
+      <td style="font-family:'Nippo',sans-serif;letter-spacing:.04em;font-size:1rem;padding:10px 16px;border-bottom:1px solid var(--line)">${v.plate||'—'}</td>
+      <td style="padding:10px 16px;border-bottom:1px solid var(--line);font-size:.88rem">${svcs}</td>
+      <td style="padding:10px 16px;border-bottom:1px solid var(--line);font-weight:900;color:var(--violet)">${net} ر.س</td>
+      <td style="padding:10px 16px;border-bottom:1px solid var(--line);color:var(--muted);font-size:.85rem">${dt}</td>
+    </tr>`;
+  }).join('');
+}
+
+function renderExpTable(){
+  const el=document.getElementById('exp-tbody');
+  if(!allExpenses.length){el.innerHTML='<tr><td colspan="4" style="text-align:center;padding:24px;color:var(--muted)">لا توجد مصروفات في هذه الفترة</td></tr>';return;}
+  el.innerHTML=allExpenses.slice(0,25).map(e=>`
+    <tr>
+      <td style="padding:10px 16px;border-bottom:1px solid var(--line)"><span style="background:var(--paper);border-radius:7px;padding:3px 10px;font-size:.82rem;font-weight:800">${EXP_LABELS[e.category]||e.category}</span></td>
+      <td style="padding:10px 16px;border-bottom:1px solid var(--line);font-size:.88rem">${e.description||'—'}</td>
+      <td style="padding:10px 16px;border-bottom:1px solid var(--line);font-weight:900;color:#f59e0b">${e.amount.toLocaleString('ar-SA')} ر.س</td>
+      <td style="padding:10px 16px;border-bottom:1px solid var(--line);color:var(--muted);font-size:.85rem">${e.expense_date||'—'}</td>
+    </tr>`).join('');
+}
+
+function exportCSV(){
+  const rows=[['اللوحة','الخدمات','السعر','الخصم','الصافي','التاريخ']];
+  allVisits.forEach(v=>{
+    rows.push([v.plate||'',SVC_LABELS[v.service_type]||v.service_type||'',
+      v.price||0,v.discount||0,(v.price||0)-(v.discount||0),(v.created_at||'').slice(0,10)]);
+  });
+  const csv=rows.map(r=>r.join(',')).join('\n');
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob(['﻿'+csv],{type:'text/csv;charset=utf-8'}));
+  a.download=`voldmotor-${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
+}
+
+(async()=>{
+  SESSION=await requireAuth(); if(!SESSION) return;
+  const meta=SESSION.user.user_metadata||{};
+  // RBAC: financial reports are hidden from technicians
+  const _role = window.vmRoleOf ? window.vmRoleOf(meta.role) : 'owner';
+  if (_role === 'technician') { window.location.replace('worker.html'); return; }
+  MERCHANT_ID=SESSION.user.id;
+  const name=meta.center_name||meta.full_name||SESSION.user.email||'';
+  document.getElementById('sb-name').textContent=name;
+  document.getElementById('sb-avatar').textContent=name.charAt(0)||'م';
+  await loadReport();
+})();
+// react to the global branch switcher
+window.addEventListener('vm:branch-change', () => {
+  const sc=document.getElementById('ai-scope');
+  if(sc) sc.textContent = activeBranch()==='all' ? 'يحلّل بيانات كل الفروع' : 'يحلّل بيانات الفرع المحدد';
+  loadReport();
+});
+</script>
+<script src="mobile-init.js"></script>
+<script>document.addEventListener("DOMContentLoaded",()=>{ if(typeof fillSidebarUser==="function") fillSidebarUser(); });</script>
+  <script src="brand.js"></script>
+</body>
+</html>

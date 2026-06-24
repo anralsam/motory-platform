@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>المخزون — VOLD MOTOR</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Almarai:wght@300;400;700;800&&&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<style>
+/* تبويبات الفئات */
+.cat-tabs{display:flex;gap:8px;margin-bottom:22px;flex-wrap:wrap}
+.cat-tab{padding:9px 18px;border-radius:var(--radius-full);border:1.5px solid var(--line);background:var(--paper);font-family:inherit;font-weight:800;font-size:.9rem;color:var(--muted);cursor:pointer;transition:.15s;white-space:nowrap}
+.cat-tab:hover{border-color:var(--violet);color:var(--violet)}
+.cat-tab.active{background:var(--violet);color:#fff;border-color:var(--violet);box-shadow:0 4px 14px rgba(59,130,246,.28)}
+
+/* شريط البحث */
+.search-bar{display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap}
+.search-inp{flex:1;min-width:200px;padding:11px 16px 11px 40px;border:1.5px solid var(--line);border-radius:11px;font-family:inherit;font-size:.97rem;color:var(--ink);background:var(--lilac);outline:0;transition:.15s}
+.search-inp:focus{border-color:var(--violet);box-shadow:0 0 0 3px rgba(229,57,53,.12)}
+.search-wrap{position:relative;flex:1}
+.search-ico{position:absolute;right:13px;top:50%;transform:translateY(-50%);color:#c5c0d8;pointer-events:none}
+
+/* جدول المخزون */
+.inv-table-wrap{background:var(--paper);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow-xs)}
+.inv-item-icon{width:38px;height:38px;border-radius:10px;display:grid;place-items:center;flex:none}
+.stock-bar-wrap{width:90px}
+.stock-bar{height:6px;border-radius:3px;background:var(--line);overflow:hidden}
+.stock-bar-fill{height:100%;border-radius:3px;transition:.3s}
+.stock-ok .stock-bar-fill{background:var(--green)}
+.stock-low .stock-bar-fill{background:var(--orange)}
+.stock-out .stock-bar-fill{background:var(--red)}
+
+/* تنبيهات النفاد */
+.alerts-box{background:var(--peach);border:1.5px solid #fcd4bf;border-radius:var(--radius);padding:16px 20px;margin-bottom:22px;display:flex;align-items:flex-start;gap:14px}
+.alerts-box.hidden{display:none}
+.alert-ico{width:36px;height:36px;background:var(--lilac);border-radius:9px;display:grid;place-items:center;color:var(--orange);flex:none;box-shadow:0 2px 8px rgba(249,115,22,.15)}
+.alert-list{flex:1}
+.alert-list .al-title{font-weight:900;font-size:.97rem;color:var(--orange);margin-bottom:6px}
+.alert-chips{display:flex;gap:7px;flex-wrap:wrap}
+.alert-chip{font-size:.8rem;font-weight:800;background:var(--lilac);color:var(--orange);padding:4px 11px;border-radius:var(--radius-full);border:1px solid #fcd4bf;cursor:pointer;transition:.15s}
+.alert-chip:hover{background:var(--orange);color:#fff}
+
+/* بطاقة الصنف في الموبايل */
+.inv-cards{display:none;gap:14px;flex-direction:column}
+.inv-card{background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:16px}
+.inv-card-head{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+.inv-card-head .meta{flex:1;min-width:0}
+.inv-card-head .meta .iname{font-weight:900;font-size:1rem;color:var(--ink)}
+.inv-card-head .meta .icat{font-size:.8rem;color:var(--muted);margin-top:2px}
+.inv-card-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.inv-card-item{background:var(--bg);border-radius:9px;padding:9px 11px}
+.inv-card-item .ci-label{font-size:.74rem;font-weight:700;color:var(--muted)}
+.inv-card-item .ci-val{font-size:.97rem;font-weight:700;color:var(--ink);margin-top:1px}
+.inv-card-footer{display:flex;align-items:center;justify-content:space-between;margin-top:12px;padding-top:10px;border-top:1px solid var(--line)}
+
+/* أزرار إجراءات الصف */
+.row-actions{display:flex;gap:6px;opacity:0;transition:.15s}
+.tbl tr:hover .row-actions{opacity:1}
+.act-btn{width:30px;height:30px;border-radius:7px;border:1.5px solid var(--line);background:var(--paper);display:grid;place-items:center;cursor:pointer;color:var(--muted);transition:.15s}
+.act-btn:hover{border-color:var(--violet);color:var(--violet)}
+.act-btn.danger:hover{border-color:var(--red);color:var(--red)}
+
+/* modal */
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(26,19,64,.45);backdrop-filter:blur(4px);z-index:100;align-items:center;justify-content:center;padding:20px}
+.modal-bg.open{display:flex}
+.modal{background:var(--paper);border-radius:22px;width:100%;max-width:560px;max-height:90vh;overflow-y:auto;box-shadow:var(--shadow-lg)}
+.modal-head{display:flex;align-items:center;justify-content:space-between;padding:22px 24px 0}
+.modal-head h3{font-size:1.22rem;font-weight:700;color:var(--ink)}
+.modal-close{width:34px;height:34px;border-radius:9px;border:1.5px solid var(--line);background:var(--paper);display:grid;place-items:center;cursor:pointer;color:var(--muted);transition:.15s}
+.modal-close:hover{border-color:var(--ink);color:var(--ink)}
+.modal-body{padding:20px 24px 24px}
+
+/* حركة المخزون */
+.movement-list{display:flex;flex-direction:column;gap:10px}
+.movement-item{display:flex;align-items:center;gap:12px;padding:12px 14px;background:var(--bg);border-radius:11px}
+.mv-icon{width:32px;height:32px;border-radius:8px;display:grid;place-items:center;flex:none}
+.mv-icon.in{background:var(--mint);color:var(--green)}
+.mv-icon.out{background:var(--peach);color:var(--orange)}
+.mv-meta{flex:1;min-width:0}
+.mv-meta .mv-title{font-weight:800;font-size:.93rem;color:var(--ink)}
+.mv-meta .mv-sub{font-size:.8rem;color:var(--muted);margin-top:1px}
+.mv-qty{font-weight:900;font-size:.97rem}
+.mv-qty.in{color:var(--green)}
+.mv-qty.out{color:var(--orange)}
+
+/* تبديل عرض */
+.view-toggle{display:flex;gap:4px;background:var(--bg);border-radius:9px;padding:4px}
+.view-btn{width:32px;height:32px;border-radius:7px;border:0;background:none;display:grid;place-items:center;cursor:pointer;color:var(--muted);transition:.15s}
+.view-btn.active{background:var(--paper);color:var(--violet);box-shadow:var(--shadow-xs)}
+
+/* context bar: current branch + its activity type */
+.ctx-bar{display:flex;align-items:center;gap:14px;flex-wrap:wrap;background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:14px 18px;margin-bottom:20px;box-shadow:var(--shadow-xs)}
+.ctx-bar .ctx-ico{width:40px;height:40px;border-radius:11px;background:rgba(37,99,235,.1);display:grid;place-items:center;flex:none;color:var(--violet)}
+.ctx-bar .ctx-meta{flex:1;min-width:0}
+.ctx-bar .ctx-branch{font-weight:900;font-size:1.02rem;color:var(--ink)}
+.ctx-bar .ctx-sub{font-size:.82rem;color:var(--muted);margin-top:2px}
+.ctx-bar .ctx-type{font-size:.78rem;font-weight:800;padding:5px 12px;border-radius:var(--radius-full);background:rgba(37,99,235,.1);color:var(--violet);white-space:nowrap}
+@media(max-width:560px){
+  .cat-tabs{gap:6px}
+  .cat-tab{padding:7px 13px;font-size:.85rem}
+}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="center-types.js"></script>
+<script src="supabase-client.js"></script>
+<script src="lang.js" defer></script>
+</head>
+<body>
+<div class="app-layout">
+
+<!-- SIDEBAR -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-logo" style="display:flex;align-items:center;gap:9px;direction:ltr;justify-content:flex-start;font-family:'Nippo',sans-serif">
+    <svg width="28" height="28" viewBox="0 0 48 48" fill="none" aria-hidden="true" style="flex:none"><path d="M6 10 L24 42 L42 10" stroke="url(#sbg)" stroke-width="4.8" stroke-linecap="round" stroke-linejoin="round"/><defs><linearGradient id="sbg" x1="6" y1="10" x2="42" y2="42" gradientUnits="userSpaceOnUse"><stop stop-color="#FAFAFA"/><stop offset=".55" stop-color="#3b82f6"/><stop offset="1" stop-color="#2563eb"/></linearGradient></defs></svg>
+    <span style="display:inline-flex;align-items:center;gap:.35em;line-height:1"><span style="font-weight:800;font-size:1.12rem;letter-spacing:.02em;color:var(--ink)">VOLD</span><span style="font-weight:300;font-size:1.12rem;letter-spacing:.16em;color:var(--ink)">MOTOR</span></span>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-section">
+      <a href="dashboard.html" class="nav-item"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg> <span data-i18n="d.nav.dash">لوحة التحكم</span></a>
+      <a href="appointments.html" class="nav-item"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg> <span data-i18n="d.nav.appt">الحجوزات</span> <span class="ni-badge">5</span></a>
+      <a href="customers.html" class="nav-item"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg> <span data-i18n="d.nav.cust">العملاء</span></a>
+      <a href="inventory.html" class="nav-item active"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M20 7H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg> <span data-i18n="d.nav.inv">المخزون</span></a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label" data-i18n="d.sec.comm">التواصل</div>
+      <a href="messages.html" class="nav-item"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg> <span data-i18n="d.nav.msg">الرسائل</span> <span class="ni-badge">3</span></a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label" data-i18n="side.sec.manage">الإدارة</div>
+      <a href="reports.html" class="nav-item"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg> <span data-i18n="d.nav.rep">التقارير</span></a>
+      <a href="team.html" class="nav-item"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg> <span data-i18n="d.nav.team">الفريق</span></a>
+      <a href="settings.html" class="nav-item"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg> <span data-i18n="d.nav.set">الإعدادات</span></a>
+    </div>
+  </nav>
+  <div class="sidebar-user"><div class="avatar" style="background:var(--violet)">م</div>
+    <div class="info"><b>...</b><span>VOLD MOTOR</span></div><a href="#" onclick="doLogout();return false;" title="خروج"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#7a7875" stroke-width="2.2" stroke-linecap="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></a></div>
+</aside>
+
+<!-- MAIN -->
+<div class="main-area">
+  <div class="topbar">
+    <div style="display:flex;align-items:center;gap:14px">
+      <button class="burger-btn" onclick="document.getElementById('sidebar').classList.toggle('open')"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M3 6h18M3 12h18M3 18h18"/></svg></button>
+      <a href="dashboard.html" class="back-btn">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>
+        <span data-i18n="c.back">العودة</span>
+      </a>
+      <span class="topbar-title" data-i18n="d.nav.inv">المخزون</span>
+    </div>
+    <div class="topbar-actions">
+        <button class="lang-toggle-dash" onclick="toggleLang()" title="Switch to English" style="background:none;border:1.5px solid var(--line);border-radius:8px;padding:5px 12px;font-family:'Nippo',sans-serif;font-size:.95rem;letter-spacing:.06em;color:var(--ink);cursor:pointer;transition:.15s">EN</button>
+      <button class="btn btn-ghost btn-sm" onclick="openMovementModal()"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M8 7H3m0 0 3-3M3 7l3 3M16 17h5m0 0-3 3m3-3-3-3"/></svg> <span data-i18n="i.logMovement">تسجيل حركة</span></button>
+      <button class="btn btn-violet btn-sm" onclick="document.getElementById('addModal').classList.add('open')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg> <span data-i18n="i.newItem">صنف جديد</span></button>
+    </div>
+  </div>
+
+  <div class="page-content">
+
+    <!-- شريط السياق: الفرع الحالي + نوع نشاطه -->
+    <div class="ctx-bar fade-in" id="ctxBar">
+      <div class="ctx-ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 7H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg></div>
+      <div class="ctx-meta">
+        <div class="ctx-branch" id="ctxBranch">…</div>
+        <div class="ctx-sub" id="ctxSub">مخزون مُخصّص حسب نوع نشاط الفرع</div>
+      </div>
+      <span class="ctx-type" id="ctxType">—</span>
+    </div>
+
+    <!-- تبويبات الفئات (تُبنى ديناميكياً حسب نوع الفرع) + بحث -->
+    <div class="fade-in">
+      <div class="cat-tabs" id="catTabs"></div>
+
+      <div class="search-bar">
+        <div class="search-wrap">
+          <svg class="search-ico" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+          <input class="search-inp" type="text" id="searchInp" placeholder="ابحث باسم الصنف أو المورّد..." data-i18n-ph="i.searchPh" oninput="filterItems()">
+        </div>
+        <button class="btn btn-ghost btn-sm" onclick="sortItems()"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 6h16M4 12h10M4 18h7"/></svg> <span data-i18n="c.sort">ترتيب</span></button>
+      </div>
+    </div>
+
+    <!-- جدول بيانات واحد نظيف (يتحوّل لبطاقات على الجوال تلقائياً) -->
+    <div class="inv-table-wrap fade-in" id="invTableWrap">
+      <table class="tbl" id="invTable">
+        <thead>
+          <tr>
+            <th data-i18n="i.thItem">الصنف</th>
+            <th data-i18n="i.thCat">الفئة</th>
+            <th data-i18n="i.thQty">الكمية</th>
+            <th data-i18n="i.thMin">الحد الأدنى</th>
+            <th data-i18n="i.thUnitPrice">سعر الوحدة</th>
+            <th data-i18n="i.thTotal">الإجمالي</th>
+            <th data-i18n="d.status">الحالة</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="invTbody"></tbody>
+      </table>
+    </div>
+
+  </div>
+</div>
+</div>
+
+<!-- Modal إضافة صنف -->
+<div class="modal-bg" id="addModal">
+  <div class="modal">
+    <div class="modal-head">
+      <h3 data-i18n="i.addTitle">إضافة صنف جديد</h3>
+      <button class="modal-close" onclick="document.getElementById('addModal').classList.remove('open')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+    </div>
+    <div class="modal-body">
+      <div class="field-row">
+        <div class="field"><label data-i18n="i.itemName">اسم الصنف</label><div class="inp-wrap"><input type="text" id="newName" placeholder="مثال: كرتون زيت 5W-30" data-i18n-ph="i.itemNamePh"></div></div>
+        <div class="field"><label data-i18n="i.category">الفئة</label><div class="inp-wrap"><select id="newCat"></select></div></div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label data-i18n="i.curQty">الكمية الحالية</label><div class="inp-wrap"><input type="number" id="newQty" placeholder="0" min="0"></div></div>
+        <div class="field"><label data-i18n="i.minAlert">الحد الأدنى للتنبيه</label><div class="inp-wrap"><input type="number" id="newMin" placeholder="5" min="0"></div></div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label data-i18n="i.unitPriceSar">سعر الوحدة (ر.س)</label><div class="inp-wrap"><input type="number" id="newPrice" placeholder="0.00" min="0" step="0.01"></div></div>
+        <div class="field"><label>المورّد</label><div class="inp-wrap"><input type="text" id="newSupplier" placeholder="اسم المورّد (اختياري)"></div></div>
+      </div>
+      <div class="field"><label data-i18n="c.notes">ملاحظات</label><div class="inp-wrap"><textarea id="newNotes" placeholder="تفاصيل إضافية..."></textarea></div></div>
+      <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:6px">
+        <button class="btn btn-ghost" onclick="document.getElementById('addModal').classList.remove('open')" data-i18n="c.cancel">إلغاء</button>
+        <button class="btn btn-violet" onclick="saveNewItem()"><span data-i18n="i.saveItem">حفظ الصنف</span></button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal تسجيل حركة -->
+<div class="modal-bg" id="movementModal">
+  <div class="modal">
+    <div class="modal-head">
+      <h3 data-i18n="i.moveTitle">تسجيل حركة مخزون</h3>
+      <button class="modal-close" onclick="document.getElementById('movementModal').classList.remove('open')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+    </div>
+    <div class="modal-body">
+      <div class="field">
+        <label data-i18n="i.moveType">نوع الحركة</label>
+        <div style="display:flex;gap:10px">
+          <label style="flex:1;cursor:pointer"><input type="radio" name="mvType" value="in" checked style="margin-left:6px"> <span style="font-weight:800;color:var(--green)" data-i18n="i.addStock">إضافة للمخزون</span></label>
+          <label style="flex:1;cursor:pointer"><input type="radio" name="mvType" value="out" style="margin-left:6px"> <span style="font-weight:800;color:var(--orange)" data-i18n="i.removeStock">سحب من المخزون</span></label>
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label data-i18n="i.item">الصنف</label><div class="inp-wrap"><select id="mvItem"><option value="" data-i18n="i.chooseItem">اختر الصنف...</option></select></div></div>
+        <div class="field"><label data-i18n="i.thQty">الكمية</label><div class="inp-wrap"><input type="number" id="mvQty" placeholder="1" min="1"></div></div>
+      </div>
+      <div class="field"><label data-i18n="i.reason">السبب / الملاحظة</label><div class="inp-wrap"><input type="text" id="mvNote" placeholder="مثال: استخدام في طلب، استلام من المورّد..." data-i18n-ph="i.reasonPh"></div></div>
+      <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:18px">
+        <button class="btn btn-ghost" onclick="document.getElementById('movementModal').classList.remove('open')" data-i18n="c.cancel">إلغاء</button>
+        <button class="btn btn-violet" onclick="saveMovement()"><span data-i18n="i.saveMove">تسجيل الحركة</span></button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal تفاصيل الصنف -->
+<div class="modal-bg" id="detailModal">
+  <div class="modal">
+    <div class="modal-head">
+      <h3 id="dtlName">—</h3>
+      <button class="modal-close" onclick="document.getElementById('detailModal').classList.remove('open')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+    </div>
+    <div class="modal-body">
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:18px">
+        <div style="background:var(--bg);border-radius:12px;padding:14px"><div style="font-size:.8rem;color:var(--muted);font-weight:700" data-i18n="i.curQty">الكمية الحالية</div><div id="dtlQty" style="font-weight:900;font-size:1.4rem;color:var(--ink);margin-top:4px">—</div></div>
+        <div style="background:var(--bg);border-radius:12px;padding:14px"><div style="font-size:.8rem;color:var(--muted);font-weight:700" data-i18n="i.thUnitPrice">سعر الوحدة</div><div id="dtlPrice" style="font-weight:900;font-size:1.4rem;color:var(--violet);margin-top:4px">—</div></div>
+        <div style="background:var(--bg);border-radius:12px;padding:14px"><div style="font-size:.8rem;color:var(--muted);font-weight:700" data-i18n="i.totalValue">إجمالي القيمة</div><div id="dtlTotal" style="font-weight:900;font-size:1.4rem;color:var(--ink);margin-top:4px">—</div></div>
+      </div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap">
+        <button class="btn btn-violet btn-sm" onclick="openMovementModal()"><span data-i18n="i.logMovementShort">+ تسجيل حركة</span></button>
+        <button class="btn btn-ghost btn-sm" onclick="document.getElementById('detailModal').classList.remove('open')" data-i18n="i.close">إغلاق</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ============================================================
+   المخزون — سياقي حسب نوع نشاط الفرع المحدد من المحوّل العام
+   ============================================================ */
+let ITEMS = [];
+let BRANCHES = [];
+let _UID = null, _META = {};
+let _MYTYPE = 'أخرى';                 // activity type of the selected branch
+let _CATS = [], _CATMAP = {};         // categories for the current type
+let currentCat = 'all', currentSearch = '';
+
+function toAr(n){ return String(n).replace(/\d/g, d => '0123456789'[d]); }
+
+// ── Global branch switcher (shared: localStorage + 'vm:branch-change') ──────────
+function activeBranch(){ try{ return localStorage.getItem('vm_active_branch') || 'all'; }catch(e){ return 'all'; } }
+function currentBranch(){ const id = activeBranch(); return id === 'all' ? null : (BRANCHES.find(b => b.id === id) || null); }
+async function loadBranches(){
+  try{ const { data } = await _sb.rpc('my_branches'); BRANCHES = Array.isArray(data) ? data : []; }
+  catch(e){ BRANCHES = []; }
+}
+
+// ── Context: resolve the activity type from the selected branch ─────────────────
+function resolveType(){
+  const b = currentBranch();
+  if (b && b.center_type){ _MYTYPE = b.center_type; return; }
+  const prim = BRANCHES.find(x => x.is_primary) || BRANCHES[0];   // "all" → primary branch type
+  _MYTYPE = (prim && prim.center_type) || _META.center_type || (window.vmClassify ? window.vmClassify(_META.services) : 'أخرى');
+}
+function applyContext(){
+  resolveType();
+  _CATS = window.vmTypeCategories ? window.vmTypeCategories(_MYTYPE) : [{ key:'general', label:'عام', color:'#57606a' }];
+  _CATMAP = {}; _CATS.forEach(c => _CATMAP[c.key] = c);
+  if (currentCat !== 'all' && !_CATMAP[currentCat]) currentCat = 'all';
+  const sel = document.getElementById('newCat');
+  if (sel) sel.innerHTML = _CATS.map(c => `<option value="${c.key}">${c.label}</option>`).join('');
+  const b = currentBranch();
+  const bn = document.getElementById('ctxBranch'); if (bn) bn.textContent = b ? b.name : (BRANCHES.length > 1 ? 'كل الفروع' : (_META.shop_name || 'مركزي'));
+  const tp = document.getElementById('ctxType'); if (tp) tp.textContent = _MYTYPE;
+  renderTabs();
+}
+function catLabel(k){ return (_CATMAP[k] && _CATMAP[k].label) || (window.vmCatLabel ? window.vmCatLabel(k) : (k || 'أخرى')); }
+function catColor(k){ return (_CATMAP[k] && _CATMAP[k].color) || '#57606a'; }
+
+// ── Category tabs (dynamic per type) ───────────────────────────────────────────
+function renderTabs(){
+  const counts = {}; ITEMS.forEach(i => { counts[i.cat] = (counts[i.cat] || 0) + 1; });
+  const tabs = ['<button class="cat-tab ' + (currentCat==='all'?'active':'') + '" data-cat="all">الكل <span style="font-size:.78rem;opacity:.7">(' + toAr(ITEMS.length) + ')</span></button>']
+    .concat(_CATS.map(c => '<button class="cat-tab ' + (currentCat===c.key?'active':'') + '" data-cat="' + c.key + '">' + c.label + ' <span style="font-size:.78rem;opacity:.7">(' + toAr(counts[c.key]||0) + ')</span></button>'));
+  const host = document.getElementById('catTabs'); if (host) host.innerHTML = tabs.join('');
+}
+document.getElementById('catTabs').addEventListener('click', e => {
+  const tab = e.target.closest('.cat-tab'); if (!tab) return;
+  currentCat = tab.dataset.cat; renderTabs(); render();
+});
+
+// ── Status helpers ─────────────────────────────────────────────────────────────
+function getStatus(i){ if (i.qty === 0) return 'out'; if (i.qty < i.min) return 'low'; return 'ok'; }
+function getStatusBadge(i){ const s = getStatus(i); if (s==='out') return '<span class="badge badge-red">نفد</span>'; if (s==='low') return '<span class="badge badge-orange">منخفض</span>'; return '<span class="badge badge-green">متوفر</span>'; }
+
+function filteredItems(){
+  const q = currentSearch.trim().toLowerCase();
+  return ITEMS.filter(i => {
+    const matchCat = currentCat === 'all' || i.cat === currentCat;
+    const matchSearch = !q || i.name.toLowerCase().includes(q) || (i.supplier||'').toLowerCase().includes(q);
+    return matchCat && matchSearch;
+  });
+}
+
+function render(){
+  const items = filteredItems();
+  const tbody = document.getElementById('invTbody');
+  if (!items.length){
+    tbody.innerHTML = currentSearch
+      ? '<tr><td colspan="8" style="text-align:center;padding:30px 16px;color:var(--muted)">لا نتائج مطابقة للبحث</td></tr>'
+      : '<tr><td colspan="8" style="text-align:center;padding:34px 16px;color:var(--muted)">' +
+        '<div style="font-weight:800;color:var(--ink);margin-bottom:4px">لا يوجد مخزون لهذا الفرع بعد</div>' +
+        '<div style="font-size:.85rem;margin-bottom:14px">نوع النشاط: <b style="color:var(--ink)">' + _MYTYPE + '</b> — حمّل الأصناف الافتراضية المناسبة</div>' +
+        '<button class="btn-violet" style="border:0;background:var(--violet);color:#fff;font-weight:800;padding:10px 18px;border-radius:10px;cursor:pointer" onclick="seedInventoryDefaults(this)">تحميل مخزون «' + _MYTYPE + '» الافتراضي</button>' +
+        '</td></tr>';
+    if (window.vmRespTables) window.vmRespTables();
+    return;
+  }
+  tbody.innerHTML = items.map(i => {
+    const col = catColor(i.cat);
+    return '<tr>' +
+      '<td>' +
+        '<div style="display:flex;align-items:center;gap:10px">' +
+          '<div class="inv-item-icon" style="background:' + col + '20"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="' + col + '" stroke-width="2.2" stroke-linecap="round"><path d="M20 7H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg></div>' +
+          '<div><div class="td-name" style="cursor:pointer" onclick="openDetail(\'' + i.id + '\')">' + i.name + '</div>' +
+          (i.supplier ? '<div class="td-muted">' + i.supplier + '</div>' : '') + '</div>' +
+        '</div>' +
+      '</td>' +
+      '<td><span class="badge" style="background:' + col + '18;color:' + col + '">' + catLabel(i.cat) + '</span></td>' +
+      '<td><span style="font-weight:900;font-size:1.05rem;color:var(--ink)">' + toAr(i.qty) + '</span> <span style="color:var(--muted);font-size:.8rem">' + i.unit + '</span></td>' +
+      '<td><span style="color:var(--muted)">' + toAr(i.min) + '</span></td>' +
+      '<td><span style="font-weight:800">' + toAr(i.price.toLocaleString('en')) + ' ر.س</span></td>' +
+      '<td><span style="font-weight:900;color:var(--violet)">' + toAr((i.qty * i.price).toLocaleString('en')) + ' ر.س</span></td>' +
+      '<td>' + getStatusBadge(i) + '</td>' +
+      '<td><div class="row-actions">' +
+        '<button class="act-btn" onclick="openMovementFor(\'' + i.id + '\')" title="حركة"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M8 7H3m0 0 3-3M3 7l3 3M16 17h5m0 0-3 3m3-3-3-3"/></svg></button>' +
+        '<button class="act-btn danger" onclick="deleteItem(\'' + i.id + '\')" title="حذف"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></svg></button>' +
+      '</div></td>' +
+    '</tr>';
+  }).join('');
+  if (window.vmRespTables) window.vmRespTables();
+}
+
+function filterItems(){ currentSearch = document.getElementById('searchInp').value; render(); }
+function sortItems(){ ITEMS.sort((a,b)=> { const r={out:0,low:1,ok:2}; return r[getStatus(a)] - r[getStatus(b)]; }); render(); }
+
+// ── Data ───────────────────────────────────────────────────────────────────────
+async function loadInventory(){
+  const branch = activeBranch();
+  let q = _sb.from('inventory').select('*').eq('merchant_id', _UID);
+  if (branch !== 'all') q = q.eq('branch_id', branch);
+  q = q.order('category').order('name');
+  const { data, error } = await q;
+  if (error){ console.error(error); ITEMS = []; }
+  else ITEMS = (data||[]).map(r => ({ id:r.id, name:r.name, cat:r.category, qty:r.quantity, min:r.min_quantity, price:Number(r.sell_price||0), unit:r.unit||'قطعة', supplier:r.supplier||'' }));
+  renderTabs();
+  render();
+}
+
+async function seedInventoryDefaults(btn){
+  const cat = window.vmTypeCatalog ? window.vmTypeCatalog(_MYTYPE) : null;
+  if (!cat || !cat.inventory) return;
+  const branch = activeBranch();
+  if (btn){ btn.disabled = true; btn.textContent = 'جاري التحميل...'; }
+  const rows = cat.inventory.map(it => ({
+    merchant_id: _UID, name: it.name, category: it.cat || 'general',
+    quantity: it.qty, min_quantity: Math.max(1, Math.ceil(it.qty * 0.2)),
+    sell_price: it.price || 0, unit: it.unit || 'قطعة',
+    branch_id: branch === 'all' ? null : branch   // null → DB trigger assigns primary
+  }));
+  const { error } = await _sb.from('inventory').insert(rows);
+  if (error){ alert('تعذّر التحميل: ' + error.message); if (btn){ btn.disabled = false; btn.textContent = 'تحميل المخزون الافتراضي'; } return; }
+  await loadInventory();
+}
+
+async function saveNewItem(){
+  const name = document.getElementById('newName').value.trim();
+  const cat  = document.getElementById('newCat').value;
+  const qty  = parseInt(document.getElementById('newQty').value) || 0;
+  const min  = parseInt(document.getElementById('newMin').value) || 5;
+  const price = parseFloat(document.getElementById('newPrice').value) || 0;
+  const supplier = document.getElementById('newSupplier').value.trim() || null;
+  const notes = document.getElementById('newNotes').value.trim() || null;
+  if (!name){ alert('الرجاء إدخال اسم الصنف'); return; }
+  const branch = activeBranch();
+  const { error } = await _sb.from('inventory').insert({
+    merchant_id: _UID, name, category: cat, quantity: qty, min_quantity: min,
+    sell_price: price, supplier, notes,
+    branch_id: branch === 'all' ? null : branch
+  });
+  if (error){ alert('خطأ في الحفظ: ' + error.message); return; }
+  document.getElementById('addModal').classList.remove('open');
+  ['newName','newQty','newMin','newPrice','newSupplier','newNotes'].forEach(id => { const e=document.getElementById(id); if(e) e.value=''; });
+  await loadInventory();
+}
+
+async function deleteItem(id){
+  if (!confirm('حذف هذا الصنف نهائياً؟')) return;
+  const { error } = await _sb.from('inventory').delete().eq('id', id);
+  if (error){ alert('تعذّر الحذف: ' + error.message); return; }
+  await loadInventory();
+}
+
+// ── Detail + movements ─────────────────────────────────────────────────────────
+function openDetail(id){
+  const i = ITEMS.find(x => x.id === id); if (!i) return;
+  window._detailItemId = id;
+  document.getElementById('dtlName').textContent  = i.name;
+  document.getElementById('dtlQty').textContent   = toAr(i.qty) + ' ' + i.unit;
+  document.getElementById('dtlPrice').textContent = toAr(i.price) + ' ر.س';
+  document.getElementById('dtlTotal').textContent = toAr((i.qty * i.price).toLocaleString('en')) + ' ر.س';
+  document.getElementById('detailModal').classList.add('open');
+}
+function openMovementModal(){
+  const sel = document.getElementById('mvItem');
+  sel.innerHTML = '<option value="">اختر الصنف...</option>' + ITEMS.map(i => '<option value="' + i.id + '">' + i.name + '</option>').join('');
+  document.getElementById('detailModal').classList.remove('open');
+  document.getElementById('movementModal').classList.add('open');
+}
+function openMovementFor(id){ openMovementModal(); const sel=document.getElementById('mvItem'); if(sel) sel.value=id; }
+
+async function saveMovement(){
+  const type = document.querySelector('input[name="mvType"]:checked').value;
+  const itemId = document.getElementById('mvItem').value;
+  const qty = parseInt(document.getElementById('mvQty').value);
+  const note = (document.getElementById('mvNote') || {}).value || '';
+  if (!itemId || !qty || qty < 1){ alert('الرجاء اختيار الصنف وتحديد الكمية'); return; }
+  const item = ITEMS.find(i => i.id === itemId); if (!item) return;
+  const newQty = type === 'in' ? item.qty + qty : Math.max(0, item.qty - qty);
+  await _sb.from('inventory_movements').insert({ merchant_id: _UID, item_id: itemId, type, quantity: qty, notes: note.trim() || null });
+  await _sb.from('inventory').update({ quantity: newQty, updated_at: new Date().toISOString() }).eq('id', itemId);
+  document.getElementById('movementModal').classList.remove('open');
+  document.getElementById('mvQty').value = '';
+  await loadInventory();
+}
+
+// close modals on backdrop click
+document.querySelectorAll('.modal-bg').forEach(m => { m.addEventListener('click', e => { if (e.target === m) m.classList.remove('open'); }); });
+
+// react to global branch switching
+window.addEventListener('vm:branch-change', async () => { applyContext(); await loadInventory(); });
+
+/* Boot */
+(async () => {
+  const session = await requireAuth();
+  if (!session) return;
+  _UID = session.user.id;
+  _META = session.user.user_metadata || {};
+  if (typeof fillSidebarUser === 'function') fillSidebarUser();
+  await loadBranches();
+  applyContext();
+  await loadInventory();
+})();
+</script>
+<script src="mobile-init.js"></script>
+  <script src="brand.js"></script>
+</body>
+</html>

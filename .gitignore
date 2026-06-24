@@ -1,0 +1,12 @@
+# أسرار — لا ترفعها أبداً
+.env
+.env.local
+.env.*
+
+# Cloudflare wrangler
+.wrangler/
+
+# نظام التشغيل والمحرر
+.DS_Store
+node_modules/
+*.log

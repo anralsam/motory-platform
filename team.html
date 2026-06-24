@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>الفريق — VOLD MOTOR</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Almarai:wght@300;400;700;800&&&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<style>
+.team-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:18px;margin-bottom:28px}
+.team-card{background:var(--paper);border:1.5px solid var(--line);border-radius:20px;padding:24px 20px;text-align:center;transition:.18s;position:relative}
+.team-card:hover{box-shadow:var(--shadow-sm);transform:translateY(-3px);border-color:var(--violet)}
+.tc-avatar{width:72px;height:72px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.8rem;font-weight:900;color:#fff;margin:0 auto 14px;font-family:'Nippo',sans-serif;letter-spacing:.04em}
+.tc-name{font-size:1.08rem;font-weight:700;color:var(--ink);margin-bottom:4px}
+.tc-role{font-size:.83rem;font-weight:700;color:var(--muted);margin-bottom:14px}
+.tc-stats{display:flex;justify-content:center;gap:20px;padding:12px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line);margin-bottom:14px}
+.tc-stat .tsv{font-size:1.2rem;font-weight:700;color:var(--ink);font-family:'Nippo',sans-serif}
+.tc-stat .tsl{font-size:.75rem;color:var(--muted);font-weight:700}
+.tc-phone{font-size:.85rem;color:var(--muted);font-weight:600;display:flex;align-items:center;justify-content:center;gap:6px}
+.tc-actions{position:absolute;top:14px;left:14px;display:flex;gap:6px;opacity:0;transition:.15s}
+.team-card:hover .tc-actions{opacity:1}
+.tc-act-btn{width:30px;height:30px;border-radius:8px;border:1.5px solid var(--line);background:var(--paper);display:grid;place-items:center;cursor:pointer;color:var(--muted);transition:.15s}
+.tc-act-btn:hover{border-color:var(--violet);color:var(--violet)}
+.tc-act-btn.del:hover{border-color:#ef4444;color:#ef4444}
+.role-badge{display:inline-flex;align-items:center;gap:5px;padding:4px 12px;border-radius:99px;font-size:.78rem;font-weight:800}
+.role-manager{background:var(--violet-soft);color:var(--violet)}
+.role-cashier{background:var(--sky);color:var(--blue)}
+.role-tech{background:var(--mint);color:var(--green)}
+.role-cleaning{background:var(--amber);color:var(--yellow)}
+.lk-btn{display:inline-flex;align-items:center;gap:5px;padding:7px 12px;border-radius:9px;border:1.5px solid var(--line);background:var(--paper);font-family:inherit;font-size:.8rem;font-weight:800;color:var(--ink);cursor:pointer;transition:.15s;white-space:nowrap}
+.lk-btn:hover{border-color:var(--violet);color:var(--violet)}
+.lk-btn.wa{border-color:#25d36633;color:#1faa53}
+.lk-btn.wa:hover{background:#25d366;border-color:#25d366;color:#fff}
+
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(26,19,64,.45);backdrop-filter:blur(4px);z-index:100;align-items:center;justify-content:center;padding:20px}
+.modal-bg.open{display:flex}
+.modal{background:var(--paper);border-radius:22px;width:100%;max-width:500px;max-height:90vh;overflow-y:auto;box-shadow:0 24px 64px rgba(0,0,0,.18)}
+.modal-head{display:flex;align-items:center;justify-content:space-between;padding:22px 24px 0}
+.modal-head h3{font-size:1.18rem;font-weight:700;color:var(--ink)}
+.modal-close{width:40px;height:40px;border-radius:10px;border:1.5px solid var(--line);background:var(--paper);display:grid;place-items:center;cursor:pointer;color:var(--muted);transition:.15s}
+.modal-close:hover{border-color:var(--ink);color:var(--ink)}
+.modal-body{padding:20px 24px 24px}
+.form-group{display:flex;flex-direction:column;gap:6px;margin-bottom:14px}
+.form-group label{font-size:.83rem;font-weight:800;color:var(--muted)}
+.form-group input,.form-group select{
+  padding:12px 14px;border-radius:11px;border:1.5px solid var(--line);
+  background:var(--lilac);font-family:inherit;font-size:.93rem;font-weight:600;color:var(--ink);
+  width:100%;box-sizing:border-box;min-height:44px}
+.form-group input:focus,.form-group select:focus{
+  outline:none;border-color:var(--violet);box-shadow:0 0 0 3px rgba(59,130,246,.12)}
+.form-group select option{background:var(--paper);color:var(--ink)}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+
+.empty-state{text-align:center;padding:60px 20px;color:var(--muted)}
+.empty-state svg{margin:0 auto 16px;display:block;opacity:.35}
+.empty-state h3{font-size:1.1rem;font-weight:700;color:var(--ink);margin-bottom:6px}
+
+.save-toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--ink);color:#fff;padding:12px 24px;border-radius:12px;font-size:.9rem;font-weight:700;transition:transform .3s;z-index:999}
+.save-toast.show{transform:translateX(-50%) translateY(0)}
+
+@media(max-width:600px){.form-row{grid-template-columns:1fr}.team-grid{grid-template-columns:1fr}}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="roles.js"></script>
+<script src="supabase-client.js"></script>
+<script src="lang.js" defer></script>
+</head>
+<body>
+<div class="app-layout">
+
+<!-- SIDEBAR -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-logo" style="display:flex;align-items:center;gap:9px;direction:ltr;justify-content:flex-start;font-family:'Nippo',sans-serif">
+    <svg width="28" height="28" viewBox="0 0 48 48" fill="none" aria-hidden="true" style="flex:none"><path d="M6 10 L24 42 L42 10" stroke="url(#sbg)" stroke-width="4.8" stroke-linecap="round" stroke-linejoin="round"/><defs><linearGradient id="sbg" x1="6" y1="10" x2="42" y2="42" gradientUnits="userSpaceOnUse"><stop stop-color="#FAFAFA"/><stop offset=".55" stop-color="#3b82f6"/><stop offset="1" stop-color="#2563eb"/></linearGradient></defs></svg>
+    <span style="display:inline-flex;align-items:center;gap:.35em;line-height:1"><span style="font-weight:800;font-size:1.12rem;letter-spacing:.02em;color:var(--ink)">VOLD</span><span style="font-weight:300;font-size:1.12rem;letter-spacing:.16em;color:var(--ink)">MOTOR</span></span>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-section">
+      <a href="dashboard.html" class="nav-item"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg> <span data-i18n="d.nav.dash">لوحة التحكم</span></a>
+      <a href="services.html" class="nav-item"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94z"/></svg> <span>الخدمات</span></a>
+      <a href="customers.html" class="nav-item"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg> <span data-i18n="d.nav.cust">العملاء</span></a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label" data-i18n="side.sec.manage">الإدارة</div>
+      <a href="expenses.html" class="nav-item"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg> <span data-i18n="d.nav.exp">المصروفات</span></a>
+      <a href="reports.html" class="nav-item"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg> <span data-i18n="d.nav.rep">التقارير</span></a>
+      <a href="team.html" class="nav-item active"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg> <span data-i18n="d.nav.team">الفريق</span></a>
+      <a href="settings.html" class="nav-item"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg> <span data-i18n="d.nav.set">الإعدادات</span></a>
+    </div>
+  </nav>
+  <div class="sidebar-user">
+    <div class="avatar" style="background:#3b82f6" id="sb-avatar">م</div>
+    <div class="info"><b id="sb-name">جاري...</b><span>VOLD MOTOR</span></div>
+    <a href="#" onclick="doLogout();return false;" title="خروج"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#7a7875" stroke-width="2.2" stroke-linecap="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></a>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<div class="main-area">
+  <div class="topbar">
+    <div style="display:flex;align-items:center;gap:14px">
+      <button class="burger-btn" onclick="document.getElementById('sidebar').classList.toggle('open')"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M3 6h18M3 12h18M3 18h18"/></svg></button>
+      <a href="dashboard.html" class="back-btn">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>
+        <span data-i18n="c.back">العودة</span>
+      </a>
+      <span class="topbar-title" data-i18n="d.nav.team">الفريق</span>
+    </div>
+    <div class="topbar-actions">
+      <button class="lang-toggle-dash" onclick="toggleLang()" title="Switch to English" style="background:none;border:1.5px solid var(--line);border-radius:8px;padding:5px 12px;font-family:'Nippo',sans-serif;font-size:.95rem;letter-spacing:.06em;color:var(--ink);cursor:pointer;transition:.15s;margin-inline-end:8px">EN</button>
+      <button class="btn btn-violet btn-sm" onclick="openAddModal()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+        <span data-i18n="t.addEmp">إضافة موظف</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="page-content">
+
+    <!-- ملخص -->
+    <div class="stats-row fade-in" style="grid-template-columns:repeat(4,1fr);margin-bottom:24px">
+      <div class="stat-card">
+        <span class="s-label" data-i18n="t.totalTeam">إجمالي الفريق</span>
+        <span class="s-val" id="stat-total">—</span>
+        <span class="s-change" style="color:var(--muted)" data-i18n="t.employee">موظف</span>
+      </div>
+      <div class="stat-card">
+        <span class="s-label" data-i18n="t.managers">المديرون</span>
+        <span class="s-val" id="stat-managers" style="color:var(--violet)">—</span>
+        <span class="s-change" style="color:var(--muted)" data-i18n="t.manager">مدير</span>
+      </div>
+      <div class="stat-card">
+        <span class="s-label">النشطون</span>
+        <span class="s-val" id="stat-active" style="color:#1d6fd6">—</span>
+        <span class="s-change" style="color:var(--muted)">موظف نشط</span>
+      </div>
+      <div class="stat-card">
+        <span class="s-label" data-i18n="t.techs">الفنيون</span>
+        <span class="s-val" id="stat-techs" style="color:#059669">—</span>
+        <span class="s-change" style="color:var(--muted)" data-i18n="t.tech">فني</span>
+      </div>
+    </div>
+
+    <!-- جدول الفريق -->
+    <div class="tbl-card fade-in" style="background:var(--paper);border:1.5px solid var(--line);border-radius:18px;overflow:hidden">
+      <div style="overflow-x:auto">
+        <table class="tbl" id="team-table" style="width:100%;border-collapse:collapse">
+          <thead>
+            <tr>
+              <th style="text-align:start;font-size:.78rem;font-weight:800;color:var(--muted);padding:12px 18px;background:var(--lilac);border-bottom:1.5px solid var(--line)">الموظف</th>
+              <th style="text-align:start;font-size:.78rem;font-weight:800;color:var(--muted);padding:12px 18px;background:var(--lilac);border-bottom:1.5px solid var(--line)">الدور</th>
+              <th style="text-align:start;font-size:.78rem;font-weight:800;color:var(--muted);padding:12px 18px;background:var(--lilac);border-bottom:1.5px solid var(--line)">بريد الدخول</th>
+              <th style="text-align:start;font-size:.78rem;font-weight:800;color:var(--muted);padding:12px 18px;background:var(--lilac);border-bottom:1.5px solid var(--line)">الجوال</th>
+              <th style="text-align:start;font-size:.78rem;font-weight:800;color:var(--muted);padding:12px 18px;background:var(--lilac);border-bottom:1.5px solid var(--line)">الحالة</th>
+              <th style="text-align:start;font-size:.78rem;font-weight:800;color:var(--muted);padding:12px 18px;background:var(--lilac);border-bottom:1.5px solid var(--line)">رابط الدخول</th>
+              <th style="background:var(--lilac);border-bottom:1.5px solid var(--line)"></th>
+            </tr>
+          </thead>
+          <tbody id="team-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</div>
+</div>
+
+<!-- Modal إضافة/تعديل -->
+<div class="modal-bg" id="addModal">
+  <div class="modal">
+    <div class="modal-head">
+      <h3 id="modal-title" data-i18n="t.addEmpTitle">إضافة موظف جديد</h3>
+      <button class="modal-close" onclick="closeModal()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+    </div>
+    <div class="modal-body">
+      <div id="wk-err" style="display:none;background:#fef2f2;border:1px solid #fca5a5;color:#b91c1c;border-radius:10px;padding:10px 13px;font-size:.85rem;font-weight:700;margin-bottom:12px"></div>
+      <div id="wk-form">
+        <div class="form-row">
+          <div class="form-group">
+            <label>الاسم الكامل *</label>
+            <input type="text" id="f-name" placeholder="محمد أحمد">
+          </div>
+          <div class="form-group">
+            <label>رقم الهوية</label>
+            <input type="text" id="f-nid" inputmode="numeric" placeholder="1xxxxxxxxx">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>رقم الجوال</label>
+            <input type="tel" id="f-phone" inputmode="numeric" placeholder="05XXXXXXXX">
+          </div>
+          <div class="form-group">
+            <label>البريد الإلكتروني للعمل *</label>
+            <input type="email" id="f-email" style="direction:ltr;text-align:right" placeholder="worker@example.com" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>كلمة مرور مؤقتة *</label>
+          <input type="text" id="f-pass" style="direction:ltr;text-align:right" placeholder="6 خانات على الأقل" autocomplete="off">
+        </div>
+        <div class="form-group">
+          <label>المسمى الوظيفي</label>
+          <select id="f-role" style="width:100%;padding:11px 13px;border:1.5px solid var(--line);border-radius:11px;font-family:inherit;font-size:.95rem;color:var(--ink);background:var(--paper);outline:0">
+            <option value="technician" selected>فني / عامل — لوحة المهام فقط</option>
+            <option value="manager">مشرف / كاشير — عمليات وعملاء (بدون بيانات مالية)</option>
+          </select>
+        </div>
+        <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:8px">
+          <button class="btn btn-ghost" onclick="closeModal()">إلغاء</button>
+          <button class="btn btn-violet" id="wk-save" onclick="createWorker(this)">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M19 8v6M22 11h-6"/></svg>
+            <span>إنشاء حساب العامل</span>
+          </button>
+        </div>
+      </div>
+      <div id="wk-success" style="display:none;text-align:center">
+        <div style="width:54px;height:54px;border-radius:50%;background:#dcfce7;display:grid;place-items:center;margin:6px auto 12px"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2.8" stroke-linecap="round"><path d="M20 6 9 17l-5-5"/></svg></div>
+        <h3 style="font-size:1.05rem;font-weight:800;color:#0f172a;margin-bottom:6px">تم إنشاء حساب العامل ✓</h3>
+        <p style="font-size:.85rem;color:var(--muted);margin-bottom:14px">شارك هذه البيانات مع العامل ليدخل من رابطه:</p>
+        <div style="background:var(--lilac,#f6f8fa);border:1px solid var(--line);border-radius:12px;padding:14px;text-align:right;font-size:.86rem;line-height:2">
+          <div><b>الرابط:</b> <span style="color:var(--violet)">voldmotor.com/login.html?mode=login</span></div>
+          <div><b>البريد:</b> <span id="wk-su-email" style="direction:ltr;display:inline-block"></span></div>
+          <div><b>كلمة المرور المؤقتة:</b> <span id="wk-su-pass" style="direction:ltr;display:inline-block;font-weight:800"></span></div>
+        </div>
+        <button class="btn btn-violet" style="width:100%;margin-top:14px" onclick="closeModal()">تم</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="save-toast" id="toast" data-i18n="t.saved">✅ تم الحفظ</div>
+
+<script>
+const _sb = window._supabase;
+let SESSION, MERCHANT_ID;
+let TEAM = [];
+
+const ROLE_LABELS = {manager:'مدير',cashier:'كاشير',tech:'فني',cleaning:'عامل نظافة'};
+const ROLE_CLASSES = {manager:'role-manager',cashier:'role-cashier',tech:'role-tech',cleaning:'role-cleaning'};
+const AVATAR_COLORS = ['#3b82f6','#1d6fd6','#059669','#d97706','#7c3aed','#0891b2'];
+const STATUS_BADGES = {
+  active:'<span style="background:#d1fae5;color:#059669;padding:3px 10px;border-radius:99px;font-size:.76rem;font-weight:800">نشط</span>',
+  leave:'<span style="background:#fef3c7;color:#d97706;padding:3px 10px;border-radius:99px;font-size:.76rem;font-weight:800">إجازة</span>',
+  inactive:'<span style="background:var(--paper);color:var(--muted);padding:3px 10px;border-radius:99px;font-size:.76rem;font-weight:800;border:1px solid var(--line)">غير نشط</span>'
+};
+
+const LOGIN_URL = 'https://www.voldmotor.com/login.html';
+let CENTER_NAME = 'مركزك';
+const CREDS = {};   // email → temp password (remembered for freshly-created workers this session)
+
+function waNormalize(phone){
+  let p = String(phone||'').replace(/\D/g,'');
+  if(!p) return '';
+  if(p.startsWith('966')) return p;
+  if(p.startsWith('00966')) return p.slice(2);
+  if(p.startsWith('0')) return '966'+p.slice(1);
+  if(p.length===9 && p.startsWith('5')) return '966'+p;
+  return p;
+}
+function buildLoginMsg(m){
+  const pass = CREDS[(m.email||'').toLowerCase()];
+  let msg = `مرحباً ${m.full_name||''} 👋\nحسابك في ${CENTER_NAME} على نظام VOLD MOTOR جاهز.\n\n🔗 رابط الدخول:\n${LOGIN_URL}\n\n👤 اسم المستخدم (البريد):\n${m.email||''}`;
+  msg += pass ? `\n\n🔑 كلمة المرور المؤقتة:\n${pass}` : `\n\n🔑 استخدم كلمة المرور المؤقتة التي زوّدك بها المدير.`;
+  msg += `\n\nيمكنك تغيير كلمة المرور بعد أول تسجيل دخول.`;
+  return msg;
+}
+async function copyLogin(id){
+  const m = TEAM.find(x=>String(x.id)===String(id)); if(!m) return;
+  const msg = buildLoginMsg(m);
+  try{ await navigator.clipboard.writeText(msg); showToast('✅ تم نسخ بيانات الدخول'); }
+  catch(e){
+    const ta=document.createElement('textarea'); ta.value=msg; document.body.appendChild(ta); ta.select();
+    try{ document.execCommand('copy'); showToast('✅ تم نسخ بيانات الدخول'); }catch(_){ showToast('تعذّر النسخ'); }
+    ta.remove();
+  }
+}
+function waLogin(id){
+  const m = TEAM.find(x=>String(x.id)===String(id)); if(!m) return;
+  const msg = encodeURIComponent(buildLoginMsg(m));
+  const num = waNormalize(m.phone);
+  window.open(num ? `https://wa.me/${num}?text=${msg}` : `https://wa.me/?text=${msg}`, '_blank');
+}
+
+async function requireAuth(){
+  const {data:{session}} = await _sb.auth.getSession();
+  if(!session){location.href='login.html?mode=login';return null;}
+  return session;
+}
+function doLogout(){_sb.auth.signOut().then(()=>location.href='login.html?mode=login');}
+function showToast(msg='✅ تم الحفظ'){
+  const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2600);
+}
+
+const EDGE = 'https://pycyttykvmbhykltnxzj.supabase.co/functions/v1';
+const SB_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB5Y3l0dHlrdm1iaHlrbHRueHpqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkyMDk4MjgsImV4cCI6MjA5NDc4NTgyOH0.3qTumWEg9mYvjbxQpDWIhnBIGGkp8V7XJrjkfy_ZXag';
+
+async function loadTeam(){
+  try {
+    const { data, error } = await _sb.from('workers').select('*').order('created_at',{ascending:false});
+    if (error) throw error;
+    TEAM = data || [];
+  } catch(e){ TEAM = []; }
+  renderTeam();
+}
+
+function renderTeam(){
+  const set = (id,v)=>{ const e=document.getElementById(id); if(e) e.textContent=v; };
+  set('stat-total', TEAM.length);
+  set('stat-managers', TEAM.filter(m=>m.role==='manager').length);
+  set('stat-active', TEAM.filter(m=>m.status==='active').length);
+  set('stat-techs', TEAM.filter(m=>m.role!=='manager').length);
+
+  const tb = document.getElementById('team-tbody');
+  if(!TEAM.length){
+    tb.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:36px 16px;color:var(--muted)">
+      <div style="font-weight:800;color:var(--ink);margin-bottom:6px">لا يوجد موظفون بعد</div>
+      <div style="font-size:.85rem;margin-bottom:14px">أضف أول موظف ليحصل على حساب دخول خاص بمركزك</div>
+      <button class="btn btn-violet" onclick="openAddModal()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg> إضافة موظف</button>
+    </td></tr>`;
+    if(window.vmRespTables) window.vmRespTables();
+    return;
+  }
+
+  tb.innerHTML = TEAM.map((m,i)=>{
+    const color = AVATAR_COLORS[i % AVATAR_COLORS.length];
+    const initial = (m.full_name||'ع').charAt(0);
+    const statusBadge = m.status==='active' ? STATUS_BADGES.active : STATUS_BADGES.inactive;
+    const roleLabel = m.role==='manager' ? 'مشرف / كاشير' : 'فني / عامل';
+    const roleCls = m.role==='manager' ? 'role-manager' : 'role-tech';
+    const td = 'padding:13px 18px;border-bottom:1px solid var(--line);font-size:.88rem;vertical-align:middle';
+    return `<tr>
+      <td style="${td}"><div style="display:flex;align-items:center;gap:10px"><div style="background:${color};width:34px;height:34px;border-radius:9px;display:grid;place-items:center;color:#fff;font-weight:800;flex:none">${initial}</div><div style="font-weight:800;color:var(--ink)">${m.full_name||'—'}</div></div></td>
+      <td style="${td}"><span class="role-badge ${roleCls}">${roleLabel}</span></td>
+      <td style="${td};direction:ltr;text-align:start;word-break:break-all">${m.email||'—'}</td>
+      <td style="${td};direction:ltr;text-align:start">${m.phone||'—'}</td>
+      <td style="${td}">${statusBadge}</td>
+      <td style="${td}"><div style="display:flex;gap:6px">
+        <button class="lk-btn" onclick="copyLogin('${m.id}')" title="نسخ بيانات الدخول"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> نسخ</button>
+        <button class="lk-btn wa" onclick="waLogin('${m.id}')" title="إرسال عبر واتساب"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2 22l5.25-1.38a9.9 9.9 0 0 0 4.79 1.22h.01c5.46 0 9.9-4.45 9.9-9.91 0-2.65-1.03-5.14-2.9-7.01A9.82 9.82 0 0 0 12.04 2zm0 18.13c-1.48 0-2.93-.4-4.19-1.15l-.3-.18-3.12.82.83-3.04-.2-.31a8.2 8.2 0 0 1-1.26-4.36c0-4.54 3.7-8.23 8.24-8.23 2.2 0 4.27.86 5.82 2.42a8.18 8.18 0 0 1 2.41 5.82c0 4.54-3.7 8.23-8.24 8.23zm4.52-6.16c-.25-.12-1.47-.72-1.69-.81-.23-.08-.39-.12-.56.13-.16.25-.64.81-.79.97-.14.17-.29.19-.54.06-.25-.12-1.05-.39-1.99-1.23-.74-.66-1.23-1.47-1.38-1.72-.14-.25-.01-.38.11-.51.11-.11.25-.29.37-.43.13-.14.17-.25.25-.41.08-.17.04-.31-.02-.43-.06-.12-.56-1.34-.76-1.84-.2-.48-.4-.42-.56-.43h-.48c-.17 0-.43.06-.66.31-.22.25-.86.85-.86 2.07s.89 2.4 1.01 2.56c.12.17 1.75 2.67 4.23 3.74.59.26 1.05.41 1.41.52.59.19 1.13.16 1.56.1.48-.07 1.47-.6 1.68-1.18.21-.58.21-1.07.14-1.18-.06-.1-.22-.16-.47-.28z"/></svg> واتساب</button>
+      </div></td>
+      <td style="${td};text-align:end"><button class="lk-btn" onclick="toggleWorker('${m.id}','${m.status}')">${m.status==='active'?'تعطيل':'تفعيل'}</button></td>
+    </tr>`;
+  }).join('');
+  if(window.vmRespTables) window.vmRespTables();
+}
+
+function openAddModal(){
+  document.getElementById('wk-form').style.display='block';
+  document.getElementById('wk-success').style.display='none';
+  document.getElementById('wk-err').style.display='none';
+  ['f-name','f-nid','f-phone','f-email','f-pass'].forEach(id=>{const e=document.getElementById(id); if(e)e.value='';});
+  document.getElementById('modal-title').textContent = 'إضافة عامل جديد';
+  document.getElementById('addModal').classList.add('open');
+  setTimeout(()=>document.getElementById('f-name')?.focus(),120);
+}
+
+function closeModal(){
+  document.getElementById('addModal').classList.remove('open');
+}
+
+async function createWorker(btn){
+  const err = document.getElementById('wk-err'); err.style.display='none';
+  const full_name = document.getElementById('f-name').value.trim();
+  const national_id = document.getElementById('f-nid').value.trim();
+  const phone = document.getElementById('f-phone').value.trim();
+  const email = document.getElementById('f-email').value.trim().toLowerCase();
+  const password = document.getElementById('f-pass').value.trim();
+  const role = document.getElementById('f-role')?.value || 'technician';
+  if(!full_name||!email||!password){ err.textContent='الاسم والبريد وكلمة المرور مطلوبة'; err.style.display='block'; return; }
+  if(password.length<6){ err.textContent='كلمة المرور 6 خانات على الأقل'; err.style.display='block'; return; }
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){ err.textContent='البريد الإلكتروني غير صحيح'; err.style.display='block'; return; }
+  const orig = btn.innerHTML; btn.disabled=true; btn.innerHTML='جاري الإنشاء...';
+  try{
+    const { data:{ session } } = await _sb.auth.getSession();
+    const res = await fetch(EDGE+'/create-worker', {
+      method:'POST',
+      headers:{ 'Content-Type':'application/json', 'apikey':SB_ANON, 'Authorization':'Bearer '+session.access_token },
+      body: JSON.stringify({ full_name, national_id, phone, email, password, role }),
+    });
+    const j = await res.json().catch(()=>({error:'تعذّر قراءة الرد'}));
+    if(!res.ok || j.error) throw new Error(j.error||'تعذّر إنشاء الحساب');
+    CREDS[email] = password;   // remember so the login link can include the temp password
+    document.getElementById('wk-su-email').textContent = email;
+    document.getElementById('wk-su-pass').textContent = password;
+    document.getElementById('wk-form').style.display='none';
+    document.getElementById('wk-success').style.display='block';
+    await loadTeam();
+  }catch(e){ err.textContent = e.message||'خطأ'; err.style.display='block'; }
+  finally{ btn.disabled=false; btn.innerHTML=orig; }
+}
+
+async function toggleWorker(id, status){
+  const next = status==='active' ? 'inactive' : 'active';
+  try{
+    const { error } = await _sb.from('workers').update({status:next}).eq('id',id);
+    if(error) throw error;
+    await loadTeam();
+    showToast(next==='active'?'✅ تم تفعيل العامل':'🚫 تم تعطيل العامل');
+  }catch(e){ showToast('تعذّر التحديث'); }
+}
+
+// إغلاق المودال عند النقر خارجه
+document.getElementById('addModal').addEventListener('click',e=>{
+  if(e.target===e.currentTarget) closeModal();
+});
+
+(async()=>{
+  SESSION = await requireAuth(); if(!SESSION) return;
+  const meta = SESSION.user.user_metadata||{};
+  // RBAC: staff management is OWNER-only
+  const _role = window.vmRoleOf ? window.vmRoleOf(meta.role) : 'owner';
+  if (_role !== 'owner') { window.location.replace(_role === 'technician' ? 'worker.html' : 'dashboard.html'); return; }
+  MERCHANT_ID = SESSION.user.id;
+  const name = meta.center_name||meta.full_name||SESSION.user.email||'';
+  CENTER_NAME = meta.shop_name || meta.center_name || name || 'مركزك';
+  document.getElementById('sb-name').textContent = name;
+  document.getElementById('sb-avatar').textContent = name.charAt(0)||'م';
+  loadTeam();
+})();
+</script>
+<script src="mobile-init.js"></script>
+<script>document.addEventListener("DOMContentLoaded",()=>{ if(typeof fillSidebarUser==="function") fillSidebarUser(); });</script>
+  <script src="brand.js"></script>
+</body>
+</html>

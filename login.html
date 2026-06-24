@@ -1,0 +1,2554 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>تسجيل الدخول — VOLD MOTOR</title>
+<meta name="description" content="سجّل دخولك إلى لوحة تحكم مركزك في VOLD MOTOR، أو قدّم طلب انضمام مركزك الجديد.">
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<link rel="canonical" href="https://www.voldmotor.com/login.html">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="VOLD MOTOR">
+<meta property="og:title" content="تسجيل الدخول — VOLD MOTOR">
+<meta property="og:description" content="سجّل دخولك إلى لوحة تحكم مركزك في VOLD MOTOR، أو قدّم طلب انضمام مركزك الجديد.">
+<meta property="og:url" content="https://www.voldmotor.com/login.html">
+<meta property="og:locale" content="ar_SA">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Almarai:wght@300;400;700;800&family=Inter:wght@300;400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+/* ═══════════════════════════════════════════════════════════════
+   VOLD MOTOR — Login / Onboarding Wizard  v5
+   Billion-Dollar SaaS Design System
+═══════════════════════════════════════════════════════════════ */
+:root {
+  --blue:       #2563eb;
+  --blue-d:     #1d4ed8;
+  --blue-ring:  rgba(37,99,235,.12);
+  --blue-soft:  rgba(37,99,235,.06);
+  --green:      #16a34a;
+  --green-soft: rgba(22,163,74,.08);
+  --red:        #dc2626;
+  --red-soft:   rgba(220,38,38,.08);
+  --ink:        #0f172a;
+  --sub:        #334155;
+  --muted:      #64748b;
+  --paper:      #ffffff;
+  --bg:         #f8fafc;
+  --line:       #e2e8f0;
+  --line-mid:   #cbd5e1;
+  --shadow-card: 0 0 0 1px rgba(15,23,42,.05), 0 2px 6px rgba(15,23,42,.04), 0 10px 32px rgba(15,23,42,.07);
+  --shadow-btn:  0 4px 14px rgba(37,99,235,.3), 0 1px 4px rgba(37,99,235,.15);
+  --shadow-btn-h:0 8px 28px rgba(37,99,235,.42), 0 2px 8px rgba(37,99,235,.2);
+}
+*{ margin:0; padding:0; box-sizing:border-box; }
+html,body{ height:100%; }
+body{
+  font-family:'Almarai',system-ui,sans-serif;
+  background:var(--bg);
+  color:var(--ink);
+  -webkit-font-smoothing:antialiased;
+  display:flex;
+  min-height:100vh;
+  direction:rtl;
+  overflow:hidden;
+}
+
+/* ═══ DARK SIDE PANEL — clean logo + tagline (vector, crisp) ════ */
+.side-photo{
+  flex:0 0 46%;
+  position:relative;
+  overflow:hidden;
+  background:
+    radial-gradient(ellipse 70% 50% at 50% 22%, rgba(37,99,235,.10) 0%, transparent 60%),
+    linear-gradient(165deg,#0a0f1e 0%,#070a14 55%,#040406 100%);
+}
+/* Show only logo + tagline; hide decorative extras */
+.side-photo .side-photo-overlay,
+.side-photo #sp-stars,
+.side-photo .sp-orb,
+.side-photo .sp-code-card,
+.side-photo .photo-stats{ display:none !important; }
+/* Push logo + tagline to the top */
+.side-photo .side-photo-content{ justify-content:flex-start; gap:0; padding-top:52px; }
+.side-photo .sp-logo{ cursor:default; pointer-events:none; }
+.side-photo .tagline{ margin-top:30px; }
+/* Blue highlight on second tagline line (like reference) */
+.tagline span:nth-of-type(2){ color:#3b82f6; }
+/* Site name at the bottom — smaller */
+.sp-brand-bottom{
+  margin-top:auto;
+  display:inline-flex; align-items:center; gap:.32em;
+  font-family:system-ui,sans-serif; direction:ltr;
+  opacity:.8;
+}
+.sp-brand-bottom b{ font-weight:800; font-size:.82rem; letter-spacing:.04em; color:rgba(255,255,255,.85); }
+.sp-brand-bottom span{ font-weight:300; font-size:.82rem; letter-spacing:.2em; color:rgba(255,255,255,.55); }
+/* Calm restrained dark — GitHub formal */
+.side-photo-overlay{
+  position:absolute;
+  inset:0;
+  background:
+    radial-gradient(ellipse 60% 45% at 80% 0%, rgba(56,68,128,.16) 0%, transparent 55%),
+    radial-gradient(ellipse 50% 40% at 50% 100%, rgba(30,41,82,.12) 0%, transparent 55%),
+    linear-gradient(180deg, #0d1117 0%, #08090d 55%, #050608 100%);
+  pointer-events:none;
+}
+/* Subtle grid dots */
+.side-photo-overlay::before{
+  content:'';
+  position:absolute;
+  inset:0;
+  background-image:radial-gradient(circle at 1px 1px,rgba(255,255,255,.04) 1px,transparent 0);
+  background-size:28px 28px;
+  mask-image:linear-gradient(to bottom,rgba(0,0,0,.85) 0%,rgba(0,0,0,.25) 65%,transparent 100%);
+  pointer-events:none;
+}
+/* Stars layer — populated by JS */
+#sp-stars{position:absolute;inset:0;pointer-events:none;}
+/* Floating orbs */
+.sp-orb{position:absolute;border-radius:50%;filter:blur(78px);pointer-events:none;will-change:transform;}
+.sp-orb-1{width:360px;height:360px;background:rgba(56,68,128,.14);top:-16%;left:-14%;animation:orb1 12s ease-in-out infinite;}
+.sp-orb-2{width:300px;height:300px;background:rgba(40,52,100,.12);bottom:-14%;right:-10%;animation:orb2 14s ease-in-out infinite;}
+.sp-orb-3{width:0;height:0;background:transparent;}
+@keyframes orb1{0%,100%{transform:translate(0,0)}50%{transform:translate(22px,28px)}}
+@keyframes orb2{0%,100%{transform:translate(0,0)}50%{transform:translate(-18px,-22px)}}
+@keyframes orb3{0%,100%{transform:translate(0,0)}50%{transform:translate(12px,-18px)}}
+/* Floating code card */
+.sp-code-card{
+  background:rgba(255,255,255,.045);
+  backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+  border:1px solid rgba(255,255,255,.09);
+  border-radius:14px;overflow:hidden;
+  margin-top:26px;
+  animation:float-card 7s ease-in-out infinite;
+}
+@keyframes float-card{0%,100%{transform:translateY(0) rotate(-.3deg)}50%{transform:translateY(-10px) rotate(.3deg)}}
+.sp-code-top{
+  display:flex;align-items:center;gap:8px;
+  padding:9px 13px;border-bottom:1px solid rgba(255,255,255,.07);
+  direction:ltr;
+}
+.sp-code-dots{display:flex;gap:5px;}
+.sp-code-dots span{width:10px;height:10px;border-radius:50%;}
+.sp-code-dots span:nth-child(1){background:#ff5f57;}
+.sp-code-dots span:nth-child(2){background:#febc2e;}
+.sp-code-dots span:nth-child(3){background:#28c840;}
+.sp-code-fname{font-size:.7rem;color:rgba(255,255,255,.32);font-family:'SF Mono',Consolas,monospace;margin-left:4px;}
+.sp-code-body{padding:12px 14px;font-family:'SF Mono',Consolas,'Courier New',monospace;font-size:.75rem;line-height:1.7;direction:ltr;}
+.sp-code-line{white-space:pre;}
+.tk-c{color:#6a9955;}.tk-k{color:#569cd6;}.tk-v{color:#9cdcfe;}.tk-o{color:#d4d4d4;}.tk-f{color:#dcdcaa;}
+.sp-code-foot{
+  display:flex;align-items:center;gap:8px;
+  padding:8px 13px;border-top:1px solid rgba(255,255,255,.07);
+  font-size:.71rem;color:rgba(255,255,255,.42);direction:ltr;
+}
+.sp-badge-up{color:#4ade80;font-weight:800;}
+.sp-badge-live{margin-left:auto;color:#34d399;font-size:.69rem;}
+.side-photo-content{
+  position:absolute;
+  inset:0;
+  display:flex;
+  flex-direction:column;
+  justify-content:space-between;
+  padding:44px;
+}
+
+/* Logo on dark panel */
+.sp-logo{
+  display:inline-flex;
+  align-items:center;
+  gap:11px;
+  direction:ltr;
+  text-decoration:none;
+}
+.sp-wordmark{
+  display:inline-flex;
+  align-items:center;
+  gap:.35em;
+  font-family:system-ui,sans-serif;
+}
+.tagline{
+  color:#fff;
+  font-size:2.05rem;
+  font-weight:900;
+  line-height:1.22;
+  letter-spacing:-.026em;
+  margin-top:48px;
+}
+.tagline em{
+  font-style:normal;
+  display:block;
+  font-size:.93rem;
+  font-weight:500;
+  color:rgba(255,255,255,.52);
+  margin-top:12px;
+  letter-spacing:0;
+  line-height:1.65;
+}
+
+/* Glassmorphism stat pills */
+.photo-stats{ display:flex; flex-direction:column; gap:9px; }
+.ps{
+  display:flex;
+  align-items:center;
+  gap:14px;
+  background:rgba(255,255,255,.05);
+  backdrop-filter:blur(16px);
+  -webkit-backdrop-filter:blur(16px);
+  border:1px solid rgba(255,255,255,.09);
+  border-radius:14px;
+  padding:11px 16px;
+  transition:background .3s,transform .3s;
+}
+.ps:hover{ background:rgba(255,255,255,.09); transform:translateX(4px); }
+.ps-ic{
+  width:36px;
+  height:36px;
+  background:rgba(255,255,255,.08);
+  border-radius:10px;
+  display:grid;
+  place-items:center;
+  flex:none;
+  color:rgba(255,255,255,.75);
+}
+.ps .pn{ font-size:1.1rem; font-weight:900; color:#fff; line-height:1; }
+.ps .pl{ font-size:.73rem; color:rgba(255,255,255,.52); margin-top:2px; font-weight:600; }
+
+/* ═══ SKELETON SCREENS ══════════════════════════════════════════ */
+.fcard{ position:relative; }
+.skel-overlay{
+  position:absolute;
+  inset:0;
+  background:#fff;
+  border-radius:24px;
+  padding:36px 40px;
+  display:flex;
+  flex-direction:column;
+  gap:14px;
+  z-index:6;
+  animation:fadeIn .14s ease;
+}
+.skel{
+  background:linear-gradient(90deg,#eef2f7 25%,#e2e8f0 37%,#eef2f7 63%);
+  background-size:400% 100%;
+  border-radius:10px;
+  animation:skel-shimmer 1.4s ease infinite;
+}
+.skel-title{ height:30px; width:56%; }
+.skel-sub{ height:15px; width:74%; margin-bottom:10px; }
+.skel-field{ height:48px; width:100%; }
+.skel-btn{ height:52px; width:100%; border-radius:14px; margin-top:8px; }
+@keyframes skel-shimmer{ 0%{ background-position:100% 0; } 100%{ background-position:0 0; } }
+@keyframes fadeIn{ from{ opacity:0; } to{ opacity:1; } }
+
+/* ═══ SOCIAL LOGIN BUTTONS ══════════════════════════════════════ */
+.soc-login-wrap{display:flex;flex-direction:column;gap:9px;margin-bottom:16px;}
+.soc-login-btn{
+  display:flex;align-items:center;justify-content:center;gap:10px;
+  width:100%;padding:12px 16px;
+  border:1.5px solid #e2e8f0;border-radius:12px;
+  background:#fff;font-family:inherit;
+  font-size:.88rem;font-weight:700;color:#1e293b;
+  cursor:pointer;transition:all .15s;
+}
+.soc-login-btn:hover{border-color:#94a3b8;background:#f8fafc;box-shadow:0 2px 8px rgba(0,0,0,.06);}
+.soc-divider-or{
+  display:flex;align-items:center;gap:12px;
+  margin:4px 0 16px;color:#94a3b8;font-size:.78rem;font-weight:700;
+}
+.soc-divider-or::before,.soc-divider-or::after{content:'';flex:1;height:1px;background:#e2e8f0;}
+
+/* ═══ LTR OVERRIDES (English mode) ══════════════════════════════ */
+[dir="ltr"] body{font-family:'Inter',system-ui,sans-serif;}
+[dir="ltr"] .ico{right:auto;left:13px;}
+[dir="ltr"] .val-ok{left:auto;right:12px;}
+[dir="ltr"] .eye{left:auto;right:12px;}
+[dir="ltr"] .inp-wrap input{padding:13px 14px 13px 42px;}
+[dir="ltr"] .city-ico{right:auto;left:13px;}
+[dir="ltr"] .city-arrow{left:auto;right:12px;}
+[dir="ltr"] .city-sel{padding:13px 14px 13px 38px;}
+[dir="ltr"] .ps:hover{transform:translateX(-4px);}
+[dir="ltr"] .back-btn:hover{transform:translateX(-3px);}
+
+/* ═══ FORM SIDE ════════════════════════════════════════════════ */
+.side-form{
+  flex:1;
+  display:flex;
+  flex-direction:column;
+  background-color:#ffffff;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='18'%3E%3Cpath d='M0 5 L16 13 L32 5' fill='none' stroke='%232563eb' stroke-opacity='0.06' stroke-width='1.3'/%3E%3C/svg%3E");
+  background-size:32px 18px;
+  padding:28px 44px;
+  overflow-y:auto;
+  position:relative;
+}
+
+/* Topbar */
+.topbar{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  flex:none;
+  padding-bottom:16px;
+}
+.topbar-logo{
+  display:flex;
+  align-items:center;
+  gap:9px;
+  text-decoration:none;
+  direction:ltr;
+}
+.topbar-logo-word{
+  display:flex;
+  align-items:center;
+  gap:.3em;
+  font-family:system-ui,sans-serif;
+}
+.topbar-right{
+  display:flex;
+  align-items:center;
+  gap:12px;
+}
+.topbar-back{
+  font-size:.875rem;
+  font-weight:700;
+  color:var(--muted);
+  text-decoration:none;
+  display:flex;
+  align-items:center;
+  gap:5px;
+  transition:color .15s;
+  background:none;
+  border:0;
+  cursor:pointer;
+  font-family:inherit;
+}
+.topbar-back:hover{ color:var(--ink); }
+.topbar-link{
+  font-size:.875rem;
+  font-weight:700;
+  color:var(--muted);
+  text-decoration:none;
+  display:flex;
+  align-items:center;
+  gap:5px;
+  transition:color .15s;
+}
+.topbar-link:hover{ color:var(--ink); }
+
+/* ═══ FLOATING CARD ══════════════════════════════════════════ */
+.form-center{
+  flex:1;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  max-width:468px;
+  margin:0 auto;
+  width:100%;
+  padding:16px 0 28px;
+}
+.fcard{
+  background:var(--paper);
+  border-radius:14px;
+  padding:34px 38px;
+  box-shadow:0 1px 3px rgba(15,23,42,.04);
+  border:1px solid #e2e8f0;
+}
+
+/* ═══ STEP PROGRESS BAR ══════════════════════════════════════ */
+.step-bar{
+  display:flex;
+  gap:6px;
+  margin-bottom:26px;
+}
+.step-seg{
+  flex:1;
+  height:3px;
+  border-radius:99px;
+  background:#e2e8f0;
+  transition:background .4s cubic-bezier(.4,0,.2,1);
+}
+.step-seg.active{ background:var(--blue); }
+
+/* ═══ SCREEN TRANSITIONS ════════════════════════════════════ */
+.screen{ display:none; }
+.screen.active{ display:block; animation:fadeUp .3s cubic-bezier(.4,0,.2,1); }
+@keyframes fadeUp{
+  from{ opacity:0; transform:translateY(12px); }
+  to{   opacity:1; transform:none; }
+}
+
+/* ═══ S1 — ROLE SELECTION ═══════════════════════════════════ */
+.s1-title{
+  font-size:1.9rem;
+  font-weight:900;
+  color:var(--ink);
+  letter-spacing:-.025em;
+  margin-bottom:6px;
+  line-height:1.2;
+}
+.s1-sub{
+  color:var(--muted);
+  font-size:.92rem;
+  font-weight:600;
+  margin-bottom:28px;
+}
+.choices{ display:flex; flex-direction:column; gap:11px; }
+.choice{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  border:1.5px solid var(--line);
+  border-radius:18px;
+  padding:20px 22px;
+  cursor:pointer;
+  text-decoration:none;
+  color:inherit;
+  background:var(--paper);
+  transition:border-color .18s,box-shadow .18s,transform .18s;
+}
+.choice:hover{
+  border-color:var(--blue);
+  box-shadow:0 0 0 4px var(--blue-ring), 0 8px 24px rgba(15,23,42,.08);
+  transform:translateY(-2px);
+}
+.choice-body h3{ font-size:1.08rem; font-weight:900; color:var(--ink); margin-bottom:3px; }
+.choice-body p{ font-size:.86rem; color:var(--muted); font-weight:600; }
+.choice-arr{
+  width:40px; height:40px;
+  border-radius:50%;
+  border:1.5px solid var(--line);
+  display:grid; place-items:center;
+  flex:none; color:var(--muted);
+  transition:all .18s;
+}
+.choice:hover .choice-arr{ background:var(--blue); border-color:var(--blue); color:#fff; }
+
+/* ═══ INLINE BACK BUTTON ════════════════════════════════════ */
+.back-btn{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  font-size:.84rem;
+  font-weight:700;
+  color:var(--muted);
+  background:none;
+  border:0;
+  cursor:pointer;
+  font-family:inherit;
+  margin-bottom:20px;
+  transition:color .15s,transform .15s;
+  padding:0;
+}
+.back-btn:hover{ color:var(--ink); transform:translateX(3px); }
+
+/* ═══ FORM TYPOGRAPHY ════════════════════════════════════════ */
+.form-title{
+  font-size:1.5rem;
+  font-weight:800;
+  color:var(--ink);
+  letter-spacing:-.022em;
+  margin-bottom:4px;
+  line-height:1.25;
+}
+.form-sub{
+  color:var(--muted);
+  font-size:.85rem;
+  font-weight:500;
+  margin-bottom:16px;
+  line-height:1.6;
+}
+
+/* ═══ REGISTRATION CARD (GitHub premium white) ═════════════ */
+.reg-card{
+  background:#ffffff;
+  border:1px solid #e2e8f0;
+  border-radius:16px;
+  padding:24px 22px;
+  cursor:pointer;
+  position:relative;
+  overflow:hidden;
+  margin-bottom:14px;
+  transition:border-color .3s cubic-bezier(.4,0,.2,1),box-shadow .3s cubic-bezier(.4,0,.2,1),transform .3s cubic-bezier(.4,0,.2,1);
+}
+.reg-card:hover{
+  transform:translateY(-2px);
+  border-color:#3b82f6;
+  box-shadow:0 0 0 3px rgba(37,99,235,.08), 0 12px 28px rgba(15,23,42,.08);
+}
+.reg-card-badge{
+  display:inline-flex; align-items:center; gap:6px;
+  background:rgba(37,99,235,.08);
+  border:1px solid rgba(37,99,235,.18);
+  border-radius:30px;
+  padding:4px 12px;
+  font-size:.7rem;
+  font-weight:800;
+  color:var(--blue);
+  margin-bottom:14px;
+  letter-spacing:.04em;
+  text-transform:uppercase;
+}
+.reg-card-badge::before{ content:''; width:6px; height:6px; border-radius:50%; background:#22c55e; box-shadow:0 0 0 3px rgba(34,197,94,.2); }
+.reg-card-title{ font-size:1.32rem; font-weight:900; color:var(--ink); line-height:1.2; margin-bottom:6px; letter-spacing:-.02em; }
+.reg-card-sub{ font-size:.86rem; color:var(--muted); font-weight:600; margin-bottom:18px; line-height:1.6; }
+.reg-card-perks{ list-style:none; display:flex; flex-direction:column; gap:9px; margin-bottom:22px; }
+.reg-card-perks li{ font-size:.87rem; font-weight:700; color:var(--sub); display:flex; align-items:center; gap:9px; }
+.reg-card-perks li svg{ color:var(--blue); flex:none; }
+.reg-card-btn{
+  display:flex; align-items:center; justify-content:center; gap:8px;
+  width:100%;
+  background:#0062ec; color:#fff;
+  border-radius:12px; padding:13px 18px;
+  font-weight:800; font-size:.92rem;
+  letter-spacing:-.01em;
+  box-shadow:0 1px 2px rgba(0,0,0,.08);
+  transition:background .18s,box-shadow .18s,transform .12s;
+}
+.reg-card:hover .reg-card-btn{ background:#0050c7; box-shadow:0 6px 18px rgba(0,98,236,.32); }
+.reg-card-btn:active{ transform:translateY(1px); }
+
+.s2-divider{
+  display:flex; align-items:center; gap:12px;
+  margin:8px 0 14px;
+  color:#94a3b8; font-size:.78rem; font-weight:700;
+}
+.s2-divider::before,.s2-divider::after{ content:''; flex:1; height:1px; background:#e2e8f0; }
+.login-row{
+  display:flex; align-items:center; justify-content:space-between;
+  border:1px solid #e2e8f0;
+  border-radius:14px; padding:15px 18px;
+  cursor:pointer; background:#fff;
+  transition:border-color .18s,box-shadow .18s,transform .18s,background .18s;
+}
+.login-row:hover{ border-color:#cbd5e1; background:#f8fafc; transform:translateY(-1px); box-shadow:0 4px 14px rgba(15,23,42,.05); }
+.login-row-arr{
+  width:34px; height:34px; border-radius:50%;
+  border:1px solid #e2e8f0;
+  display:grid; place-items:center;
+  color:var(--muted); transition:all .18s; flex:none;
+}
+.login-row:hover .login-row-arr{ background:var(--ink); border-color:var(--ink); color:#fff; }
+
+/* ═══ FORM FIELDS ════════════════════════════════════════════ */
+.field{ margin-bottom:14px; }
+.field label{
+  display:block;
+  font-weight:800;
+  font-size:.8rem;
+  color:#374151;
+  margin-bottom:6px;
+  letter-spacing:.01em;
+}
+.field label .req{ color:#ef4444; margin-right:2px; }
+
+.inp-wrap{ position:relative; }
+.ico{
+  position:absolute;
+  top:50%; transform:translateY(-50%);
+  right:13px;
+  color:#c8d0da;
+  pointer-events:none;
+  z-index:1;
+  transition:color .2s;
+}
+/* Green icon when field valid */
+.field.v-ok .ico{ color:#16a34a; }
+
+/* Input base style */
+.inp-wrap input,
+.plain-input,
+.city-sel{
+  width:100%;
+  padding:13px 42px 13px 14px;
+  border:1.5px solid #e2e8f0;
+  border-radius:12px;
+  font-family:inherit;
+  font-size:.92rem;
+  color:var(--ink);
+  background:#f8fafc;
+  outline:0;
+  -webkit-appearance:none;
+  appearance:none;
+  transition:border-color .2s,box-shadow .2s,background .2s;
+}
+.plain-input{ padding:13px 14px; }
+.city-sel{ padding:13px 42px 13px 38px; cursor:pointer; }
+
+.inp-wrap input::placeholder,
+.plain-input::placeholder{ color:#c8d0da; }
+
+/* Focus state */
+.inp-wrap input:focus,
+.plain-input:focus,
+.city-sel:focus{
+  border-color:var(--blue);
+  background:#fff;
+  box-shadow:0 0 0 4px var(--blue-ring);
+  outline:0;
+}
+
+/* Password eye */
+.eye{
+  position:absolute;
+  left:12px; top:50%; transform:translateY(-50%);
+  background:none; border:0; cursor:pointer;
+  color:#c8d0da; padding:4px;
+  transition:color .15s; line-height:0;
+}
+.eye:hover{ color:var(--blue); }
+
+/* ── Validation states ── */
+.field.v-ok .inp-wrap input,
+.field.v-ok .plain-input,
+.field.v-ok .city-sel{
+  border-color:#16a34a !important;
+  background:#fff !important;
+  box-shadow:0 0 0 4px rgba(22,163,74,.08) !important;
+}
+.field.v-err .inp-wrap input,
+.field.v-err .plain-input{
+  border-color:#dc2626 !important;
+  box-shadow:0 0 0 4px rgba(220,38,38,.08) !important;
+}
+
+/* Inline checkmark icon (valid) */
+.val-ok{
+  position:absolute;
+  left:12px; top:50%; transform:translateY(-50%);
+  color:#16a34a;
+  display:none;
+  pointer-events:none; line-height:0;
+}
+.field.v-ok .val-ok{ display:block; }
+
+/* Per-field inline error text */
+.field-err{
+  display:block;
+  font-size:.74rem;
+  color:var(--red);
+  font-weight:700;
+  margin-top:5px;
+  line-height:1.4;
+  padding-right:2px;
+}
+.field-err:empty{ display:none; }
+.field-err:not(:empty){ animation:fadeUp .2s ease; }
+
+/* ═══ CITY DROPDOWN ══════════════════════════════════════════ */
+.city-wrap{ position:relative; }
+.city-ico{
+  position:absolute;
+  top:50%; transform:translateY(-50%);
+  right:13px; color:#c8d0da;
+  pointer-events:none; z-index:1;
+}
+.city-arrow{
+  position:absolute;
+  left:12px; top:50%; transform:translateY(-50%);
+  color:#c8d0da; pointer-events:none; line-height:0;
+}
+
+/* ═══ SERVICE GRID TILES ════════════════════════════════════ */
+.svc-grid{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:8px;
+  margin-top:8px;
+}
+.svc-btn{
+  position:relative;
+  border:1.5px solid #e2e8f0;
+  border-radius:14px;
+  padding:14px 8px 12px;
+  text-align:center;
+  cursor:pointer;
+  font-size:.77rem;
+  font-weight:700;
+  color:var(--muted);
+  background:#fff;
+  font-family:inherit;
+  transition:all .2s cubic-bezier(.4,0,.2,1);
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:6px;
+  min-height:78px;
+  justify-content:center;
+  overflow:hidden;
+}
+.svc-btn svg{ transition:color .2s; color:var(--muted); }
+.svc-btn:hover{
+  border-color:#93c5fd;
+  background:#f0f7ff;
+  transform:translateY(-1px);
+  box-shadow:0 4px 14px rgba(37,99,235,.1);
+}
+.svc-btn.sel{
+  border-color:var(--blue);
+  border-width:2px;
+  background:rgba(37,99,235,.05);
+  color:var(--blue);
+  box-shadow:0 0 0 3px rgba(37,99,235,.1);
+}
+.svc-btn.sel svg{ color:var(--blue); }
+/* Checkmark badge */
+.svc-check{
+  position:absolute;
+  top:5px; left:5px;
+  width:18px; height:18px;
+  background:var(--blue);
+  border-radius:50%;
+  display:none;
+  place-items:center;
+  color:#fff;
+  box-shadow:0 2px 6px rgba(37,99,235,.45);
+}
+.svc-btn.sel .svc-check{ display:grid; }
+
+/* ═══ GITHUB PRIMER FIELDS ═══════════════════════════════════ */
+.gh-field{ margin-bottom:15px; }
+.gh-label{ display:block; font-size:.82rem; font-weight:600; color:#1f2328; margin-bottom:5px; line-height:1.4; }
+.gh-label .opt{ font-weight:400; color:#656d76; font-size:.78rem; }
+.gh-sel-wrap{ position:relative; }
+.gh-select,.gh-input{
+  width:100%;
+  padding:7px 11px;
+  font-size:.85rem; line-height:19px;
+  color:#1f2328; background:#fff;
+  border:1px solid #d0d7de; border-radius:6px;
+  box-shadow:inset 0 1px 0 rgba(208,215,222,.15);
+  outline:0; font-family:inherit;
+  transition:border-color .15s,box-shadow .15s;
+  -webkit-appearance:none; appearance:none;
+}
+.gh-select{ padding-inline-start:32px; cursor:pointer; }
+.gh-select:focus,.gh-input:focus{ border-color:#0969da; box-shadow:0 0 0 3px rgba(9,105,218,.3); }
+.gh-select:hover,.gh-input:hover{ border-color:#afb8c1; }
+.gh-sel-arrow{ position:absolute; inset-inline-start:11px; top:50%; transform:translateY(-50%); color:#656d76; pointer-events:none; }
+.gh-check{ display:flex; align-items:flex-start; gap:10px; margin:15px 0; cursor:pointer; }
+.gh-check input{ width:16px; height:16px; margin-top:4px; accent-color:#2563eb; flex:none; cursor:pointer; }
+.gh-check span{ font-size:.875rem; color:#656d76; line-height:1.625; }
+.btn-gh{
+  width:100%;
+  display:flex; align-items:center; justify-content:center; gap:8px;
+  padding:12px 16px;
+  background:#2563eb; color:#fff;
+  border:1px solid rgba(31,35,40,.12); border-radius:6px;
+  font-family:inherit; font-size:.9rem; font-weight:600;
+  letter-spacing:-.01em; cursor:pointer;
+  box-shadow:0 1px 2px rgba(31,35,40,.06);
+  transition:background .2s,transform .1s;
+  margin-top:2px; min-height:46px;
+}
+.btn-gh .arrow{ font-size:1.1rem; line-height:1; }
+.btn-gh:hover:not(:disabled){ background:#1d4ed8; }
+.btn-gh:active:not(:disabled){ transform:translateY(1px); }
+.btn-gh:disabled{ background:#a9c2f4; border-color:rgba(31,35,40,.05); cursor:not-allowed; }
+.btn-gh .btn-spin{ border-top-color:#fff; }
+/* Password field — eye toggle, hint, strength */
+.gh-pw-wrap{ position:relative; }
+.gh-pw-wrap .gh-input{ padding-left:44px; padding-right:12px; }
+.gh-eye{ position:absolute; left:8px; right:auto; top:50%; transform:translateY(-50%); background:none; border:0; cursor:pointer; color:#656d76; padding:4px; line-height:0; transition:color .15s; display:grid; place-items:center; }
+.gh-eye:hover{ color:#0969da; }
+.gh-hint{ font-size:.72rem; color:#656d76; margin-top:6px; line-height:1.55; }
+.gh-input.pw-weak{ border-color:#cf222e !important; box-shadow:0 0 0 3px rgba(207,34,46,.12) !important; }
+.gh-input.pw-strong{ border-color:#1a7f37 !important; box-shadow:0 0 0 3px rgba(26,127,55,.15) !important; }
+.gh-label-row{ display:flex; align-items:center; justify-content:space-between; margin-bottom:5px; }
+.gh-label-row .gh-label{ margin-bottom:0; }
+.gh-forgot{ font-size:.8rem; font-weight:600; color:#0969da; cursor:pointer; text-decoration:none; }
+.gh-forgot:hover{ text-decoration:underline; }
+.btn-gh.green{ background:#1f883d; }
+.btn-gh.green:hover:not(:disabled){ background:#1a7f37; }
+
+/* ═══ SUBMIT BUTTON ══════════════════════════════════════════ */
+.btn-sub{
+  width:100%;
+  padding:15px;
+  border-radius:14px;
+  border:0;
+  cursor:pointer;
+  font-family:inherit;
+  font-size:.97rem;
+  font-weight:800;
+  background:var(--blue);
+  color:#fff;
+  box-shadow:var(--shadow-btn);
+  transition:all .25s cubic-bezier(.4,0,.2,1);
+  margin-top:8px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  letter-spacing:-.01em;
+  position:relative;
+  min-height:52px;
+}
+.btn-sub:hover:not(:disabled){
+  background:var(--blue-d);
+  transform:translateY(-2px);
+  box-shadow:var(--shadow-btn-h);
+}
+.btn-sub:active:not(:disabled){ transform:translateY(0); }
+.btn-sub:disabled{ opacity:.65; cursor:not-allowed; transform:none !important; }
+
+/* Button spinner */
+.btn-spin{
+  width:19px; height:19px;
+  border:2.5px solid rgba(255,255,255,.3);
+  border-top-color:#fff;
+  border-radius:50%;
+  animation:spin .7s linear infinite;
+  flex:none;
+}
+
+.sw{ text-align:center; font-size:.87rem; color:var(--muted); margin-top:16px; font-weight:600; }
+.sw a{ color:var(--blue); font-weight:800; cursor:pointer; }
+.sw a:hover{ text-decoration:underline; }
+
+/* ═══ ERROR / INFO BOXES ═════════════════════════════════════ */
+.err-box{
+  background:#fef2f2;
+  border:1px solid #fca5a5;
+  color:#b91c1c;
+  border-radius:10px;
+  padding:10px 14px;
+  font-size:.86rem;
+  font-weight:700;
+  margin-bottom:12px;
+  text-align:center;
+  display:none;
+  animation:fadeUp .25s ease;
+}
+.info-amber{
+  background:#fffbeb;
+  border:1px solid #fde68a;
+  color:#92400e;
+  border-radius:12px;
+  padding:11px 15px;
+  font-size:.86rem;
+  font-weight:700;
+  margin-bottom:12px;
+  display:none;
+  animation:fadeUp .25s ease;
+  line-height:1.65;
+}
+/* Premium inline success (Stripe/Linear/Vercel style) */
+.info-success{
+  display:none;
+  align-items:flex-start;
+  gap:11px;
+  background:rgba(16,185,129,.055);
+  border:1px solid rgba(5,150,105,.15);
+  color:#334155;
+  border-radius:12px;        /* matches the email input radius */
+  padding:14px 16px;
+  font-size:.86rem;
+  font-weight:500;
+  line-height:1.6;
+  margin-bottom:12px;
+  animation:fadeUp .25s ease;
+  text-align:right;
+}
+.info-success svg{
+  flex:none;
+  width:18px;height:18px;
+  color:#059669;            /* refined emerald check */
+  margin-top:1px;
+}
+.info-success strong{ font-weight:600; color:#0f172a; }
+/* Premium inline error/warning (same minimalist frame, rose accent) */
+.info-error{
+  display:none;
+  align-items:flex-start;
+  gap:11px;
+  background:rgba(244,63,94,.05);
+  border:1px solid rgba(225,29,72,.16);
+  color:#334155;
+  border-radius:12px;        /* matches the email input radius */
+  padding:14px 16px;
+  font-size:.86rem;
+  font-weight:500;
+  line-height:1.6;
+  margin-bottom:12px;
+  animation:fadeUp .25s ease;
+  text-align:right;
+}
+.info-error svg{
+  flex:none;
+  width:18px;height:18px;
+  color:#e11d48;            /* refined rose alert */
+  margin-top:1px;
+}
+.info-error strong{ font-weight:600; color:#0f172a; }
+/* Premium inline "under review" notice (amber accent) */
+.info-warn{
+  display:none;
+  align-items:flex-start;
+  gap:11px;
+  background:rgba(245,158,11,.07);
+  border:1px solid rgba(217,119,6,.18);
+  color:#334155;
+  border-radius:12px;
+  padding:14px 16px;
+  font-size:.86rem;
+  font-weight:500;
+  line-height:1.6;
+  margin-bottom:12px;
+  animation:fadeUp .25s ease;
+  text-align:right;
+}
+.info-warn svg{ flex:none; width:18px;height:18px; color:#d97706; margin-top:1px; }
+.info-warn strong{ font-weight:600; color:#0f172a; }
+.info-blue{
+  background:#eff6ff;
+  border:1px solid #bfdbfe;
+  color:#1d4ed8;
+  border-radius:12px;
+  padding:11px 15px;
+  font-size:.8rem;
+  font-weight:700;
+  margin-top:12px;
+  text-align:center;
+}
+
+/* ═══ OTP BOXES ══════════════════════════════════════════════ */
+.otp-box{
+  width:48px; height:56px;
+  border:1.5px solid var(--line);
+  border-radius:12px;
+  text-align:center;
+  font-size:1.5rem; font-weight:900;
+  font-family:inherit;
+  color:var(--ink);
+  background:#f8fafc;
+  outline:0;
+  transition:all .18s;
+  -moz-appearance:textfield;
+}
+.otp-box::-webkit-outer-spin-button,
+.otp-box::-webkit-inner-spin-button{ -webkit-appearance:none; }
+.otp-box:focus{ border-color:var(--blue); background:#fff; box-shadow:0 0 0 4px var(--blue-ring); }
+.otp-box.filled{ border-color:var(--blue); background:rgba(37,99,235,.06); }
+.otp-row{ display:flex; gap:8px; justify-content:center; margin:22px 0; direction:ltr; }
+
+/* ═══ RESULT SCREENS ════════════════════════════════════════ */
+.result-box{ text-align:center; padding:8px 0 4px; }
+.result-ic{
+  width:76px; height:76px;
+  border-radius:50%;
+  display:grid; place-items:center;
+  margin:0 auto 20px;
+}
+.result-ic.green{ background:#dcfce7; }
+.result-ic.amber{ background:#fef3c7; }
+.result-box h2{ font-size:1.6rem; font-weight:900; color:var(--ink); margin-bottom:10px; }
+.result-box p{ color:var(--muted); font-weight:600; line-height:1.7; margin-bottom:22px; font-size:.9rem; }
+.result-note{
+  background:#eff6ff;
+  border:1px solid #bfdbfe;
+  border-radius:12px;
+  padding:12px 15px;
+  font-size:.8rem; font-weight:700; color:#1d4ed8;
+  margin-bottom:20px; text-align:right; line-height:1.65;
+}
+
+/* ═══ SHARED UTILS ══════════════════════════════════════════ */
+.row2{ display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+.row2-label{
+  display:block;
+  font-weight:800; font-size:.8rem;
+  color:#374151; margin-bottom:6px;
+  letter-spacing:.01em;
+}
+.mb14{ margin-bottom:14px; }
+
+@keyframes spin{ to{ transform:rotate(360deg); } }
+@keyframes shake{
+  0%,100%{ transform:translateX(0); }
+  20%{ transform:translateX(-7px); }
+  40%{ transform:translateX(7px); }
+  60%{ transform:translateX(-4px); }
+  80%{ transform:translateX(4px); }
+}
+
+.spinner{
+  width:28px; height:28px;
+  border:3px solid rgba(255,255,255,.2);
+  border-top-color:#fff;
+  border-radius:50%;
+  animation:spin .7s linear infinite;
+  margin:0 auto;
+}
+
+/* ═══ FOOTER ════════════════════════════════════════════════ */
+.form-footer{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  flex-wrap:wrap;
+  gap:12px;
+  padding-top:18px;
+  border-top:1px solid #f1f5f9;
+  margin-top:10px;
+  flex:none;
+}
+.form-footer a{ font-size:.77rem; color:#94a3b8; font-weight:600; text-decoration:none; transition:color .15s; }
+.form-footer a:hover{ color:var(--ink); }
+.soc-btn{
+  display:flex; align-items:center; justify-content:center;
+  width:30px; height:30px;
+  border-radius:8px;
+  background:var(--paper);
+  border:1.5px solid var(--line);
+  color:var(--muted); text-decoration:none;
+  transition:all .15s;
+}
+.soc-btn:hover{ color:var(--ink); border-color:var(--ink); }
+
+/* ═══ RESPONSIVE ════════════════════════════════════════════ */
+@media(max-width:860px){
+  .side-photo{ display:none; }
+  .side-form{ padding:18px 16px; flex:1; overflow-y:auto; }
+  .fcard{ border-radius:20px; padding:28px 22px; }
+  body{ overflow-y:auto; overflow-x:hidden; }
+  .form-center{ padding:10px 0 20px; }
+}
+@media(max-width:480px){
+  .row2{ grid-template-columns:1fr; }
+  .svc-grid{ grid-template-columns:repeat(2,1fr); }
+  .s1-title,.form-title{ font-size:1.5rem; }
+  .fcard{ padding:22px 18px; border-radius:16px; }
+  .otp-box{ width:42px; height:50px; font-size:1.3rem; }
+  .form-footer{ flex-direction:column; align-items:flex-start; }
+  .form-footer>div:last-child{ align-self:flex-end; }
+}
+</style>
+</head>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js?onload=onTsLoadM&render=explicit" async defer></script>
+<body>
+
+<!-- ══════════════════════════════════════════════════════════
+     DARK SIDE PANEL (right in RTL)
+══════════════════════════════════════════════════════════════ -->
+<div class="side-photo" aria-hidden="true">
+  <div class="side-photo-overlay"></div>
+  <div id="sp-stars"></div>
+  <div class="sp-orb sp-orb-1"></div>
+  <div class="sp-orb sp-orb-2"></div>
+  <div class="sp-orb sp-orb-3"></div>
+  <div class="side-photo-content">
+
+    <!-- Logo mark only (non-clickable) -->
+    <div class="sp-logo" aria-hidden="true">
+      <img src="/logo-white.png" alt="VOLD MOTOR" style="height:46px;width:auto;display:block;filter:drop-shadow(0 8px 22px rgba(37,99,235,.35))">
+    </div>
+
+    <!-- Headline -->
+    <div>
+      <div class="tagline">
+        <span data-i18n="tagline1">نظام إدارة مراكز</span><br><span data-i18n="tagline2">العناية بالمركبات</span>
+        <em data-i18n="taglineSub">أدِر مركزك، كبّر عملاءك، تابع دخلك — من مكان واحد.</em>
+      </div>
+    </div>
+
+    <!-- Floating code card -->
+    <div class="sp-code-card">
+      <div class="sp-code-top">
+        <div class="sp-code-dots"><span></span><span></span><span></span></div>
+        <span class="sp-code-fname">dashboard.ts</span>
+      </div>
+      <div class="sp-code-body">
+        <div class="sp-code-line"><span class="tk-c">// مركز اللمسة الذهبية ✓</span></div>
+        <div class="sp-code-line"><span class="tk-k">const</span> <span class="tk-v">stats</span> <span class="tk-o">=</span> <span class="tk-k">await</span></div>
+        <div class="sp-code-line">  shop<span class="tk-o">.</span><span class="tk-f">getRevenue</span><span class="tk-o">();</span></div>
+        <div class="sp-code-line"><span class="tk-c">// ↑ 34% هذا الشهر 🚀</span></div>
+      </div>
+      <div class="sp-code-foot">
+        <span class="sp-badge-up">▲ 34%</span>
+        <span>الإيرادات</span>
+        <span class="sp-badge-live">● مفعّل</span>
+      </div>
+    </div>
+
+    <!-- Glassmorphism stat pills -->
+    <div class="photo-stats">
+      <div class="ps">
+        <div class="ps-ic">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M3 9.5L12 3l9 6.5V21H3z"/><path d="M9 21V12h6v9"/></svg>
+        </div>
+        <div class="ps-body">
+          <div class="pn" data-i18n="stat1Num">+400</div>
+          <div class="pl" data-i18n="stat1Label">مركز شريك نشط</div>
+        </div>
+      </div>
+      <div class="ps">
+        <div class="ps-ic">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+        </div>
+        <div class="ps-body">
+          <div class="pn" data-i18n="stat2Num">4.9 ★</div>
+          <div class="pl" data-i18n="stat2Label">تقييم أصحاب المراكز</div>
+        </div>
+      </div>
+      <div class="ps">
+        <div class="ps-ic">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        </div>
+        <div class="ps-body">
+          <div class="pn" data-i18n="stat3Num">99.9٪</div>
+          <div class="pl" data-i18n="stat3Label">جاهزية النظام</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Site name at the bottom (smaller) -->
+    <div class="sp-brand-bottom"><img src="/logo-white.png" alt="VOLD MOTOR" style="height:22px;width:auto;opacity:.8"></div>
+
+  </div>
+</div><!-- /side-photo -->
+
+
+<!-- ══════════════════════════════════════════════════════════
+     FORM SIDE (left in RTL)
+══════════════════════════════════════════════════════════════ -->
+<div class="side-form">
+
+  <!-- Topbar -->
+  <div class="topbar">
+    <a href="index.html" class="topbar-logo" aria-label="الرئيسية">
+      <svg width="29" height="29" viewBox="0 0 64 64" fill="none" aria-hidden="true">
+        <defs>
+          <linearGradient id="gear-tb" x1="10" y1="8" x2="54" y2="56" gradientUnits="userSpaceOnUse"><stop stop-color="#1e3a8a"/><stop offset="1" stop-color="#1d4ed8"/></linearGradient>
+          <linearGradient id="steel-tb" x1="32" y1="14" x2="32" y2="50" gradientUnits="userSpaceOnUse"><stop stop-color="#f1f5f9"/><stop offset=".5" stop-color="#cbd5e1"/><stop offset="1" stop-color="#94a3b8"/></linearGradient>
+        </defs>
+        <circle cx="32" cy="32" r="23" fill="none" stroke="url(#gear-tb)" stroke-width="9" stroke-dasharray="7 5.6"/>
+        <circle cx="32" cy="32" r="17.5" fill="none" stroke="url(#gear-tb)" stroke-width="3"/>
+        <rect x="29.5" y="30" width="5" height="17" rx="2.2" fill="url(#steel-tb)" stroke="#64748b" stroke-width=".5"/>
+        <circle cx="32" cy="46.5" r="3.1" fill="url(#steel-tb)" stroke="#64748b" stroke-width=".6"/>
+        <rect x="25" y="15" width="14" height="15" rx="2.5" fill="url(#steel-tb)" stroke="#64748b" stroke-width=".7"/>
+        <rect x="25" y="19" width="14" height="1.5" fill="#64748b" opacity=".5"/>
+        <rect x="25" y="22.4" width="14" height="1.5" fill="#64748b" opacity=".5"/>
+      </svg>
+      <span class="topbar-logo-word">
+        <span style="font-weight:800;font-size:.95rem;letter-spacing:.02em;color:var(--ink)">VOLD</span>
+        <span style="font-weight:300;font-size:.95rem;letter-spacing:.18em;color:var(--muted)">MOTOR</span>
+      </span>
+    </a>
+    <div class="topbar-right">
+      <button class="topbar-back" id="topbar-back" onclick="handleTopBack()" style="display:none" aria-label="رجوع">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+        <span data-i18n="backBtn">رجوع</span>
+      </button>
+      <a href="#" class="topbar-link" onclick="event.preventDefault();openHelp()">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+        <span data-i18n="helpLink">المساعدة</span>
+      </a>
+    </div>
+  </div>
+
+  <!-- Floating card -->
+  <div class="form-center">
+    <div class="fcard">
+
+      <!-- ══ S1: اختيار الدور ══ -->
+      <div class="screen active" id="s1" role="main">
+        <div class="s1-title"><span data-i18n="s1Hi">مرحباً بك 👋</span><br><span data-i18n="s1In">في VOLD MOTOR</span></div>
+        <div class="s1-sub" data-i18n="s1Sub">اختر نوع حسابك للمتابعة</div>
+        <div class="choices">
+          <div class="choice" onclick="goScreen('s2');showSection('s2-join-1')" role="button" tabindex="0"
+               onkeydown="if(event.key==='Enter'||event.key===' '){goScreen('s2');showSection('s2-join-1')}">
+            <div class="choice-body">
+              <h3 data-i18n="roleTitle">صاحب مركز / ورشة</h3>
+              <p data-i18n="roleSub">أدِر حجوزاتك وعملاءك ومخزونك</p>
+            </div>
+            <div class="choice-arr" aria-hidden="true">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ S2: منطقة صاحب المركز ══ -->
+      <div class="screen" id="s2">
+
+        <!-- اختيار المسار -->
+        <div id="s2-picker">
+          <div class="form-title" style="margin-bottom:6px" data-i18n="pickerTitle">صاحب مركز؟</div>
+          <div class="form-sub" data-i18n="pickerSub">اختر ما يناسبك</div>
+
+          <div class="reg-card" onclick="skeletonTransition('s2-join-1',{fields:4,focus:'j-shop'})" role="button" tabindex="0"
+               onkeydown="if(event.key==='Enter')skeletonTransition('s2-join-1',{fields:4,focus:'j-shop'})">
+            <div class="reg-card-badge" data-i18n="regBadge">طلب انضمام جديد</div>
+            <div class="reg-card-title" data-i18n="regTitle">سجّل ورشتك الآن</div>
+            <div class="reg-card-sub" data-i18n="regSub">أرسل طلبك وابدأ العمل بعد موافقة الإدارة</div>
+            <ul class="reg-card-perks" aria-label="مميزات النظام">
+              <li>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M20 6 9 17l-5-5"/></svg>
+                <span data-i18n="perk1">إدارة الحجوزات والعملاء</span>
+              </li>
+              <li>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M20 6 9 17l-5-5"/></svg>
+                <span data-i18n="perk2">تقارير الدخل والمخزون</span>
+              </li>
+              <li>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M20 6 9 17l-5-5"/></svg>
+                <span data-i18n="perk3">دعم فني متواصل 24/7</span>
+              </li>
+            </ul>
+            <div class="reg-card-btn">
+              <span data-i18n="regBtn">تقديم طلب الانضمام</span>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+            </div>
+          </div>
+
+          <p data-i18n="commReassure" style="text-align:center;font-size:.84rem;color:#64748b;line-height:1.65;margin:14px 6px 2px">بدون اشتراكات شهرية. عمولة رمزية فقط على الطلبات المنجزة.</p>
+
+          <div class="s2-divider"><span data-i18n="orDiv">أو</span></div>
+
+          <div class="login-row" onclick="skeletonTransition('s2-login-1',{fields:2,focus:'login-id'})" role="button" tabindex="0"
+               onkeydown="if(event.key==='Enter')skeletonTransition('s2-login-1',{fields:2,focus:'login-id'})">
+            <div>
+              <div style="font-weight:900;font-size:.98rem;color:var(--ink)" data-i18n="loginRowTitle">لديّ حساب مفعّل</div>
+              <div style="font-size:.84rem;color:var(--muted);font-weight:600;margin-top:2px" data-i18n="loginRowSub">سجّل دخولك للنظام</div>
+            </div>
+            <div class="login-row-arr" aria-hidden="true">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+            </div>
+          </div>
+        </div>
+        <!-- /s2-picker -->
+
+        <!-- ── طلب الانضمام: خطوة ١ — بيانات المركز ── -->
+        <div id="s2-join-1" style="display:none">
+          <div class="form-title" data-i18n="join1Title">سجّل مركزك</div>
+          <div class="form-sub" data-i18n="join1Sub">أخبرنا عن مركزك وبيانات التواصل</div>
+
+          <div class="err-box" id="err-j1" role="alert"></div>
+          <div class="err-box" id="err-j2" role="alert"></div>
+
+          <!-- اسم المركز -->
+          <div class="gh-field">
+            <label class="gh-label" for="j-shop"><span data-i18n="shopLabel">اسم الورشة / المركز</span> <span class="req" aria-hidden="true">*</span></label>
+            <input type="text" id="j-shop" class="gh-input" placeholder="مثال: مركز اللمسة الذهبية" data-i18n-ph="shopPh" tabindex="1" aria-required="true">
+            <span class="field-err" id="ferr-j-shop" role="alert" aria-live="polite"></span>
+          </div>
+
+          <!-- خدمات المركز (إجباري) -->
+          <div class="gh-field">
+            <label class="gh-label" for="j-services"><span data-i18n="svcLabel">نوع المركز</span> <span class="req" aria-hidden="true">*</span></label>
+            <div class="gh-sel-wrap">
+              <select id="j-services" class="gh-select" tabindex="2" autocomplete="off" aria-required="true">
+                <option value="" disabled selected>اختر نوع المركز…</option>
+                <option value="مراكز تغيير الزيت">مراكز تغيير الزيت</option>
+                <option value="مراكز البطاريات">مراكز البطاريات</option>
+                <option value="مغاسل السيارات">مغاسل السيارات</option>
+                <option value="كهربائي">كهربائي</option>
+                <option value="ميكانيكي">ميكانيكي</option>
+                <option value="مركز زينة سيارات">مركز زينة سيارات</option>
+                <option value="أخرى">أخرى</option>
+              </select>
+              <svg class="gh-sel-arrow" width="14" height="14" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M4.22 6.22a.75.75 0 0 1 1.06 0L8 8.94l2.72-2.72a.75.75 0 1 1 1.06 1.06l-3.25 3.25a.75.75 0 0 1-1.06 0L4.22 7.28a.75.75 0 0 1 0-1.06Z"/></svg>
+            </div>
+            <span class="field-err" id="ferr-j-services" role="alert" aria-live="polite"></span>
+          </div>
+
+          <!-- المدينة -->
+          <div class="gh-field">
+            <label class="gh-label" for="j-location" data-i18n="cityLabel">المدينة / الموقع</label>
+            <div class="gh-sel-wrap">
+              <select id="j-location" class="gh-select" tabindex="3" autocomplete="off" aria-label="اختر المدينة">
+                <option value="" disabled selected data-i18n="cityPh">اختر المدينة</option>
+                <option>الرياض</option><option>جدة</option><option>مكة المكرمة</option><option>المدينة المنورة</option>
+                <option>الدمام</option><option>الخبر</option><option>الظهران</option><option>الطائف</option>
+                <option>أبها</option><option>خميس مشيط</option><option>تبوك</option><option>حائل</option>
+                <option>بريدة</option><option>الجبيل</option><option>ينبع</option><option>نجران</option>
+                <option>جيزان</option><option>سكاكا</option><option>عرعر</option><option>القطيف</option>
+                <option>الهفوف</option><option>الباحة</option><option>بيشة</option><option>الرس</option><option>مدينة أخرى</option>
+              </select>
+              <svg class="gh-sel-arrow" width="14" height="14" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M4.22 6.22a.75.75 0 0 1 1.06 0L8 8.94l2.72-2.72a.75.75 0 1 1 1.06 1.06l-3.25 3.25a.75.75 0 0 1-1.06 0L4.22 7.28a.75.75 0 0 1 0-1.06Z"/></svg>
+            </div>
+          </div>
+
+          <!-- رقم الجوال -->
+          <div class="gh-field">
+            <label class="gh-label" for="j-phone"><span data-i18n="phoneLabel">رقم الجوال</span> <span class="req" aria-hidden="true">*</span></label>
+            <input type="tel" id="j-phone" class="gh-input" style="direction:ltr;text-align:right" placeholder="05xxxxxxxx" data-i18n-ph="phonePh" maxlength="13" inputmode="tel" tabindex="4" aria-required="true">
+            <span class="field-err" id="ferr-j-phone" role="alert" aria-live="polite"></span>
+          </div>
+
+          <!-- البريد الإلكتروني -->
+          <div class="gh-field">
+            <label class="gh-label" for="j-email"><span data-i18n="emailLabel">البريد الإلكتروني</span> <span class="req" aria-hidden="true">*</span></label>
+            <input type="email" id="j-email" class="gh-input" style="direction:ltr;text-align:right" placeholder="example@gmail.com" data-i18n-ph="emailPh" tabindex="5" aria-required="true">
+            <span class="field-err" id="ferr-j-email" role="alert" aria-live="polite"></span>
+          </div>
+
+          <!-- كلمة المرور -->
+          <div class="gh-field">
+            <label class="gh-label" for="j-password"><span data-i18n="pwLabel">كلمة المرور</span> <span class="req" aria-hidden="true">*</span></label>
+            <div class="gh-pw-wrap">
+              <input type="password" id="j-password" class="gh-input" style="direction:ltr;text-align:right" placeholder="••••••••" tabindex="6" autocomplete="new-password" aria-required="true" oninput="checkPwStrength(this)">
+              <button type="button" class="gh-eye" onclick="toggleEye('j-password',this)" tabindex="-1" aria-label="إظهار/إخفاء كلمة المرور">
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+              </button>
+            </div>
+            <div class="gh-hint" data-i18n="pwHint">يجب أن تتكون من 8 خانات على الأقل، وتحتوي على حرف كبير (A-Z)، حرف صغير (a-z)، رقم (0-9)، ورمز خاص مثل @$!%*?&</div>
+            <span class="field-err" id="ferr-j-password" role="alert" aria-live="polite"></span>
+          </div>
+
+          <!-- اتفاقية الشروط والخصوصية -->
+          <label class="gh-check">
+            <input type="checkbox" id="j-terms" tabindex="6" onchange="refreshRegBtn()">
+            <span id="terms-text">أوافق على <a href="terms.html" target="_blank" rel="noopener" style="color:var(--blue);font-weight:700;text-decoration:underline">شروط الاستخدام وسياسة الخصوصية</a> الخاصة بمراكز VOLD MOTOR</span>
+          </label>
+
+          <div style="display:none"><div id="cf-register"></div></div>
+
+          <button class="btn-gh" id="btn-j2" onclick="doJoinRequest(this)" tabindex="7"
+                  aria-label="إرسال الطلب" disabled>
+            <span data-i18n="submitBtn">إرسال الطلب</span>
+            <svg width="15" height="15" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true" style="transform:scaleX(-1)"><path d="M8.22 2.97a.75.75 0 0 1 1.06 0l4.25 4.25a.75.75 0 0 1 0 1.06l-4.25 4.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042l2.97-2.97H3.75a.75.75 0 0 1 0-1.5h7.44L8.22 4.03a.75.75 0 0 1 0-1.06Z"/></svg>
+          </button>
+          <div class="sw" style="margin-top:20px;text-align:center">
+            <span data-i18n="haveAcc">لديك حساب مفعّل؟</span> <a onclick="showSection('s2-login-1')" role="button" tabindex="8" data-i18n="signInLnk">سجّل الدخول</a>
+          </div>
+        </div>
+        <!-- /s2-join-1 -->
+        <div id="s2-join-2" style="display:none"></div>
+
+        <!-- ── تسجيل الدخول: المعرّف ── -->
+        <div id="s2-login-1" style="display:none">
+          <div class="form-title" data-i18n="loginTitle">تسجيل الدخول</div>
+          <div class="form-sub" data-i18n="loginSub">أدخل بريدك الإلكتروني أو رقم جوالك</div>
+
+          <div class="err-box" id="err-l1" role="alert"></div>
+          <div class="info-amber" id="info-pending" role="status"></div>
+
+          <div class="gh-field">
+            <label class="gh-label" for="login-id" data-i18n="loginIdLabel">البريد الإلكتروني</label>
+            <input type="email" id="login-id" class="gh-input"
+                   style="direction:ltr;text-align:right"
+                   placeholder="example@gmail.com" data-i18n-ph="loginIdPh"
+                   tabindex="1" aria-required="true"
+                   autocomplete="username" autocorrect="off" autocapitalize="off" spellcheck="false" inputmode="email">
+          </div>
+
+          <div class="gh-field">
+            <div class="gh-label-row">
+              <label class="gh-label" for="login-password" data-i18n="pwLabel">كلمة المرور</label>
+              <a class="gh-forgot" onclick="showSection('s2-forgot')" role="button" tabindex="3" data-i18n="forgotPw">نسيت كلمة المرور؟</a>
+            </div>
+            <div class="gh-pw-wrap">
+              <input type="password" id="login-password" class="gh-input" style="direction:ltr;text-align:right" placeholder="••••••••" tabindex="2" autocomplete="current-password"
+                     onkeydown="if(event.key==='Enter')doPasswordLogin(document.getElementById('btn-login'))">
+              <button type="button" class="gh-eye" onclick="toggleEye('login-password',this)" tabindex="-1" aria-label="إظهار/إخفاء كلمة المرور">
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+              </button>
+            </div>
+          </div>
+
+          <div style="display:none"><div id="cf-login"></div></div>
+          <div style="background:#f6f8fa;border:1px solid #d0d7de;border-radius:8px;padding:12px 13px;margin:2px 0 14px">
+            <div style="display:flex;align-items:center;gap:8px">
+              <canvas id="lg-cap-canvas" width="138" height="46" onclick="newCap()" title="اضغط لرمز جديد" style="border:1px solid #d0d7de;border-radius:6px;flex:none;cursor:pointer"></canvas>
+              <button type="button" onclick="newCap()" tabindex="-1" aria-label="رمز جديد" title="رمز جديد" style="flex:none;background:#fff;border:1px solid #d0d7de;border-radius:6px;width:34px;height:34px;cursor:pointer;color:#57606a;font-size:1.05rem">↻</button>
+              <input id="lg-cap" maxlength="6" autocomplete="off" autocorrect="off" autocapitalize="characters" spellcheck="false" oninput="checkCap()" onkeydown="if(event.key==='Enter')doPasswordLogin(document.getElementById('btn-login'))" placeholder="الرمز" style="flex:1;min-width:0;border:1px solid #d0d7de;border-radius:6px;padding:7px 10px;font-family:inherit;font-size:.95rem;font-weight:800;text-align:center;outline:0;direction:ltr;text-transform:uppercase;letter-spacing:.12em;background:#fff">
+              <span id="lg-cap-ok" style="display:none;color:#1a7f37;font-weight:900;font-size:1.1rem;flex:none">✓</span>
+            </div>
+          </div>
+          <button class="btn-gh" id="btn-login" onclick="doPasswordLogin(this)" tabindex="4">
+            <span data-i18n="loginBtn">تسجيل الدخول</span>
+            <svg width="15" height="15" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true" style="transform:scaleX(-1)"><path d="M8.22 2.97a.75.75 0 0 1 1.06 0l4.25 4.25a.75.75 0 0 1 0 1.06l-4.25 4.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042l2.97-2.97H3.75a.75.75 0 0 1 0-1.5h7.44L8.22 4.03a.75.75 0 0 1 0-1.06Z"/></svg>
+          </button>
+          <div class="sw" style="margin-top:20px;text-align:center">
+            <span data-i18n="noAcc">لا يوجد لديك حساب؟</span> <a onclick="showSection('s2-join-1')" role="button" tabindex="5" data-i18n="joinLnk">قدّم طلب انضمام</a>
+          </div>
+        </div>
+        <!-- /s2-login-1 -->
+
+        <!-- ── استعادة كلمة المرور ── -->
+        <div id="s2-forgot" style="display:none">
+          <div class="form-title" data-i18n="forgotTitle">استعادة كلمة المرور</div>
+          <div class="form-sub" data-i18n="forgotSub">أدخل بريدك الإلكتروني وسنرسل لك رابط استعادة كلمة المرور</div>
+
+          <div class="err-box" id="err-fp" role="alert"></div>
+          <div class="info-success" id="info-fp" role="status"></div>
+
+          <div class="gh-field">
+            <label class="gh-label" for="fp-email" data-i18n="emailLabel">البريد الإلكتروني</label>
+            <input type="email" id="fp-email" class="gh-input" style="direction:ltr;text-align:right" placeholder="example@gmail.com" data-i18n-ph="emailPh" tabindex="1" aria-required="true"
+                   onkeydown="if(event.key==='Enter')doForgotPassword(document.getElementById('btn-fp'))">
+            <span class="field-err" id="ferr-fp-email" role="alert" aria-live="polite"></span>
+          </div>
+
+          <div style="display:none"><div id="cf-forgot"></div></div>
+
+          <button class="btn-gh" id="btn-fp" onclick="doForgotPassword(this)" tabindex="2">
+            <span data-i18n="sendResetBtn">إرسال رابط الاستعادة</span>
+          </button>
+          <div class="sw" style="margin-top:20px;text-align:center">
+            <a onclick="showSection('s2-login-1')" role="button" tabindex="3" data-i18n="backToLogin">← العودة لتسجيل الدخول</a>
+          </div>
+        </div>
+        <!-- /s2-forgot -->
+
+        <!-- ── تعيين كلمة مرور جديدة (بعد فتح رابط الاستعادة) ── -->
+        <div id="s2-reset" style="display:none">
+          <div class="form-title">تعيين كلمة مرور جديدة</div>
+          <div class="form-sub">اختر كلمة مرور قوية جديدة لحسابك لإكمال الاستعادة</div>
+
+          <div class="err-box" id="err-rp" role="alert"></div>
+          <div class="info-success" id="info-rp" role="status"></div>
+
+          <div class="gh-field">
+            <label class="gh-label" for="rp-pass">كلمة المرور الجديدة</label>
+            <div class="gh-pw-wrap">
+              <input type="password" id="rp-pass" class="gh-input" style="direction:ltr;text-align:right" placeholder="••••••••" tabindex="1" autocomplete="new-password" oninput="checkPwStrength(this)">
+              <button type="button" class="gh-eye" onclick="toggleEye('rp-pass',this)" tabindex="-1" aria-label="إظهار/إخفاء كلمة المرور">
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+              </button>
+            </div>
+          </div>
+
+          <div class="gh-field">
+            <label class="gh-label" for="rp-pass2">تأكيد كلمة المرور</label>
+            <div class="gh-pw-wrap">
+              <input type="password" id="rp-pass2" class="gh-input" style="direction:ltr;text-align:right" placeholder="••••••••" tabindex="2" autocomplete="new-password" onkeydown="if(event.key==='Enter')doResetPassword(document.getElementById('btn-rp'))">
+              <button type="button" class="gh-eye" onclick="toggleEye('rp-pass2',this)" tabindex="-1" aria-label="إظهار/إخفاء كلمة المرور">
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+              </button>
+            </div>
+          </div>
+
+          <button class="btn-gh" id="btn-rp" onclick="doResetPassword(this)" tabindex="3">
+            <span>حفظ كلمة المرور الجديدة</span>
+          </button>
+        </div>
+        <!-- /s2-reset -->
+
+        <!-- ── تسجيل الدخول: OTP ── -->
+        <div id="s2-login-2" style="display:none">
+          <button class="back-btn" onclick="showSection('s2-login-1')" aria-label="رجوع">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+            <span data-i18n="backBtn">رجوع</span>
+          </button>
+          <div class="form-title" data-i18n="otpTitle">كود التحقق</div>
+          <div class="form-sub">
+            <span data-i18n="otpSub">أرسلنا كوداً مكوّن من 6 أرقام إلى</span>
+            <strong id="login-masked" style="color:var(--ink)"></strong>
+          </div>
+
+          <div class="err-box" id="err-l2" role="alert"></div>
+
+          <div class="otp-row" id="login-otp-row" aria-label="حقول كود التحقق">
+            <input class="otp-box" type="tel" maxlength="1" inputmode="numeric" tabindex="1" aria-label="الرقم الأول">
+            <input class="otp-box" type="tel" maxlength="1" inputmode="numeric" tabindex="2" aria-label="الرقم الثاني">
+            <input class="otp-box" type="tel" maxlength="1" inputmode="numeric" tabindex="3" aria-label="الرقم الثالث">
+            <input class="otp-box" type="tel" maxlength="1" inputmode="numeric" tabindex="4" aria-label="الرقم الرابع">
+            <input class="otp-box" type="tel" maxlength="1" inputmode="numeric" tabindex="5" aria-label="الرقم الخامس">
+            <input class="otp-box" type="tel" maxlength="1" inputmode="numeric" tabindex="6" aria-label="الرقم السادس">
+          </div>
+
+          <button class="btn-gh" id="btn-lverify" onclick="doLoginVerify(this)" tabindex="7">
+            <span data-i18n="verifyBtn">تحقق والدخول</span>
+          </button>
+
+          <div class="info-blue" id="spam-hint" data-i18n="spamHint">💡 لم يصلك الإيميل؟ تحقق من مجلد Spam</div>
+
+          <div class="sw" style="margin-top:12px">
+            <span id="resend-timer" style="font-size:.85rem;color:var(--muted);font-weight:700"></span>
+            <a id="resend-btn" onclick="doResendOtp()" style="display:none;cursor:pointer" role="button" tabindex="8" data-i18n="resendBtn">إعادة إرسال الكود</a>
+          </div>
+          <div class="sw" style="margin-top:6px">
+            <a onclick="showSection('s2-login-1')" style="font-size:.82rem;color:var(--muted)" role="button" tabindex="9" data-i18n="changeId">← تغيير البريد / الرقم</a>
+          </div>
+        </div>
+        <!-- /s2-login-2 -->
+
+      </div><!-- /s2 -->
+
+      <!-- ══ S3: دخول الأدمن ══ -->
+      <div class="screen" id="s3">
+        <button class="back-btn" onclick="goScreen('s1')" aria-label="رجوع">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+          <span data-i18n="backBtn">رجوع</span>
+        </button>
+        <div class="form-title" data-i18n="adminTitle">لوحة الإدارة</div>
+        <div class="form-sub" data-i18n="adminSub">الدخول خاص بإدارة النظام</div>
+        <div class="err-box" id="err-admin" role="alert"></div>
+        <div class="field">
+          <label for="admin-email" data-i18n="adminEmailLabel">البريد الإلكتروني</label>
+          <div class="inp-wrap">
+            <svg class="ico" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+            <input type="email" id="admin-email"
+                   style="padding-right:42px;direction:ltr;text-align:right"
+                   placeholder="name@voldmotor.com"
+                   tabindex="1"
+                   onkeydown="if(event.key==='Enter')doAdminLogin(document.getElementById('btn-admin'))">
+          </div>
+        </div>
+        <div class="field">
+          <label for="admin-pass" data-i18n="adminPassLabel">كلمة المرور</label>
+          <div class="inp-wrap">
+            <svg class="ico" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            <input type="password" id="admin-pass"
+                   style="padding-right:42px;padding-left:42px"
+                   placeholder="••••••••"
+                   tabindex="2"
+                   onkeydown="if(event.key==='Enter')doAdminLogin(document.getElementById('btn-admin'))">
+            <button class="eye" onclick="toggleEye('admin-pass',this)" type="button" tabindex="3" aria-label="إظهار/إخفاء كلمة المرور">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            </button>
+          </div>
+        </div>
+        <button class="btn-sub" id="btn-admin" onclick="doAdminLogin(this)" tabindex="4" data-i18n="adminLoginBtn">دخول</button>
+      </div>
+
+      <!-- ══ S4: انتظار بعد طلب الانضمام ══ -->
+      <div class="screen" id="s4">
+        <div class="result-box">
+          <div class="result-ic amber" aria-hidden="true">
+            <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#d97706" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          </div>
+          <h2 data-i18n="s4Title">تم استلام طلبك! 📋</h2>
+          <p id="s4-body">شكراً على اهتمامك بالانضمام لمنصة VOLD MOTOR. سيقوم فريق الإدارة بمراجعة طلبك خلال <strong style="color:var(--ink)">24–48 ساعة</strong>، وستصلك رسالة على بريدك الإلكتروني عند تفعيل الحساب.</p>
+          <div class="result-note">
+            💡 في حال عدم وصول إشعار خلال 48 ساعة، تواصل معنا عبر
+            <a href="mailto:voldmotorglobal@gmail.com" style="color:var(--blue)">voldmotorglobal@gmail.com</a>
+          </div>
+          <button class="btn-sub" style="background:#64748b;box-shadow:none" onclick="goScreen('s1')" data-i18n="s4BackBtn">العودة للصفحة الرئيسية</button>
+        </div>
+      </div>
+
+      <!-- ══ S5: نجاح تسجيل الدخول ══ -->
+      <div class="screen" id="s5">
+        <div class="result-box">
+          <div class="result-ic green" aria-hidden="true">
+            <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="3" stroke-linecap="round"><path d="M20 6 9 17l-5-5"/></svg>
+          </div>
+          <h2 data-i18n="s5Title">مرحباً بعودتك! 🎉</h2>
+          <p data-i18n="s5Body">تم تسجيل دخولك بنجاح. جاري توجيهك للوحة التحكم...</p>
+          <div class="spinner" aria-label="جاري التحميل" role="status"></div>
+        </div>
+      </div>
+
+    </div><!-- /fcard -->
+  </div><!-- /form-center -->
+
+  <!-- Footer -->
+  <div class="form-footer">
+    <div style="display:flex;gap:14px">
+      <a href="privacy.html" data-i18n="footerPrivacy">سياسة الخصوصية</a>
+      <a href="#" data-i18n="footerTerms">الشروط</a>
+      <a href="#" data-i18n="footerHelp" onclick="event.preventDefault();openHelp()">المساعدة</a>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px">
+      <a href="https://x.com/vold.as" target="_blank" rel="noopener" title="X" class="soc-btn">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.73-8.835L1.254 2.25H8.08l4.253 5.622 5.912-5.622Zm-1.161 17.52h1.833L7.084 4.126H5.117Z"/></svg>
+      </a>
+      <a href="https://www.snapchat.com/add/vold.as" target="_blank" rel="noopener" title="Snapchat" class="soc-btn">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12.166 2C9.003 2 6.5 4.557 6.5 7.79v.617c-.34.1-.715.162-1.127.162-.38 0-.636-.047-.636-.047s-.237 1.168.87 1.703c-.164.38-.393.74-.693 1.06C4.1 11.73 3 12.05 3 12.05s.195 1.02 1.547 1.25c.14.55.47 1.06.99 1.42C4.7 15.18 4 15.67 4 15.67s.43 1.1 2.2 1.1c.49 0 .93-.07 1.31-.18.62.8 1.58 1.41 2.99 1.41.05 0 .1 0 .16-.01.5 1.06 1.41 1.76 2.5 1.76s2-.7 2.5-1.76c.06.01.11.01.16.01 1.41 0 2.37-.61 2.99-1.41.38.11.82.18 1.31.18 1.77 0 2.2-1.1 2.2-1.1s-.7-.49-1.54-.95c.52-.36.85-.87.99-1.42C21.805 13.07 22 12.05 22 12.05s-1.1-.32-1.914-.768c-.3-.32-.529-.68-.693-1.06 1.107-.535.87-1.703.87-1.703s-.256.047-.636.047c-.412 0-.787-.062-1.127-.162V7.79C18.5 4.557 15.33 2 12.166 2Z"/></svg>
+      </a>
+      <a href="https://www.instagram.com/vold.as" target="_blank" rel="noopener" title="Instagram" class="soc-btn">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069ZM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0Zm0 5.838a6.162 6.162 0 1 0 0 12.324 6.162 6.162 0 0 0 0-12.324ZM12 16a4 4 0 1 1 0-8 4 4 0 0 1 0 8Zm6.406-11.845a1.44 1.44 0 1 0 0 2.881 1.44 1.44 0 0 0 0-2.881Z"/></svg>
+      </a>
+      <a href="mailto:voldmotorglobal@gmail.com" title="Email" class="soc-btn">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+      </a>
+      <button id="footer-lang-btn" onclick="toggleLang()" aria-label="تغيير اللغة"
+              style="background:none;border:1.5px solid var(--line);border-radius:8px;padding:5px 12px;font-weight:700;font-size:.82rem;color:var(--muted);cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:5px;transition:.15s">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+        <span id="footer-lang-label">English</span>
+      </button>
+    </div>
+  </div>
+
+</div><!-- /side-form -->
+
+<!-- ══════════════════════════════════════════════════════════════
+     JAVASCRIPT — All original logic preserved + new enhancements
+══════════════════════════════════════════════════════════════ -->
+<script>
+/* ══════════════════════════════════════════════════════════════
+   i18n — Translation Dictionary + Engine (no lang.js needed)
+══════════════════════════════════════════════════════════════ */
+const DICT = {
+  ar: {
+    pageTitle:'تسجيل الدخول — VOLD MOTOR',
+    s1Hi:'مرحباً بك 👋', s1In:'في VOLD MOTOR', s1Sub:'اختر نوع حسابك للمتابعة',
+    roleTitle:'صاحب مركز / ورشة', roleSub:'أدِر حجوزاتك وعملاءك ومخزونك',
+    pickerTitle:'صاحب مركز؟', pickerSub:'اختر ما يناسبك',
+    regBadge:'طلب انضمام جديد', regTitle:'سجّل ورشتك الآن',
+    regSub:'أرسل طلبك وابدأ العمل بعد موافقة الإدارة',
+    commReassure:'بدون اشتراكات شهرية. عمولة رمزية فقط على الطلبات المنجزة.',
+    perk1:'إدارة الحجوزات والعملاء', perk2:'تقارير الدخل والمخزون', perk3:'دعم فني متواصل 24/7',
+    regBtn:'تقديم طلب الانضمام', orDiv:'أو',
+    loginRowTitle:'لديّ حساب مفعّل', loginRowSub:'سجّل دخولك للنظام',
+    join1Title:'سجّل مركزك', join1Sub:'أخبرنا عن مركزك وبيانات التواصل',
+    shopLabel:'اسم الورشة / المركز', shopPh:'مثال: مركز اللمسة الذهبية',
+    svcLabel:'نوع المركز', optional:'(اختياري)',
+    termsAgree:'أوافق على <a href="terms.html" target="_blank" rel="noopener" style="color:var(--blue);font-weight:700;text-decoration:underline">شروط الاستخدام وسياسة الخصوصية</a> الخاصة بمراكز VOLD MOTOR',
+    svcWash:'غسيل', svcTint:'تظليل', svcMaint:'صيانة', svcOil:'تغيير زيت', svcDetail:'تزيين', svcPaint:'حماية طلاء',
+    cregLabel:'السجل التجاري', cregPh:'اختياري',
+    cityLabel:'المدينة / الموقع', cityPh:'اختر المدينة',
+    nextBtn:'التالي',
+    join2Title:'بيانات التواصل', join2Sub:'معلومات الحساب والتواصل',
+    ownerLabel:'اسم صاحب الورشة', ownerPh:'اسمك الكامل',
+    phoneLabel:'رقم الجوال', phonePh:'05xxxxxxxx',
+    emailLabel:'البريد الإلكتروني', emailPh:'example@gmail.com',
+    submitBtn:'إرسال الطلب',
+    haveAcc:'لديك حساب مفعّل؟', signInLnk:'سجّل الدخول',
+    loginTitle:'تسجيل الدخول', loginSub:'أدخل بريدك الإلكتروني وكلمة المرور للوصول إلى حسابك',
+    loginIdLabel:'البريد الإلكتروني', loginIdPh:'example@gmail.com',
+    loginBtn:'تسجيل الدخول', noAcc:'لا يوجد لديك حساب؟', joinLnk:'قدّم طلب انضمام',
+    pwLabel:'كلمة المرور',
+    pwHint:'يجب أن تتكون من 8 خانات على الأقل، وتحتوي على حرف كبير (A‑Z)، حرف صغير (a‑z)، رقم (0‑9)، ورمز خاص مثل @$!%*?&',
+    forgotPw:'نسيت كلمة المرور؟',
+    forgotTitle:'استعادة كلمة المرور', forgotSub:'أدخل بريدك الإلكتروني وسنرسل لك رابط استعادة كلمة المرور',
+    sendResetBtn:'إرسال رابط الاستعادة', backToLogin:'← العودة لتسجيل الدخول',
+    contGoogle:'متابعة مع Google', contApple:'متابعة مع Apple', orLogin:'أو',
+    otpTitle:'كود التحقق', otpSub:'أرسلنا كوداً مكوّن من 6 أرقام إلى',
+    verifyBtn:'تحقق والدخول', spamHint:'💡 لم يصلك الإيميل؟ تحقق من مجلد Spam',
+    resendAfter:'إعادة الإرسال بعد', resendBtn:'إعادة إرسال الكود', changeId:'← تغيير البريد / الرقم',
+    adminTitle:'لوحة الإدارة', adminSub:'الدخول خاص بإدارة النظام',
+    adminEmailLabel:'البريد الإلكتروني', adminEmailPh:'name@voldmotor.com',
+    adminPassLabel:'كلمة المرور', adminLoginBtn:'دخول',
+    s4Title:'تم استلام طلبك! 📋',
+    s4Body:'شكراً على اهتمامك بالانضمام لمنصة VOLD MOTOR. سيقوم فريق الإدارة بمراجعة طلبك خلال <strong style="color:var(--ink)">24–48 ساعة</strong>، وستصلك رسالة على بريدك الإلكتروني عند تفعيل الحساب.',
+    s4BackBtn:'العودة للصفحة الرئيسية',
+    s5Title:'مرحباً بعودتك! 🎉', s5Body:'تم تسجيل دخولك بنجاح. جاري توجيهك للوحة التحكم...',
+    backBtn:'رجوع', helpLink:'المساعدة',
+    footerPrivacy:'سياسة الخصوصية', footerTerms:'الشروط', footerHelp:'المساعدة',
+    langLabel:'English',
+    stat1Num:'+400', stat1Label:'مركز شريك نشط',
+    stat2Num:'4.9 ★', stat2Label:'تقييم أصحاب المراكز',
+    stat3Num:'99.9٪', stat3Label:'جاهزية النظام',
+    tagline1:'نظام إدارة مراكز', tagline2:'العناية بالمركبات',
+    taglineSub:'أدِر مركزك، كبّر عملاءك، تابع دخلك — من مكان واحد.',
+  },
+  en: {
+    pageTitle:'Sign In — VOLD MOTOR',
+    s1Hi:'Welcome 👋', s1In:'to VOLD MOTOR', s1Sub:'Choose your account type to continue',
+    roleTitle:'Shop Owner', roleSub:'Manage your bookings, customers & inventory',
+    pickerTitle:'Shop Owner?', pickerSub:'Choose what suits you',
+    regBadge:'New Join Request', regTitle:'Register Your Shop Now',
+    regSub:'Submit your request and start after admin approval',
+    commReassure:'No monthly subscriptions. Nominal commission only on completed orders.',
+    perk1:'Booking & customer management', perk2:'Revenue & inventory reports', perk3:'24/7 technical support',
+    regBtn:'Submit Join Request', orDiv:'or',
+    loginRowTitle:'I have an active account', loginRowSub:'Sign in to the system',
+    join1Title:'Register Your Center', join1Sub:'Tell us about your center and contact info',
+    shopLabel:'Shop / Center Name', shopPh:'e.g. Golden Touch Center',
+    svcLabel:'Center Type', optional:'(optional)',
+    termsAgree:'I agree to the <a href="terms.html" target="_blank" rel="noopener" style="color:var(--blue);font-weight:700;text-decoration:underline">Terms of Service & Privacy Policy</a> of VOLD MOTOR centers',
+    svcWash:'Wash', svcTint:'Tinting', svcMaint:'Maintenance', svcOil:'Oil Change', svcDetail:'Detailing', svcPaint:'Paint Protection',
+    cregLabel:'Commercial Register', cregPh:'Optional',
+    cityLabel:'City / Location', cityPh:'Choose city',
+    nextBtn:'Next',
+    join2Title:'Contact Details', join2Sub:'Account and contact information',
+    ownerLabel:'Shop Owner Name', ownerPh:'Your full name',
+    phoneLabel:'Mobile Number', phonePh:'05xxxxxxxx',
+    emailLabel:'Email Address', emailPh:'example@gmail.com',
+    submitBtn:'Submit Request',
+    haveAcc:'Have an active account?', signInLnk:'Sign in',
+    loginTitle:'Sign In', loginSub:'Enter your email and password to access your account',
+    loginIdLabel:'Email Address', loginIdPh:'example@gmail.com',
+    loginBtn:'Sign In', noAcc:"Don't have an account?", joinLnk:'Submit a join request',
+    pwLabel:'Password',
+    pwHint:'Must be at least 8 characters and include an uppercase letter (A‑Z), a lowercase letter (a‑z), a number (0‑9), and a special character such as @$!%*?&',
+    forgotPw:'Forgot password?',
+    forgotTitle:'Reset Password', forgotSub:'Enter your email and we will send you a password reset link',
+    sendResetBtn:'Send Reset Link', backToLogin:'← Back to Sign In',
+    contGoogle:'Continue with Google', contApple:'Continue with Apple', orLogin:'or',
+    otpTitle:'Verification Code', otpSub:'We sent a 6-digit code to',
+    verifyBtn:'Verify & Sign In', spamHint:"💡 Didn't receive the email? Check your Spam folder",
+    resendAfter:'Resend after', resendBtn:'Resend Code', changeId:'← Change email / number',
+    adminTitle:'Admin Panel', adminSub:'Access restricted to system admins',
+    adminEmailLabel:'Email Address', adminEmailPh:'name@voldmotor.com',
+    adminPassLabel:'Password', adminLoginBtn:'Sign In',
+    s4Title:'Request Received! 📋',
+    s4Body:'Thank you for your interest in joining VOLD MOTOR. Our team will review your request within <strong style="color:var(--ink)">24–48 hours</strong>, and you will receive an email when your account is activated.',
+    s4BackBtn:'Return to Home Page',
+    s5Title:'Welcome Back! 🎉', s5Body:'You have signed in successfully. Redirecting to dashboard...',
+    backBtn:'Back', helpLink:'Help',
+    footerPrivacy:'Privacy Policy', footerTerms:'Terms', footerHelp:'Help',
+    langLabel:'العربية',
+    stat1Num:'+400', stat1Label:'Active partner shops',
+    stat2Num:'4.9 ★', stat2Label:'Owner satisfaction rating',
+    stat3Num:'99.9%', stat3Label:'System uptime',
+    tagline1:'Car Care Center', tagline2:'Management System',
+    taglineSub:'Manage your shop, grow your customers, track revenue — all in one place.',
+  }
+};
+let _lang = localStorage.getItem('vm_lang') || 'ar';
+
+function applyLang(lang) {
+  const d = DICT[lang] || DICT.ar;
+  const html = document.documentElement;
+  html.setAttribute('lang', lang);
+  html.setAttribute('dir', lang === 'ar' ? 'rtl' : 'ltr');
+  document.title = d.pageTitle;
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const k = el.dataset.i18n;
+    if (d[k] !== undefined) el.textContent = d[k];
+  });
+  document.querySelectorAll('[data-i18n-ph]').forEach(el => {
+    const k = el.dataset.i18nPh;
+    if (d[k] !== undefined) el.placeholder = d[k];
+  });
+  // Special: s4 body has HTML children
+  const s4b = document.getElementById('s4-body');
+  if (s4b) s4b.innerHTML = d.s4Body;
+  const tt = document.getElementById('terms-text');
+  if (tt) tt.innerHTML = d.termsAgree;
+  // Font switch
+  document.body.style.fontFamily = lang === 'ar'
+    ? "'Almarai',system-ui,sans-serif"
+    : "'Inter',system-ui,sans-serif";
+  _lang = lang;
+  localStorage.setItem('vm_lang', lang);
+  // Update lang button
+  const lbl = document.getElementById('footer-lang-label');
+  if (lbl) lbl.textContent = d.langLabel;
+}
+function toggleLang() { applyLang(_lang === 'ar' ? 'en' : 'ar'); }
+
+/* ── Stars injection ─────────────────────────────────────────── */
+function injectStars() {
+  const el = document.getElementById('sp-stars');
+  if (!el) return;
+  let sh = [];
+  for (let i = 0; i < 130; i++) {
+    const x = Math.floor(Math.random() * 2200);
+    const y = Math.floor(Math.random() * 1400);
+    const s = Math.random() < 0.82 ? 1 : 1.5;
+    const o = (0.08 + Math.random() * 0.62).toFixed(2);
+    sh.push(`${x}px ${y}px 0 ${s}px rgba(255,255,255,${o})`);
+  }
+  const st = document.createElement('style');
+  st.textContent = `#sp-stars::after{content:'';position:absolute;inset:0;box-shadow:${sh.join(',')};pointer-events:none;}`;
+  document.head.appendChild(st);
+}
+
+/* ── Social Login ────────────────────────────────────────────── */
+async function doGoogleLogin() {
+  try {
+    const { error } = await _sb.auth.signInWithOAuth({
+      provider: 'google',
+      options: { redirectTo: window.location.origin + '/dashboard.html' }
+    });
+    if (error) throw error;
+  } catch(e) { showErr('err-l1', arErr(e.message)); }
+}
+async function doAppleLogin() {
+  try {
+    const { error } = await _sb.auth.signInWithOAuth({
+      provider: 'apple',
+      options: { redirectTo: window.location.origin + '/dashboard.html' }
+    });
+    if (error) throw error;
+  } catch(e) { showErr('err-l1', arErr(e.message)); }
+}
+
+/* ── Supabase ────────────────────────────────────────────────── */
+const { createClient } = supabase;
+const SB_URL  = 'https://pycyttykvmbhykltnxzj.supabase.co';
+const SB_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB5Y3l0dHlrdm1iaHlrbHRueHpqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkyMDk4MjgsImV4cCI6MjA5NDc4NTgyOH0.3qTumWEg9mYvjbxQpDWIhnBIGGkp8V7XJrjkfy_ZXag';
+const EDGE    = SB_URL + '/functions/v1';
+const _sb     = createClient(SB_URL, SB_ANON);
+
+/* Redirect target based on the signed-in user's role (worker → worker panel) */
+function _isTech(r){ return r === 'worker' || r === 'technician'; }
+async function destByRole(){
+  try { const { data: { session } } = await _sb.auth.getSession(); return _isTech(session?.user?.user_metadata?.role) ? 'worker.html' : 'dashboard.html'; }
+  catch(e){ return 'dashboard.html'; }
+}
+
+/* Password-recovery mode? (token arrives in the URL hash) — never auto-redirect */
+let _isRecovery = /type=recovery/.test(window.location.hash) ||
+                  new URLSearchParams(window.location.search).get('mode') === 'reset';
+
+/* Redirect if already logged in (but NOT during a password reset) */
+_sb.auth.getSession().then(({ data: { session } }) => {
+  if (session && !_isRecovery) window.location.href = _isTech(session.user?.user_metadata?.role) ? 'worker.html' : 'dashboard.html';
+});
+
+/* Supabase fires this when it detects a recovery link → show the reset form */
+_sb.auth.onAuthStateChange((event) => {
+  if (event === 'PASSWORD_RECOVERY') {
+    _isRecovery = true;
+    goScreen('s2'); showSection('s2-reset');
+  }
+});
+
+/* Route by URL params */
+document.addEventListener('DOMContentLoaded', () => {
+  injectStars();
+  const params = new URLSearchParams(window.location.search);
+  const mode   = params.get('mode');
+  const verify = params.get('verify');
+  if (_isRecovery || mode === 'reset') { goScreen('s2'); showSection('s2-reset'); }
+  else if (verify === '1')     { goScreen('s2'); showSection('s2-login-2'); }
+  else if (mode === 'register'){ goScreen('s2'); showSection('s2-join-1'); }
+  else if (mode === 'login')   { goScreen('s2'); showSection('s2-login-1'); }
+  else if (mode === 'picker')  { goScreen('s2'); showSection('s2-picker'); }
+  applyLang(_lang);
+  setupRealtimeValidation();
+  applyLoginLock();
+  newCap();
+});
+
+/* ── State ──────────────────────────────────────────────────── */
+let _loginIdentifier = '';
+let _loginMethod     = '';   // 'email' | 'phone'
+let _loginPhone      = '';
+let _joinData        = {};
+let _timerInt        = null;
+
+/* ── Navigation ─────────────────────────────────────────────── */
+function goScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  const tb = document.getElementById('topbar-back');
+  if (tb) tb.style.display = (id === 's1' || id === 's4' || id === 's5') ? 'none' : '';
+}
+
+const S2_SECS = ['s2-picker','s2-join-1','s2-join-2','s2-login-1','s2-forgot','s2-reset','s2-login-2'];
+function showSection(id) {
+  S2_SECS.forEach(s => {
+    const el = document.getElementById(s);
+    if (el) el.style.display = (s === id) ? '' : 'none';
+  });
+  const tb = document.getElementById('topbar-back');
+  if (tb) tb.style.display = (id === 's2-picker') ? '' : 'none';
+  clearAllErrors();
+  if (id === 's2-login-1') { renderLoginCaptcha(); applyLoginLock(); newCap(); }
+}
+
+function handleTopBack() { goScreen('s1'); }
+
+/* ── Skeleton screen transition ─────────────────────────────── */
+function skeletonTransition(targetSection, opts) {
+  opts = opts || {};
+  const fields = opts.fields || 3;
+  const card = document.querySelector('.fcard');
+  if (!card) { showSection(targetSection); return; }
+  // Build skeleton overlay
+  const sk = document.createElement('div');
+  sk.className = 'skel-overlay';
+  sk.setAttribute('aria-hidden', 'true');
+  let html = '<div class="skel skel-title"></div><div class="skel skel-sub"></div>';
+  for (let i = 0; i < fields; i++) html += '<div class="skel skel-field"></div>';
+  html += '<div class="skel skel-btn"></div>';
+  sk.innerHTML = html;
+  card.appendChild(sk);
+  setTimeout(function () {
+    showSection(targetSection);
+    sk.remove();
+    if (opts.focus) setTimeout(function(){ document.getElementById(opts.focus)?.focus(); }, 40);
+  }, opts.delay || 480);
+}
+
+/* ── Services (single GitHub-style select) ──────────────────── */
+function getServices() {
+  const v = document.getElementById('j-services')?.value;
+  return v ? [v] : [];
+}
+
+/* ── Error helpers ──────────────────────────────────────────── */
+function showErr(id, msg) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.textContent = msg;
+  el.style.display = 'block';
+}
+function clearAllErrors() {
+  document.querySelectorAll('.err-box').forEach(el => el.style.display = 'none');
+  document.querySelectorAll('.field-err').forEach(el => el.textContent = '');
+  document.querySelectorAll('.field.v-err').forEach(el => el.classList.remove('v-err'));
+  const p = document.getElementById('info-pending');
+  if (p) p.style.display = 'none';
+}
+
+/* Per-field inline errors */
+function showFieldErr(inputId, msg) {
+  const errEl = document.getElementById('ferr-' + inputId);
+  if (errEl) errEl.textContent = msg;
+  const fieldEl = document.getElementById('field-' + inputId);
+  if (fieldEl) { fieldEl.classList.remove('v-ok'); fieldEl.classList.add('v-err'); }
+  const inp = document.getElementById(inputId);
+  if (inp) inp.focus();
+}
+function clearFieldErr(inputId) {
+  const errEl = document.getElementById('ferr-' + inputId);
+  if (errEl) errEl.textContent = '';
+  const fieldEl = document.getElementById('field-' + inputId);
+  if (fieldEl) fieldEl.classList.remove('v-err');
+}
+
+/* ── Button helpers — with spinner ─────────────────────────── */
+function setBtnLoading(btn, text) {
+  if (!btn) return;
+  btn.dataset.origHtml = btn.innerHTML;
+  btn.innerHTML = `<span class="btn-spin"></span>${text ? ' ' + text : ''}`;
+  btn.disabled  = true;
+}
+function resetBtn(btn) {
+  if (!btn) return;
+  btn.innerHTML = btn.dataset.origHtml || btn.innerHTML;
+  btn.disabled  = false;
+}
+
+/* ── OTP boxes ──────────────────────────────────────────────── */
+function initOtpBoxes(rowId) {
+  const boxes = [...document.querySelectorAll('#' + rowId + ' .otp-box')];
+  boxes.forEach((b, i) => {
+    b.value = ''; b.classList.remove('filled');
+    b.oninput = () => {
+      b.classList.toggle('filled', !!b.value);
+      if (b.value && i < boxes.length - 1) boxes[i + 1].focus();
+      if (getOtp(rowId).length === 6) document.getElementById('btn-lverify')?.click();
+    };
+    b.onkeydown = e => { if (e.key === 'Backspace' && !b.value && i > 0) boxes[i - 1].focus(); };
+    b.onpaste = e => {
+      e.preventDefault();
+      const txt = (e.clipboardData || window.clipboardData).getData('text').replace(/\D/g, '').slice(0, 6);
+      [...txt].forEach((c, j) => { if (boxes[j]) { boxes[j].value = c; boxes[j].classList.add('filled'); } });
+      const last = boxes[Math.min(txt.length, 5)];
+      if (last) last.focus();
+    };
+  });
+  if (boxes[0]) boxes[0].focus();
+}
+function getOtp(rowId) {
+  return [...document.querySelectorAll('#' + rowId + ' .otp-box')].map(b => b.value.trim()).join('');
+}
+
+/* ── Resend timer ───────────────────────────────────────────── */
+function startTimer(sec = 60) {
+  clearInterval(_timerInt);
+  let left = sec;
+  const t = document.getElementById('resend-timer');
+  const b = document.getElementById('resend-btn');
+  if (t) t.textContent = `إعادة الإرسال بعد ${left}ث`;
+  if (b) b.style.display = 'none';
+  _timerInt = setInterval(() => {
+    left--;
+    if (t) t.textContent = `إعادة الإرسال بعد ${left}ث`;
+    if (left <= 0) {
+      clearInterval(_timerInt);
+      if (t) t.textContent = '';
+      if (b) b.style.display = 'inline';
+    }
+  }, 1000);
+}
+
+/* ── Eye toggle ─────────────────────────────────────────────── */
+function toggleEye(inputId, btn) {
+  const inp = document.getElementById(inputId);
+  if (!inp) return;
+  inp.type = inp.type === 'password' ? 'text' : 'password';
+  btn.style.color = inp.type === 'text' ? 'var(--blue)' : '#c8d0da';
+}
+
+/* ── Real-time validation ───────────────────────────────────── */
+function setupRealtimeValidation() {
+
+  /* Email (join form step 2) */
+  const emailInp = document.getElementById('j-email');
+  if (emailInp) {
+    emailInp.addEventListener('input', function () {
+      const val = this.value.trim();
+      const field = document.getElementById('field-j-email');
+      if (!field) return;
+      if (!val) { field.classList.remove('v-ok','v-err'); clearFieldErr('j-email'); return; }
+      const ok = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val);
+      field.classList.toggle('v-ok', ok);
+      field.classList.toggle('v-err', !ok);
+      if (ok) clearFieldErr('j-email');
+    });
+  }
+
+  /* Phone (join form step 2) */
+  const phoneInp = document.getElementById('j-phone');
+  if (phoneInp) {
+    phoneInp.addEventListener('input', function () {
+      const val = this.value.replace(/\s/g, '');
+      const field = document.getElementById('field-j-phone');
+      if (!field) return;
+      if (!val) { field.classList.remove('v-ok','v-err'); return; }
+      const ok = /^(05\d{8}|(\+966)\d{9})$/.test(val);
+      field.classList.toggle('v-ok', ok);
+      field.classList.toggle('v-err', val.length >= 10 && !ok);
+      if (ok) clearFieldErr('j-phone');
+    });
+  }
+
+  /* Owner name — v-ok when ≥3 chars */
+  const ownerInp = document.getElementById('j-owner');
+  if (ownerInp) {
+    ownerInp.addEventListener('input', function () {
+      const field = document.getElementById('field-j-owner');
+      if (!field) return;
+      const ok = this.value.trim().length >= 2;
+      field.classList.toggle('v-ok', ok);
+      if (ok) clearFieldErr('j-owner');
+    });
+  }
+
+  /* Shop name — v-ok when ≥2 chars */
+  const shopInp = document.getElementById('j-shop');
+  if (shopInp) {
+    shopInp.addEventListener('input', function () {
+      const field = document.getElementById('field-j-shop');
+      if (!field) return;
+      const ok = this.value.trim().length >= 2;
+      field.classList.toggle('v-ok', ok);
+      if (ok) clearFieldErr('j-shop');
+    });
+  }
+
+  /* Login ID — real-time format check */
+  const loginIdInp = document.getElementById('login-id');
+  if (loginIdInp) {
+    loginIdInp.addEventListener('input', function () {
+      const val = this.value.trim();
+      const field = document.getElementById('field-login-id');
+      if (!field) return;
+      if (!val) { field.classList.remove('v-ok'); return; }
+      const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val);
+      field.classList.toggle('v-ok', isEmail);
+    });
+  }
+}
+
+/* ── Join Request: Step 1 ───────────────────────────────────── */
+function doJoinStep1(btn) {
+  clearAllErrors();
+  clearFieldErr('j-shop');
+  const shop = document.getElementById('j-shop')?.value.trim();
+  if (!shop) { showFieldErr('j-shop', '⚠ أدخل اسم الورشة أو المركز'); return; }
+
+  _joinData = {
+    shop_name:      shop,
+    services:       getServices(),
+    commercial_reg: document.getElementById('j-creg')?.value.trim() || '',
+    location:       document.getElementById('j-location')?.value.trim() || '',
+    center_size:    document.getElementById('j-size')?.value || '',
+    join_goal:      document.getElementById('j-goal')?.value || '',
+  };
+
+  /* Skeleton screen transition to step 2 */
+  setBtnLoading(btn, (DICT[_lang]||DICT.ar).nextBtn);
+  setTimeout(() => { resetBtn(btn); }, 480);
+  skeletonTransition('s2-join-2', { fields: 3, focus: 'j-owner', delay: 520 });
+}
+
+/* ── Join Request: single-form submit ──────────────────────── */
+async function doJoinRequest(btn) {
+  clearAllErrors();
+  ['j-shop','j-phone','j-email','j-password'].forEach(clearFieldErr);
+
+  const shop     = document.getElementById('j-shop')?.value.trim();
+  const services = getServices();
+  const city     = document.getElementById('j-location')?.value.trim() || '';
+  const phone    = document.getElementById('j-phone')?.value.trim();
+  const email    = document.getElementById('j-email')?.value.trim();
+  const password = document.getElementById('j-password')?.value || '';
+
+  /* Required-field validation */
+  if (!shop) { showFieldErr('j-shop', '⚠ أدخل اسم الورشة أو المركز'); return; }
+  if (!services.length) {
+    showFieldErr('j-services', '⚠ اختر نوع المركز');
+    document.getElementById('j-services')?.focus();
+    return;
+  }
+  if (!phone) { showFieldErr('j-phone', '⚠ أدخل رقم الجوال'); return; }
+  if (!/^(05\d{8}|(\+966)\d{9})$/.test(phone.replace(/\s/g,''))) {
+    showFieldErr('j-phone', '⚠ يجب أن يبدأ بـ 05 ويكون 10 أرقام');
+    return;
+  }
+  if (!email) { showFieldErr('j-email', '⚠ أدخل البريد الإلكتروني'); return; }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    showFieldErr('j-email', '⚠ البريد الإلكتروني غير صحيح');
+    return;
+  }
+  if (!password) { showFieldErr('j-password', '⚠ أدخل كلمة المرور'); return; }
+  if (!PW_RE.test(password)) {
+    showFieldErr('j-password', '⚠ كلمة المرور لا تستوفي الشروط (8 خانات، حرف كبير وصغير، رقم، ورمز خاص)');
+    document.getElementById('j-password')?.focus();
+    return;
+  }
+  if (!document.getElementById('j-terms')?.checked) {
+    showErr('err-j2', '⚠ يجب الموافقة على الشروط وسياسة الخصوصية للمتابعة');
+    return;
+  }
+  if (MSEC.CAPTCHA_ENFORCED && !CAP.has('cf-register')) {
+    showErr('err-j2', '⚠ يرجى إكمال التحقق البشري أولاً');
+    return;
+  }
+
+  setBtnLoading(btn, 'جاري الإرسال...');
+  try {
+    /* Server-driven registration — creates the login account (email+password)
+       AND records the join request for admin review, all via service role. */
+    await CAP.consume('cf-register');
+    const res = await fetch(EDGE + '/merchant-request', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        shop_name: shop,
+        owner_name: shop,
+        phone:    phone.replace(/\s/g,''),
+        email:    email.trim().toLowerCase(),
+        password: password,
+        location: city,
+        services: services,
+      }),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.error || 'حدث خطأ في الإرسال');
+    goScreen('s4');
+  } catch (e) {
+    /* Smart error routing — show under relevant field */
+    const msg = e.message || '';
+    if (msg.toLowerCase().includes('email') || msg.toLowerCase().includes('بريد')) {
+      showFieldErr('j-email', '⚠ ' + msg);
+    } else if (msg.toLowerCase().includes('phone') || msg.toLowerCase().includes('جوال')) {
+      showFieldErr('j-phone', '⚠ ' + msg);
+    } else {
+      showErr('err-j2', msg);
+    }
+  } finally {
+    resetBtn(btn);
+  }
+}
+
+/* ── Arabic error mapping for Supabase/auth messages ────────── */
+function arErr(msg) {
+  const m = String(msg || '').toLowerCase();
+  if (m.includes('signups not allowed') || m.includes('not found') || m.includes('user not found') || m.includes('no user'))
+    return 'لا يوجد حساب بهذا البريد — قدّم طلب انضمام أولاً';
+  if (m.includes('invalid login') || m.includes('invalid credentials') || m.includes('invalid password'))
+    return 'البريد أو كلمة المرور غير صحيحة';
+  if (m.includes('rate limit') || m.includes('too many') || m.includes('exceeded'))
+    return 'تجاوزت عدد المحاولات المسموحة — حاول بعد دقيقة';
+  if (m.includes('invalid email') || m.includes('email address'))
+    return 'صيغة البريد الإلكتروني غير صحيحة';
+  if (m.includes('expired') || (m.includes('token') && m.includes('invalid')) || m.includes('invalid otp') || m.includes('code'))
+    return 'كود التحقق غير صحيح أو انتهت صلاحيته';
+  if (m.includes('network') || m.includes('failed to fetch') || m.includes('load failed'))
+    return 'تعذّر الاتصال — تحقق من الإنترنت وحاول مجدداً';
+  if (m.includes('email not confirmed'))
+    return 'لم يتم تأكيد البريد بعد';
+  return msg ? String(msg) : 'حدث خطأ، حاول مرة أخرى';
+}
+
+/* ── Password strength (GitHub-style realtime) ──────────────── */
+const PW_RE = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+function checkPwStrength(input) {
+  if (!input) return;
+  const v = input.value || '';
+  input.classList.remove('pw-weak','pw-strong');
+  if (!v) return;                       // empty → neutral
+  input.classList.add(PW_RE.test(v) ? 'pw-strong' : 'pw-weak');
+}
+
+/* ── Login: email + password (one step) ─────────────────────── */
+/* ════ Merchant login security: Turnstile + brute-force lockout ════ */
+const MSEC = {
+  TURNSTILE_SITEKEY: '0x4AAAAAADo0Q-dwnuqZuaBE', // مفتاح Turnstile الحقيقي (VOLD MOTOR)
+  CAPTCHA_ENFORCED: false, // الإنفاذ الخادمي مُعطّل مؤقتاً (Turnstile لم يظهر بثبات) — الويدجت للحماية البصرية فقط
+  MAX_ATTEMPTS: 15,
+  LOCK_MINUTES: 15,
+};
+const LSM_LOCK = 'vm_m_lock_until', LSM_FAIL = 'vm_m_fail';
+let _mLockTick = null;
+
+/* ── Turnstile manager: multiple widgets, single-use token aware ── */
+const CAP = {
+  widgets: {},  // containerId -> { id, token, pending }
+  render(containerId, onChange){
+    if (!window.turnstile || !document.getElementById(containerId) || this.widgets[containerId]) return;
+    const self = this;
+    let wid;
+    try {
+      wid = window.turnstile.render('#' + containerId, {
+        sitekey: MSEC.TURNSTILE_SITEKEY, theme: 'light',
+        callback: (t) => { const w = self.widgets[containerId]; if (!w) return; w.token = t; if (w.pending) { const p = w.pending; w.pending = null; p(t); } if (onChange) onChange(); },
+        'expired-callback': () => { const w = self.widgets[containerId]; if (!w) return; w.token = ''; if (onChange) onChange(); },
+        'error-callback':   () => { const w = self.widgets[containerId]; if (!w) return; w.token = ''; if (onChange) onChange(); },
+      });
+    } catch(e) { return; }
+    this.widgets[containerId] = { id: wid, token: '', pending: null };
+  },
+  has(containerId){ const w = this.widgets[containerId]; return !!(w && w.token); },
+  /* Returns a fresh single-use token (undefined when enforcement off) */
+  async consume(containerId){
+    if (!MSEC.CAPTCHA_ENFORCED) return undefined;
+    const w = this.widgets[containerId];
+    if (!w) return '';
+    if (w.token) { const t = w.token; w.token = ''; return t; }
+    return await new Promise((resolve) => {
+      let done = false; const fin = (t) => { if (done) return; done = true; w.pending = null; resolve(t); };
+      w.pending = fin;
+      try { window.turnstile.reset(w.id); } catch(e) { fin(''); return; }
+      setTimeout(() => fin(''), 8000);
+    });
+  }
+};
+function renderLoginCaptcha(){
+  CAP.render('cf-login',    refreshLoginBtn);
+  CAP.render('cf-register', refreshRegBtn);
+  CAP.render('cf-forgot',   null);
+}
+function onTsLoadM(){ renderLoginCaptcha(); }
+/* ── Human verification: distorted-text image CAPTCHA (canvas) ── */
+let _capText = '';
+function _capRand(a,b){ return Math.floor(Math.random()*(b-a+1))+a; }
+function newCap(){
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';   // بلا أحرف ملتبسة (I,O,0,1)
+  _capText = ''; for (let k=0;k<5;k++) _capText += chars[Math.floor(Math.random()*chars.length)];
+  const c = document.getElementById('lg-cap-canvas');
+  if (c && c.getContext) {
+    const ctx = c.getContext('2d'), W = c.width, H = c.height;
+    ctx.fillStyle = '#eef1f5'; ctx.fillRect(0,0,W,H);
+    for (let i=0;i<7;i++){ ctx.strokeStyle = 'rgba('+_capRand(120,190)+','+_capRand(120,190)+','+_capRand(160,220)+',.6)'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(_capRand(0,W),_capRand(0,H)); ctx.lineTo(_capRand(0,W),_capRand(0,H)); ctx.stroke(); }
+    for (let i=0;i<45;i++){ ctx.fillStyle = 'rgba('+_capRand(90,180)+','+_capRand(90,180)+','+_capRand(120,200)+',.5)'; ctx.fillRect(_capRand(0,W),_capRand(0,H),2,2); }
+    const cols = ['#0969da','#1f2328','#8250df','#cf222e','#1a7f37'];
+    for (let i=0;i<_capText.length;i++){ ctx.save(); ctx.translate(16 + i*((W-26)/_capText.length), H/2); ctx.rotate((Math.random()-0.5)*0.62); ctx.font = 'bold '+_capRand(24,32)+'px Almarai, Arial, sans-serif'; ctx.fillStyle = cols[Math.floor(Math.random()*cols.length)]; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(_capText[i], 0, _capRand(-3,3)); ctx.restore(); }
+  }
+  const i = document.getElementById('lg-cap'); if (i) i.value = '';
+  const ok = document.getElementById('lg-cap-ok'); if (ok) ok.style.display = 'none';
+}
+function capSolved(){ const i = document.getElementById('lg-cap'); return !!(i && _capText && i.value.trim().toUpperCase() === _capText); }
+function checkCap(){ const ok = document.getElementById('lg-cap-ok'); if (ok) ok.style.display = capSolved() ? 'inline' : 'none'; refreshLoginBtn(); }
+function refreshLoginBtn(){
+  const b = document.getElementById('btn-login'); if (!b) return;
+  b.disabled = mIsLocked();
+}
+function refreshRegBtn(){
+  const b = document.getElementById('btn-j2'); if (!b) return;
+  const terms = document.getElementById('j-terms')?.checked;
+  b.disabled = !(terms && (!MSEC.CAPTCHA_ENFORCED || CAP.has('cf-register')));
+}
+
+/* Lockout (persistent) */
+function mLockRemMs(){ return (+localStorage.getItem(LSM_LOCK) || 0) - Date.now(); }
+function mIsLocked(){ return mLockRemMs() > 0; }
+function mFmt(ms){ const s = Math.max(0, Math.ceil(ms/1000)); return String(Math.floor(s/60)).padStart(2,'0') + ':' + String(s%60).padStart(2,'0'); }
+function mSetDisabled(v){ ['login-id','login-password','btn-login'].forEach(id => { const e = document.getElementById(id); if (e) e.disabled = v; }); }
+function applyLoginLock(){
+  if (!mIsLocked()) { mSetDisabled(false); refreshLoginBtn(); return; }
+  const render = () => {
+    if (mLockRemMs() <= 0) {
+      clearInterval(_mLockTick); _mLockTick = null;
+      localStorage.removeItem(LSM_LOCK); localStorage.removeItem(LSM_FAIL);
+      const e = document.getElementById('err-l1'); if (e) e.style.display = 'none';
+      mSetDisabled(false); refreshLoginBtn();
+      return;
+    }
+    mSetDisabled(true);
+    const e = document.getElementById('err-l1');
+    if (e) { e.innerHTML = '🔒 تم إيقاف حسابك مؤقتاً بسبب تكرار المحاولات الخاطئة. للمتابعة تواصل مع الدعم عبر زر <b>«المساعدة»</b> بالأعلى.'; e.style.display = 'block'; }
+  };
+  render(); if (!_mLockTick) _mLockTick = setInterval(render, 1000);
+}
+function mRegisterFail(){
+  const n = (+localStorage.getItem(LSM_FAIL) || 0) + 1;
+  localStorage.setItem(LSM_FAIL, n);
+  if (n >= MSEC.MAX_ATTEMPTS) { localStorage.setItem(LSM_LOCK, Date.now() + MSEC.LOCK_MINUTES * 60000); applyLoginLock(); return true; }
+  return false;
+}
+function mClearFails(){ localStorage.removeItem(LSM_FAIL); localStorage.removeItem(LSM_LOCK); }
+
+async function doPasswordLogin(btn) {
+  clearAllErrors();
+  if (mIsLocked()) { applyLoginLock(); return; }
+  const email    = document.getElementById('login-id')?.value.trim();
+  const password = document.getElementById('login-password')?.value || '';
+
+  if (!email) { showErr('err-l1', 'أدخل بريدك الإلكتروني'); return; }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    showErr('err-l1', 'أدخل بريداً إلكترونياً صحيحاً'); return;
+  }
+  if (!password) { showErr('err-l1', 'أدخل كلمة المرور'); return; }
+  if (!capSolved()) { showErr('err-l1', 'اكتب رمز التحقق الظاهر في الصورة بشكل صحيح'); newCap(); document.getElementById('lg-cap')?.focus(); return; }
+
+  setBtnLoading(btn, 'جاري الدخول...');
+  try {
+    /* 1) Verify password */
+    const { data: pwData, error } = await _sb.auth.signInWithPassword({
+      email: email.toLowerCase(), password,
+    });
+    if (error) {
+      const locked = mRegisterFail();
+      resetBtn(btn);
+      if (!locked) { refreshLoginBtn(); newCap(); showErr('err-l1', arErr(error.message)); }
+      return;
+    }
+    /* Approval gate — a newly-registered owner can't enter until the admin approves */
+    if (pwData?.user?.user_metadata?.role === 'pending') {
+      await _sb.auth.signOut();
+      resetBtn(btn);
+      showErr('err-l1', '⏳ طلبك قيد المراجعة من الإدارة. سنرسل لك إيميلاً فور قبول مركزك.');
+      return;
+    }
+    mClearFails();
+    /* 2) Drop the password-only session — email code is the 2nd factor */
+    await _sb.auth.signOut();
+    /* 3) Send a 6-digit code to the email (fresh token) */
+    const t2 = await CAP.consume('cf-login');
+    if (MSEC.CAPTCHA_ENFORCED && !t2) { resetBtn(btn); showErr('err-l1', 'تعذّر إرسال الرمز (تحقق بشري) — أعد المحاولة'); return; }
+    const { error: oErr } = await _sb.auth.signInWithOtp({
+      email: email.toLowerCase(),
+      options: t2 ? { shouldCreateUser: false, captchaToken: t2 } : { shouldCreateUser: false },
+    });
+    if (oErr) { resetBtn(btn); showErr('err-l1', arErr(oErr.message)); return; }
+    /* 4) Show the verification screen */
+    _loginIdentifier = email.toLowerCase();
+    _loginMethod     = 'email';
+    const masked = document.getElementById('login-masked');
+    if (masked) { const at = email.indexOf('@'); masked.textContent = email.slice(0, 2) + '***' + email.slice(at); }
+    const spam = document.getElementById('spam-hint');
+    if (spam) spam.style.display = 'block';
+    resetBtn(btn);
+    showSection('s2-login-2');
+    initOtpBoxes('login-otp-row');
+    startTimer();
+  } catch (e) {
+    resetBtn(btn);
+    showErr('err-l1', arErr(e.message));
+  }
+}
+
+/* ── Forgot password: send reset link ───────────────────────── */
+async function doForgotPassword(btn) {
+  clearAllErrors();
+  const email = document.getElementById('fp-email')?.value.trim();
+  if (!email) { showFieldErr('fp-email', '⚠ أدخل بريدك الإلكتروني'); return; }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    showFieldErr('fp-email', '⚠ البريد الإلكتروني غير صحيح'); return;
+  }
+  if (MSEC.CAPTCHA_ENFORCED && !CAP.has('cf-forgot')) {
+    showFieldErr('fp-email', '⚠ يرجى إكمال التحقق البشري أولاً'); return;
+  }
+  const info = document.getElementById('info-fp');
+  const spam = document.getElementById('spam-hint');
+  if (info) info.style.display = 'none';   // hide any previous result while loading
+  setBtnLoading(btn, 'جاري التحقق...');
+  try {
+    const ct = await CAP.consume('cf-forgot');
+    if (MSEC.CAPTCHA_ENFORCED && !ct) { resetBtn(btn); showErr('err-fp', 'تعذّر التحقق البشري — أعد المحاولة'); return; }
+
+    /* 1) Account state: none / pending / active (server-side) */
+    let status = 'active';   // if the check is unavailable, default to sending
+    try {
+      const { data, error: stErr } = await _sb.rpc('account_status', { p_email: email.toLowerCase() });
+      if (!stErr && data) status = data;
+    } catch (_) { /* check unavailable → fall through and send */ }
+
+    /* 2a) No account → not registered */
+    if (status === 'none') {
+      resetBtn(btn);
+      if (spam) spam.style.display = 'none';
+      if (info) {
+        info.className = 'info-error';
+        info.innerHTML =
+          '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8v4.5M12 16.2v.01"/></svg>' +
+          '<span><strong>عذراً، هذا البريد الإلكتروني غير مسجل لدينا.</strong> يبدو أنه لا يوجد حساب مرتبط بهذا البريد.</span>';
+        info.style.display = 'flex';
+      }
+      return;
+    }
+
+    /* 2b) Pending (under review) → account isn't active yet, do NOT send a reset */
+    if (status === 'pending') {
+      resetBtn(btn);
+      if (spam) spam.style.display = 'none';
+      if (info) {
+        info.className = 'info-warn';
+        info.innerHTML =
+          '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7.5v5l3 2"/></svg>' +
+          '<span><strong>طلبك قيد المراجعة من الإدارة.</strong> لم يتم اعتماد حسابك بعد — سنرسل لك إيميلاً فور قبول مركزك، وبعدها يمكنك استعادة كلمة المرور.</span>';
+        info.style.display = 'flex';
+      }
+      return;
+    }
+
+    /* 3) Active account → send the reset link */
+    const { error } = await _sb.auth.resetPasswordForEmail(email.toLowerCase(), {
+      redirectTo: window.location.origin + '/login.html?mode=reset',
+      captchaToken: ct || undefined,
+    });
+    if (error) throw new Error(arErr(error.message));
+    if (info) {
+      info.className = 'info-success';
+      info.innerHTML =
+        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>' +
+        '<span><strong>تم إرسال الرابط بنجاح!</strong> أرسلنا للتو تعليمات استعادة كلمة المرور إلى بريدك الإلكتروني. يرجى التحقق من صندوق الوارد لتعيين كلمة مرور جديدة.</span>';
+      info.style.display = 'flex';
+    }
+    const fld = document.getElementById('fp-email');
+    if (fld) fld.value = '';
+  } catch (e) {
+    showErr('err-fp', arErr(e.message));
+  } finally {
+    resetBtn(btn);
+  }
+}
+
+/* ── Reset: set the new password (after opening the recovery link) ── */
+async function doResetPassword(btn) {
+  clearAllErrors();
+  const p1 = document.getElementById('rp-pass')?.value || '';
+  const p2 = document.getElementById('rp-pass2')?.value || '';
+  if (!p1) { showErr('err-rp', '⚠ أدخل كلمة المرور الجديدة'); return; }
+  if (!PW_RE.test(p1)) { showErr('err-rp', '⚠ كلمة المرور لا تستوفي الشروط (8 خانات على الأقل، حرف كبير وصغير، رقم، ورمز خاص)'); return; }
+  if (p1 !== p2) { showErr('err-rp', '⚠ كلمتا المرور غير متطابقتين'); return; }
+  setBtnLoading(btn, 'جاري الحفظ...');
+  try {
+    const { error } = await _sb.auth.updateUser({ password: p1 });
+    if (error) throw new Error(arErr(error.message));
+    const info = document.getElementById('info-rp');
+    if (info) {
+      info.className = 'info-success';
+      info.innerHTML =
+        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>' +
+        '<span><strong>تم تغيير كلمة المرور بنجاح!</strong> سيتم تحويلك لتسجيل الدخول الآن…</span>';
+      info.style.display = 'flex';
+    }
+    await _sb.auth.signOut();
+    setTimeout(function () { window.location.href = 'login.html?mode=login'; }, 1700);
+  } catch (e) {
+    resetBtn(btn);
+    showErr('err-rp', e.message);
+  }
+}
+
+/* ── Login: Verify OTP ──────────────────────────────────────── */
+async function doLoginVerify(btn) {
+  clearAllErrors();
+  const code = getOtp('login-otp-row');
+  if (code.length < 6) { showErr('err-l2', 'أدخل الكود كاملاً (6 أرقام)'); return; }
+
+  setBtnLoading(btn, 'جاري التحقق...');
+  try {
+    if (_loginMethod === 'email') {
+      const { error } = await _sb.auth.verifyOtp({
+        email: _loginIdentifier.trim().toLowerCase(),
+        token: code.trim(),
+        type:  'email',
+      });
+      if (error) throw new Error('كود التحقق غير صحيح أو انتهت صلاحيته');
+    } else {
+      const res  = await fetch(EDGE + '/otp-verify', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone: _loginPhone || _loginIdentifier, code }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? 'كود التحقق غير صحيح');
+      localStorage.setItem('vold_session_v1', JSON.stringify({
+        phone:      _loginPhone || _loginIdentifier,
+        shop_name:  data.merchant?.shop_name  || '',
+        owner_name: data.merchant?.owner_name || '',
+        expiry:     Date.now() + 30 * 24 * 60 * 60 * 1000,
+      }));
+    }
+    goScreen('s5');
+    const _dest = await destByRole();
+    setTimeout(() => { window.location.href = _dest; }, 1400);
+  } catch (e) {
+    resetBtn(btn);
+    showErr('err-l2', arErr(e.message));
+    const row = document.getElementById('login-otp-row');
+    if (row) { row.style.animation = 'shake .4s ease'; setTimeout(() => row.style.animation = '', 500); }
+  }
+}
+
+/* ── Resend OTP ─────────────────────────────────────────────── */
+async function doResendOtp() {
+  try {
+    const t = await CAP.consume('cf-login');
+    await _sb.auth.signInWithOtp({
+      email: _loginIdentifier,
+      options: t ? { shouldCreateUser: false, captchaToken: t } : { shouldCreateUser: false },
+    });
+  } catch { /* fail silently */ }
+  initOtpBoxes('login-otp-row');
+  startTimer();
+}
+
+/* ── Admin Login ────────────────────────────────────────────── */
+async function doAdminLogin(btn) {
+  clearAllErrors();
+  const email    = document.getElementById('admin-email')?.value.trim();
+  const password = document.getElementById('admin-pass')?.value;
+  if (!email || !password) { showErr('err-admin', 'أدخل البريد وكلمة المرور'); return; }
+  setBtnLoading(btn, 'جاري الدخول...');
+  const { error } = await _sb.auth.signInWithPassword({ email, password });
+  if (error) {
+    resetBtn(btn);
+    showErr('err-admin', error.message.includes('Invalid') ? 'البريد أو كلمة المرور غير صحيحة' : error.message);
+    return;
+  }
+  goScreen('s5');
+  setTimeout(() => { window.location.href = 'vm-control-center.html'; }, 1400);
+}
+
+/* toggleLang & applyLang are defined above in the i18n section */
+
+/* ── Help / Support ticket ── */
+function openHelp(){ document.getElementById('help-modal').style.display = 'flex'; setTimeout(()=>document.getElementById('h-subject')?.focus(),120); }
+function closeHelp(){ document.getElementById('help-modal').style.display = 'none'; }
+async function submitHelp(btn){
+  const sev = document.getElementById('h-sev').value;
+  const subject = document.getElementById('h-subject').value.trim();
+  const msg = document.getElementById('h-msg').value.trim();
+  const contact = document.getElementById('h-contact').value.trim();
+  const err = document.getElementById('help-err'); err.style.display = 'none';
+  if (!subject) { err.textContent = '⚠ أدخل موضوع المشكلة'; err.style.display = 'block'; return; }
+  const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contact);
+  setBtnLoading(btn, 'جاري الإرسال...');
+  try {
+    const { error } = await _sb.from('support_tickets').insert({
+      subject, message: msg, severity: sev, source: 'login',
+      email: isEmail ? contact.toLowerCase() : null,
+      phone: (!isEmail && contact) ? contact : null,
+    });
+    if (error) throw error;
+    document.getElementById('help-form').style.display = 'none';
+    const ok = document.getElementById('help-ok');
+    ok.textContent = '✅ تم استلام تذكرتك. سيتواصل معك فريق الدعم قريباً.'; ok.style.display = 'block';
+    setTimeout(closeHelp, 2800);
+  } catch(e) { resetBtn(btn); err.textContent = 'تعذّر الإرسال: ' + (e.message || ''); err.style.display = 'block'; }
+}
+</script>
+
+<!-- ── Help (support ticket modal — opened from the existing «المساعدة» links) ── -->
+<div id="help-modal" style="position:fixed;inset:0;z-index:100000;display:none;align-items:center;justify-content:center;background:rgba(15,23,42,.45);padding:18px" onclick="if(event.target===this)closeHelp()">
+  <div style="background:#fff;border:1px solid #d0d7de;border-radius:12px;max-width:430px;width:100%;padding:22px 22px 18px;direction:rtl;box-shadow:0 20px 60px rgba(0,0,0,.25);font-family:'Almarai',sans-serif">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+      <h3 style="font-size:1.1rem;font-weight:800;color:#1f2328;margin:0">رفع تذكرة دعم</h3>
+      <button onclick="closeHelp()" aria-label="إغلاق" style="background:none;border:0;font-size:1.25rem;color:#57606a;cursor:pointer;line-height:1">✕</button>
+    </div>
+    <p style="font-size:.82rem;color:#57606a;margin:0 0 14px">واجهت مشكلة؟ صِف التفاصيل وسيصلك ردّ فريق الدعم.</p>
+    <div class="err-box" id="help-err" style="display:none"></div>
+    <div id="help-ok" style="display:none;background:#dafbe1;border:1px solid rgba(74,194,107,.5);color:#1a7f37;border-radius:8px;padding:11px 13px;font-size:.85rem;font-weight:700;margin-bottom:12px"></div>
+    <div id="help-form">
+      <div class="gh-field"><label class="gh-label">نوع المشكلة</label>
+        <select id="h-sev" class="gh-input"><option value="low">استفسار عام</option><option value="med" selected>مشكلة تشغيلية</option><option value="crit">عاجل / حرج</option></select>
+      </div>
+      <div class="gh-field"><label class="gh-label">الموضوع</label><input id="h-subject" class="gh-input" placeholder="عنوان المشكلة"></div>
+      <div class="gh-field"><label class="gh-label">التفاصيل</label><textarea id="h-msg" class="gh-input" rows="3" placeholder="اشرح المشكلة..." style="resize:vertical"></textarea></div>
+      <div class="gh-field"><label class="gh-label">بريدك أو جوالك للتواصل</label><input id="h-contact" class="gh-input" placeholder="example@gmail.com أو 05xxxxxxxx" style="direction:ltr;text-align:right"></div>
+      <button class="btn-gh" id="h-submit" onclick="submitHelp(this)" style="width:100%;margin-top:4px">إرسال التذكرة</button>
+    </div>
+  </div>
+</div>
+  <script src="brand.js"></script>
+</body>
+</html>

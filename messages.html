@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>الرسائل — VOLD MOTOR</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Almarai:wght@300;400;700;800&&&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<style>
+/* تخطيط الرسائل */
+.msg-layout{display:grid;grid-template-columns:320px 1fr;height:calc(100vh - 64px);overflow:hidden}
+
+/* قائمة المحادثات */
+.conv-sidebar{border-left:1px solid var(--line);display:flex;flex-direction:column;background:var(--paper)}
+.conv-search{padding:14px 16px;border-bottom:1px solid var(--line)}
+.conv-search-inp{width:100%;padding:9px 36px 9px 12px;border:1.5px solid var(--line);border-radius:10px;font-family:inherit;font-size:.9rem;color:var(--ink);background:var(--bg);outline:0;transition:.15s}
+.conv-search-inp:focus{border-color:var(--violet);background:var(--paper);box-shadow:0 0 0 3px rgba(229,57,53,.12)}
+.conv-search-wrap{position:relative}
+.conv-search-ico{position:absolute;right:11px;top:50%;transform:translateY(-50%);color:#c5c0d8;pointer-events:none}
+
+.conv-tabs{display:flex;border-bottom:1px solid var(--line)}
+.conv-tab{flex:1;padding:10px;border:0;background:none;font-family:inherit;font-weight:800;font-size:.87rem;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;transition:.15s}
+.conv-tab.active{color:var(--violet);border-bottom-color:var(--violet)}
+
+.conv-list{flex:1;overflow-y:auto}
+.conv-item{display:flex;align-items:center;gap:12px;padding:14px 16px;cursor:pointer;border-bottom:1px solid var(--line);transition:.15s;position:relative}
+.conv-item:hover{background:var(--bg)}
+.conv-item.active{background:var(--violet-soft)}
+.conv-item .ci-info{flex:1;min-width:0}
+.conv-item .ci-name{font-weight:900;font-size:.95rem;color:var(--ink);display:flex;justify-content:space-between;align-items:center;gap:6px}
+.conv-item .ci-name .ci-time{font-size:.76rem;font-weight:700;color:var(--muted);flex:none}
+.conv-item .ci-preview{font-size:.83rem;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px;display:flex;align-items:center;gap:5px}
+.conv-item .ci-badge{position:absolute;top:14px;left:14px;background:var(--green);color:#fff;font-size:.7rem;font-weight:900;min-width:18px;height:18px;border-radius:9px;display:flex;align-items:center;justify-content:center;padding:0 5px}
+
+/* منطقة المحادثة */
+.chat-area{display:flex;flex-direction:column;background:var(--bg)}
+.chat-header{background:var(--paper);border-bottom:1px solid var(--line);padding:14px 20px;display:flex;align-items:center;gap:12px;flex:none}
+.chat-header .ch-info{flex:1;min-width:0}
+.chat-header .ch-name{font-weight:900;font-size:1rem;color:var(--ink)}
+.chat-header .ch-sub{font-size:.82rem;color:var(--muted);margin-top:1px}
+.chat-header-actions{display:flex;gap:8px}
+.ch-action-btn{width:34px;height:34px;border-radius:9px;border:1.5px solid var(--line);background:var(--paper);display:grid;place-items:center;cursor:pointer;color:var(--muted);transition:.15s}
+.ch-action-btn:hover{border-color:var(--violet);color:var(--violet)}
+
+.chat-messages{flex:1;overflow-y:auto;padding:20px;display:flex;flex-direction:column;gap:16px}
+.chat-date-sep{text-align:center;font-size:.78rem;font-weight:800;color:var(--muted);margin:4px 0;position:relative}
+.chat-date-sep::before{content:'';position:absolute;top:50%;right:0;left:0;border-top:1px solid var(--line);z-index:0}
+.chat-date-sep span{background:var(--bg);padding:0 12px;position:relative;z-index:1}
+
+/* فقاعات الرسائل */
+.msg-row{display:flex;gap:8px;align-items:flex-end}
+.msg-row.out{flex-direction:row-reverse}
+.msg-bubble{max-width:72%;padding:10px 14px;border-radius:14px;font-size:.93rem;line-height:1.6;position:relative}
+.msg-bubble.in{background:var(--lilac);border-bottom-right-radius:4px;box-shadow:var(--shadow-xs)}
+.msg-bubble.out{background:var(--green);color:#fff;border-bottom-left-radius:4px}
+.msg-bubble .mb-text{word-break:break-word}
+.msg-bubble .mb-meta{display:flex;align-items:center;gap:5px;margin-top:4px;font-size:.72rem;opacity:.65;justify-content:flex-end}
+.msg-bubble.in .mb-meta{color:var(--muted)}
+.msg-bubble .mb-template{font-size:.8rem;background:rgba(255,255,255,.2);border-radius:6px;padding:3px 8px;margin-bottom:5px;font-weight:700}
+.msg-bubble.in .mb-template{background:var(--violet-soft);color:var(--violet)}
+
+/* فقاعة النظام */
+.msg-system{text-align:center;font-size:.8rem;color:var(--muted);font-weight:700;padding:6px 14px;background:var(--lilac);border-radius:20px;border:1px solid var(--line);align-self:center}
+
+/* مربع الإرسال */
+.chat-input-area{background:var(--paper);border-top:1px solid var(--line);padding:14px 16px;flex:none}
+.chat-input-wrap{display:flex;gap:10px;align-items:flex-end}
+.chat-input-inner{flex:1;background:var(--bg);border:1.5px solid var(--line);border-radius:12px;padding:10px 14px;display:flex;align-items:flex-end;gap:8px;transition:.15s}
+.chat-input-inner:focus-within{border-color:var(--violet);background:var(--paper);box-shadow:0 0 0 3px rgba(229,57,53,.12)}
+.chat-textarea{flex:1;border:0;background:none;font-family:inherit;font-size:.95rem;color:var(--ink);outline:0;resize:none;max-height:120px;line-height:1.6}
+.chat-textarea::placeholder{color:var(--muted)}
+.chat-send-btn{width:42px;height:42px;border-radius:11px;border:0;background:var(--green);color:#fff;display:grid;place-items:center;cursor:pointer;flex:none;transition:.15s;box-shadow:0 4px 12px rgba(22,160,106,.3)}
+.chat-send-btn:hover{background:#13956030;box-shadow:0 6px 16px rgba(22,160,106,.4);transform:translateY(-1px)}
+.chat-send-btn:hover{background:#13956}
+
+/* أزرار القوالب */
+.template-bar{display:flex;gap:7px;margin-bottom:10px;overflow-x:auto;padding-bottom:2px}
+.template-bar::-webkit-scrollbar{height:3px}
+.template-bar::-webkit-scrollbar-thumb{background:var(--line);border-radius:2px}
+.tpl-btn{white-space:nowrap;padding:6px 13px;border-radius:var(--radius-full);border:1.5px solid var(--line);background:var(--paper);font-family:inherit;font-weight:800;font-size:.82rem;color:var(--muted);cursor:pointer;transition:.15s;flex:none}
+.tpl-btn:hover{border-color:var(--green);color:var(--green)}
+
+/* حالة فارغة */
+.chat-empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--muted);padding:40px}
+.chat-empty svg{opacity:.25;margin-bottom:16px}
+.chat-empty p{font-weight:800;font-size:1.05rem;color:var(--ink);margin-bottom:6px}
+.chat-empty span{font-size:.9rem;text-align:center}
+
+/* modal */
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(26,19,64,.45);backdrop-filter:blur(4px);z-index:100;align-items:center;justify-content:center;padding:20px}
+.modal-bg.open{display:flex}
+.modal{background:var(--paper);border-radius:22px;width:100%;max-width:540px;max-height:90vh;overflow-y:auto;box-shadow:var(--shadow-lg)}
+.modal-head{display:flex;align-items:center;justify-content:space-between;padding:22px 24px 0}
+.modal-head h3{font-size:1.22rem;font-weight:700;color:var(--ink)}
+.modal-close{width:34px;height:34px;border-radius:9px;border:1.5px solid var(--line);background:var(--paper);display:grid;place-items:center;cursor:pointer;color:var(--muted);transition:.15s}
+.modal-close:hover{border-color:var(--ink);color:var(--ink)}
+.modal-body{padding:20px 24px 24px}
+
+/* قوالب الرسائل */
+.tpl-list{display:flex;flex-direction:column;gap:10px}
+.tpl-card{border:1.5px solid var(--line);border-radius:12px;padding:14px 16px;cursor:pointer;transition:.15s}
+.tpl-card:hover{border-color:var(--green);background:var(--lilac)}
+.tpl-card .tc-title{font-weight:900;font-size:.93rem;color:var(--ink);margin-bottom:5px;display:flex;align-items:center;justify-content:space-between}
+.tpl-card .tc-text{font-size:.87rem;color:var(--muted);line-height:1.6}
+
+/* جوال */
+@media(max-width:860px){
+  .msg-layout{grid-template-columns:1fr}
+  .conv-sidebar{display:none}
+  .conv-sidebar.mobile-show{display:flex;position:fixed;inset:0;z-index:50}
+  .chat-back-btn{display:flex!important}
+}
+.chat-back-btn{display:none;width:34px;height:34px;border-radius:9px;border:1.5px solid var(--line);background:#fff;place-items:center;cursor:pointer;color:var(--muted)}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase-client.js"></script>
+<script src="lang.js" defer></script>
+</head>
+<body>
+<div class="app-layout">
+
+<!-- SIDEBAR -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-logo" style="display:flex;align-items:center;gap:9px;direction:ltr;justify-content:flex-start;font-family:'Nippo',sans-serif">
+    <svg width="28" height="28" viewBox="0 0 48 48" fill="none" aria-hidden="true" style="flex:none"><path d="M6 10 L24 42 L42 10" stroke="url(#sbg)" stroke-width="4.8" stroke-linecap="round" stroke-linejoin="round"/><defs><linearGradient id="sbg" x1="6" y1="10" x2="42" y2="42" gradientUnits="userSpaceOnUse"><stop stop-color="#FAFAFA"/><stop offset=".55" stop-color="#3b82f6"/><stop offset="1" stop-color="#2563eb"/></linearGradient></defs></svg>
+    <span style="display:inline-flex;align-items:center;gap:.35em;line-height:1"><span style="font-weight:800;font-size:1.12rem;letter-spacing:.02em;color:var(--ink)">VOLD</span><span style="font-weight:300;font-size:1.12rem;letter-spacing:.16em;color:var(--ink)">MOTOR</span></span>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-section">
+      <a href="dashboard.html" class="nav-item"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg> <span data-i18n="d.nav.dash">لوحة التحكم</span></a>
+      <a href="appointments.html" class="nav-item"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg> <span data-i18n="d.nav.appt">الحجوزات</span></a>
+      <a href="customers.html" class="nav-item"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg> <span data-i18n="d.nav.cust">العملاء</span></a>
+      <a href="inventory.html" class="nav-item"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M20 7H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg> <span data-i18n="d.nav.inv">المخزون</span></a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label" data-i18n="d.sec.comm">التواصل</div>
+      <a href="messages.html" class="nav-item active"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg> <span data-i18n="d.nav.msg">الرسائل</span> <span class="ni-badge">3</span></a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label" data-i18n="side.sec.manage">الإدارة</div>
+      <a href="reports.html" class="nav-item"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg> <span data-i18n="d.nav.rep">التقارير</span></a>
+      <a href="team.html" class="nav-item"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg> <span data-i18n="d.nav.team">الفريق</span></a>
+      <a href="settings.html" class="nav-item"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg> <span data-i18n="d.nav.set">الإعدادات</span></a>
+    </div>
+  </nav>
+  <div class="sidebar-user"><div class="avatar" style="background:var(--violet)">م</div>
+    <div class="info"><b>...</b><span>VOLD MOTOR</span></div><a href="#" onclick="doLogout();return false;" title="خروج"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#7a7875" stroke-width="2.2" stroke-linecap="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></a></div>
+</aside>
+
+<!-- MAIN (بدون page-content العادية لأن المسجز لها تخطيط خاص) -->
+<div class="main-area" style="overflow:hidden">
+  <div class="topbar">
+    <div style="display:flex;align-items:center;gap:14px">
+      <button class="burger-btn" onclick="document.getElementById('sidebar').classList.toggle('open')"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M3 6h18M3 12h18M3 18h18"/></svg></button>
+      <a href="dashboard.html" class="back-btn">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>
+        <span data-i18n="c.back">العودة</span>
+      </a>
+      <span class="topbar-title" data-i18n="d.nav.msg">الرسائل</span>
+    </div>
+    <div class="topbar-actions">
+        <button class="lang-toggle-dash" onclick="toggleLang()" title="Switch to English" style="background:none;border:1.5px solid var(--line);border-radius:8px;padding:5px 12px;font-family:'Nippo',sans-serif;font-size:.95rem;letter-spacing:.06em;color:var(--ink);cursor:pointer;transition:.15s">EN</button>
+      <button class="btn btn-ghost btn-sm" onclick="document.getElementById('tplModal').classList.add('open')"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg> <span data-i18n="m.templates">القوالب</span></button>
+      <button class="btn btn-violet btn-sm" onclick="document.getElementById('newMsgModal').classList.add('open')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg> <span data-i18n="m.newMsg">رسالة جديدة</span></button>
+    </div>
+  </div>
+
+  <!-- تخطيط الرسائل -->
+  <div class="msg-layout">
+
+    <!-- قائمة المحادثات -->
+    <div class="conv-sidebar" id="convSidebar">
+      <div class="conv-search">
+        <div class="conv-search-wrap">
+          <svg class="conv-search-ico" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+          <input class="conv-search-inp" type="text" placeholder="ابحث في المحادثات..." data-i18n-ph="m.searchConv" oninput="filterConvs(this.value)">
+        </div>
+      </div>
+      <div class="conv-tabs">
+        <button class="conv-tab active" onclick="setConvTab('all',this)" data-i18n="a.fAll">الكل</button>
+        <button class="conv-tab" onclick="setConvTab('unread',this)"><span data-i18n="m.unread">غير مقروء</span> <span style="background:var(--green);color:#fff;font-size:.7rem;padding:1px 6px;border-radius:10px;margin-right:4px">3</span></button>
+        <button class="conv-tab" onclick="setConvTab('sent',this)" data-i18n="m.sent">مُرسلة</button>
+      </div>
+      <div class="conv-list" id="convList"></div>
+    </div>
+
+    <!-- منطقة المحادثة -->
+    <div class="chat-area" id="chatArea">
+      <div class="chat-empty" id="chatEmpty">
+        <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        <p data-i18n="m.chooseConv">اختر محادثة</p>
+        <span data-i18n="m.chooseConvSub">اختر محادثة من القائمة أو ابدأ رسالة جديدة</span>
+      </div>
+      <div id="chatMain" style="display:none;flex-direction:column;flex:1;overflow:hidden">
+        <div class="chat-header">
+          <button class="chat-back-btn" onclick="closeMobileChat()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="m9 18 6-6-6-6"/></svg></button>
+          <div class="avatar" id="chatAvatar" style="background:#3b82f6;width:38px;height:38px;font-size:.9rem">-</div>
+          <div class="ch-info">
+            <div class="ch-name" id="chatName">—</div>
+            <div class="ch-sub" id="chatSub">—</div>
+          </div>
+          <div class="chat-header-actions">
+            <button class="ch-action-btn" id="chatWaBtn" title="فتح واتساب"><svg width="16" height="16" viewBox="0 0 24 24" fill="#16a06a"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z"/></svg></button>
+            <button class="ch-action-btn" title="ملف العميل" onclick="alert('صفحة العميل — قريباً')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></button>
+          </div>
+        </div>
+        <div class="chat-messages" id="chatMessages"></div>
+        <div class="chat-input-area">
+          <div class="template-bar" id="templateBar"></div>
+          <div class="chat-input-wrap">
+            <div class="chat-input-inner">
+              <textarea class="chat-textarea" id="msgInput" rows="1" placeholder="اكتب رسالة واتساب..." data-i18n-ph="m.waInputPh" onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
+            </div>
+            <button class="chat-send-btn" onclick="sendMessage()" style="background:var(--green)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+</div>
+
+<!-- Modal قوالب الرسائل -->
+<div class="modal-bg" id="tplModal">
+  <div class="modal">
+    <div class="modal-head">
+      <h3 data-i18n="m.templatesTitle">قوالب الرسائل</h3>
+      <button class="modal-close" onclick="document.getElementById('tplModal').classList.remove('open')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+    </div>
+    <div class="modal-body">
+      <div class="tpl-list" id="tplList"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal رسالة جديدة -->
+<div class="modal-bg" id="newMsgModal">
+  <div class="modal">
+    <div class="modal-head">
+      <h3 data-i18n="m.newMsg">رسالة جديدة</h3>
+      <button class="modal-close" onclick="document.getElementById('newMsgModal').classList.remove('open')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+    </div>
+    <div class="modal-body">
+      <div class="field"><label data-i18n="d.customer">العميل</label><div class="inp-wrap"><input type="text" id="nmCustomer" placeholder="ابحث باسم العميل أو الجوال..." data-i18n-ph="m.custSearchPh"></div></div>
+      <div class="field"><label data-i18n="m.message">الرسالة</label><div class="inp-wrap"><textarea id="nmText" placeholder="اكتب رسالتك هنا..." data-i18n-ph="m.msgPh" style="min-height:110px"></textarea></div></div>
+      <p style="font-size:.82rem;color:var(--muted);margin-bottom:14px" data-i18n="m.orTemplate">أو اختر قالباً:</p>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px" id="nmTplBtns"></div>
+      <div style="display:flex;gap:10px;justify-content:flex-end">
+        <button class="btn btn-ghost" onclick="document.getElementById('newMsgModal').classList.remove('open')" data-i18n="c.cancel">إلغاء</button>
+        <button class="btn btn-violet" style="background:var(--green);box-shadow:0 6px 18px rgba(22,160,106,.28)" onclick="sendNewMessage()"><svg width="15" height="15" viewBox="0 0 24 24" fill="#16a06a"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z"/></svg> <span data-i18n="m.sendWa">إرسال واتساب</span></button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const AVATAR_COLORS = ['#3b82f6','#16a06a','#1d6fd6','#f97316','#d97706','#dc2626'];
+function avatarColor(name){return AVATAR_COLORS[name.charCodeAt(0)%AVATAR_COLORS.length]}
+function initials(name){return name.trim()[0]}
+function timeAgo(mins){
+  if(mins<1)return 'الآن';
+  if(mins<60)return `منذ ${mins}د`;
+  if(mins<1440)return `منذ ${Math.floor(mins/60)}س`;
+  return `منذ ${Math.floor(mins/1440)} يوم`;
+}
+
+const TEMPLATES = [
+  {id:1, title:'تذكير موعد', text:'مرحباً {name} 👋، نذكّرك بموعدك غداً الساعة {time} في مركز اللمسة الذهبية. نراكم!'},
+  {id:2, title:'تأكيد انتهاء الخدمة', text:'أهلاً {name}، سيارتك جاهزة للاستلام 🚗 يسعدنا خدمتك في مركز اللمسة الذهبية.'},
+  {id:3, title:'عرض خاص', text:'مرحباً {name} 🎉، لدينا عرض خاص هذا الأسبوع: تغيير زيت + فحص مجاني بـ 120 ر.س فقط. احجز الآن!'},
+  {id:4, title:'متابعة بعد الخدمة', text:'أهلاً {name}، نأمل أن تكون راضياً عن خدمتنا 😊 شاركنا رأيك وتقييمك يساعدنا نتحسن لك.'},
+  {id:5, title:'تذكير صيانة دورية', text:'مرحباً {name}، حان وقت الصيانة الدورية لسيارتك 🔧 احجز موعدك الآن وتجنب أي أعطال مفاجئة.'},
+  {id:6, title:'شكر وترحيب', text:'شكراً لزيارتك مركز اللمسة الذهبية {name} ❤️ يسعدنا دائماً تقديم أفضل خدمة لك ولسيارتك.'},
+];
+
+// بيانات المحادثات
+const CONVS = [
+  {id:1, customer:'فهد الشمري', phone:'0501234567', unread:2, lastTime:5,
+    messages:[
+      {dir:'in', text:'مرحبا، متى تقدر تغير الزيت؟', time:'10:30', date:'اليوم'},
+      {dir:'out', text:'أهلاً فهد، يسعدنا خدمتك. عندنا موعد اليوم الساعة 2 بعد الظهر، هل يناسبك؟', time:'10:32', date:'اليوم', tpl:'ترحيب'},
+      {dir:'in', text:'ممتاز، سأكون هناك', time:'10:35', date:'اليوم'},
+      {dir:'out', text:'مرحباً فهد 👋، نذكّرك بموعدك غداً الساعة 2:00 في مركز اللمسة الذهبية. نراكم!', time:'10:40', date:'اليوم', tpl:'تذكير موعد'},
+      {dir:'in', text:'تمام شكرا', time:'10:42', date:'اليوم'},
+      {dir:'in', text:'وصلت الحين', time:'14:01', date:'اليوم'},
+    ]
+  },
+  {id:2, customer:'عبدالله القرني', phone:'0559876543', unread:1, lastTime:20,
+    messages:[
+      {dir:'out', text:'أهلاً عبدالله، سيارتك جاهزة للاستلام 🚗 يسعدنا خدمتك في مركز اللمسة الذهبية.', time:'11:00', date:'اليوم', tpl:'تأكيد انتهاء الخدمة'},
+      {dir:'in', text:'ممتاز! جاي الحين', time:'11:15', date:'اليوم'},
+      {dir:'in', text:'وصلت', time:'11:22', date:'اليوم'},
+    ]
+  },
+  {id:3, customer:'نايف العتيبي', phone:'0567778899', unread:0, lastTime:180,
+    messages:[
+      {dir:'out', text:'مرحباً نايف، حان وقت الصيانة الدورية لسيارتك 🔧 احجز موعدك الآن وتجنب أي أعطال مفاجئة.', time:'09:00', date:'أمس', tpl:'تذكير صيانة دورية'},
+      {dir:'in', text:'شكرا، بحجز قريب إن شاء الله', time:'09:45', date:'أمس'},
+      {dir:'out', text:'شكراً لزيارتك مركز اللمسة الذهبية نايف ❤️ يسعدنا دائماً تقديم أفضل خدمة لك ولسيارتك.', time:'16:00', date:'أمس', tpl:'شكر وترحيب'},
+    ]
+  },
+  {id:4, customer:'سلطان المطيري', phone:'0531112233', unread:0, lastTime:1440,
+    messages:[
+      {dir:'out', text:'مرحباً سلطان 🎉، لدينا عرض خاص هذا الأسبوع: تغيير زيت + فحص مجاني بـ 120 ر.س فقط. احجز الآن!', time:'10:00', date:'منذ يومين', tpl:'عرض خاص'},
+      {dir:'in', text:'وين الموقع؟', time:'11:30', date:'منذ يومين'},
+      {dir:'out', text:'حي السلامة، شارع الأمير سلطان، بجانب محطة الوقود الرئيسية. يسعدنا زيارتك!', time:'11:32', date:'منذ يومين'},
+    ]
+  },
+  {id:5, customer:'بندر الحارثي', phone:'0544455566', unread:0, lastTime:2880,
+    messages:[
+      {dir:'out', text:'أهلاً بندر، نأمل أن تكون راضياً عن خدمتنا 😊 شاركنا رأيك وتقييمك يساعدنا نتحسن لك.', time:'14:00', date:'منذ 3 أيام', tpl:'متابعة بعد الخدمة'},
+      {dir:'in', text:'خدمة ممتازة، شكرا لكم 👍', time:'15:20', date:'منذ 3 أيام'},
+    ]
+  },
+];
+
+let currentConvId = null;
+let convTabFilter = 'all';
+let convSearch = '';
+
+function setConvTab(tab, btn){
+  convTabFilter=tab;
+  document.querySelectorAll('.conv-tab').forEach(t=>t.classList.remove('active'));
+  btn.classList.add('active');
+  renderConvList();
+}
+
+function filterConvs(q){ convSearch=q; renderConvList(); }
+
+function filteredConvs(){
+  return CONVS.filter(c=>{
+    const matchSearch = !convSearch || c.customer.includes(convSearch) || c.phone.includes(convSearch);
+    const matchTab = convTabFilter==='all' || (convTabFilter==='unread'&&c.unread>0) || (convTabFilter==='sent'&&c.messages.some(m=>m.dir==='out'));
+    return matchSearch && matchTab;
+  });
+}
+
+function renderConvList(){
+  const list = document.getElementById('convList');
+  const convs = filteredConvs();
+  list.innerHTML = convs.map(c=>{
+    const last = c.messages[c.messages.length-1];
+    const preview = (last.dir==='out'?'أنت: ':'')+last.text;
+    return `<div class="conv-item${c.id===currentConvId?' active':''}" onclick="openConv(${c.id})">
+      <div class="avatar" style="background:${avatarColor(c.customer)};width:42px;height:42px;font-size:1rem;flex:none">${initials(c.customer)}</div>
+      <div class="ci-info">
+        <div class="ci-name">${c.customer}<span class="ci-time">${timeAgo(c.lastTime)}</span></div>
+        <div class="ci-preview">
+          ${last.dir==='out'?'<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>':''}
+          ${preview}
+        </div>
+      </div>
+      ${c.unread>0?`<div class="ci-badge">${c.unread}</div>`:''}
+    </div>`;
+  }).join('');
+}
+
+function openConv(id){
+  currentConvId=id;
+  const c=CONVS.find(x=>x.id===id);
+  c.unread=0;
+  renderConvList();
+
+  document.getElementById('chatEmpty').style.display='none';
+  const main=document.getElementById('chatMain');
+  main.style.display='flex';
+
+  document.getElementById('chatAvatar').textContent=initials(c.customer);
+  document.getElementById('chatAvatar').style.background=avatarColor(c.customer);
+  document.getElementById('chatName').textContent=c.customer;
+  document.getElementById('chatSub').textContent=c.phone;
+  document.getElementById('chatWaBtn').onclick=()=>window.open(`https://wa.me/966${c.phone.substring(1)}`,'_blank');
+
+  renderMessages(c);
+  renderTemplateBar(c);
+
+  // تمرير للأسفل
+  setTimeout(()=>{const m=document.getElementById('chatMessages');m.scrollTop=m.scrollHeight;},50);
+}
+
+function renderMessages(c){
+  let html='';
+  let lastDate='';
+  c.messages.forEach(m=>{
+    if(m.date!==lastDate){
+      html+=`<div class="chat-date-sep"><span>${m.date}</span></div>`;
+      lastDate=m.date;
+    }
+    if(m.dir==='out'){
+      html+=`<div class="msg-row out">
+        <div class="msg-bubble out">
+          ${m.tpl?`<div class="mb-template">📋 ${m.tpl}</div>`:''}
+          <div class="mb-text">${m.text}</div>
+          <div class="mb-meta">${m.time} <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M1 12.5l4 4L11 10M7 12.5l4 4L21 6"/></svg></div>
+        </div>
+      </div>`;
+    } else {
+      html+=`<div class="msg-row in">
+        <div class="msg-bubble in">
+          <div class="mb-text">${m.text}</div>
+          <div class="mb-meta">${m.time}</div>
+        </div>
+      </div>`;
+    }
+  });
+  document.getElementById('chatMessages').innerHTML=html;
+}
+
+function renderTemplateBar(c){
+  const bar=document.getElementById('templateBar');
+  bar.innerHTML=TEMPLATES.slice(0,4).map(t=>`<button class="tpl-btn" onclick="applyTemplate(${t.id},'${c.customer.split(' ')[0]}')">${t.title}</button>`).join('');
+}
+
+function applyTemplate(id,name){
+  const tpl=TEMPLATES.find(t=>t.id===id);
+  if(!tpl)return;
+  const text=tpl.text.replace(/{name}/g,name).replace(/{time}/g,'2:00 م');
+  document.getElementById('msgInput').value=text;
+  autoResize(document.getElementById('msgInput'));
+}
+
+function sendMessage(){
+  const input=document.getElementById('msgInput');
+  const text=input.value.trim();
+  if(!text||!currentConvId)return;
+  const c=CONVS.find(x=>x.id===currentConvId);
+  const now=new Date();
+  const timeStr=`${now.getHours()}:${String(now.getMinutes()).padStart(2,'0')}`;
+  c.messages.push({dir:'out',text,time:timeStr,date:'اليوم'});
+  c.lastTime=0;
+  input.value='';
+  input.style.height='auto';
+  renderMessages(c);
+  renderConvList();
+  setTimeout(()=>{const m=document.getElementById('chatMessages');m.scrollTop=m.scrollHeight;},30);
+  // فتح واتساب
+  window.open(`https://wa.me/966${c.phone.substring(1)}?text=${encodeURIComponent(text)}`,'_blank');
+}
+
+function handleKey(e){
+  if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMessage();}
+}
+function autoResize(el){el.style.height='auto';el.style.height=Math.min(el.scrollHeight,120)+'px';}
+
+// قوالب modal
+function renderTplModal(){
+  document.getElementById('tplList').innerHTML=TEMPLATES.map(t=>`
+    <div class="tpl-card" onclick="useTplFromModal(${t.id})">
+      <div class="tc-title">${t.title} <span style="font-size:.76rem;color:var(--muted);font-weight:700">انقر للاستخدام</span></div>
+      <div class="tc-text">${t.text}</div>
+    </div>
+  `).join('');
+  // أزرار في modal الرسالة الجديدة
+  document.getElementById('nmTplBtns').innerHTML=TEMPLATES.map(t=>`<button class="tpl-btn" onclick="nmApplyTpl(${t.id})">${t.title}</button>`).join('');
+}
+
+function useTplFromModal(id){
+  if(!currentConvId){document.getElementById('tplModal').classList.remove('open');return;}
+  const c=CONVS.find(x=>x.id===currentConvId);
+  applyTemplate(id,c.customer.split(' ')[0]);
+  document.getElementById('tplModal').classList.remove('open');
+}
+
+function nmApplyTpl(id){
+  const tpl=TEMPLATES.find(t=>t.id===id);
+  if(!tpl)return;
+  const name=document.getElementById('nmCustomer').value.split(' ')[0]||'العميل';
+  document.getElementById('nmText').value=tpl.text.replace(/{name}/g,name).replace(/{time}/g,'2:00 م');
+}
+
+function sendNewMessage(){
+  const customer=document.getElementById('nmCustomer').value.trim();
+  const text=document.getElementById('nmText').value.trim();
+  if(!customer||!text){alert('الرجاء تعبئة اسم العميل والرسالة');return;}
+  document.getElementById('newMsgModal').classList.remove('open');
+  document.getElementById('nmCustomer').value='';
+  document.getElementById('nmText').value='';
+  alert(`سيتم فتح واتساب لإرسال الرسالة لـ ${customer}`);
+}
+
+function closeMobileChat(){
+  document.getElementById('chatMain').style.display='none';
+  document.getElementById('chatEmpty').style.display='flex';
+}
+
+// إغلاق المودال
+document.querySelectorAll('.modal-bg').forEach(m=>{
+  m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('open')});
+});
+
+// تهيئة
+renderConvList();
+renderTplModal();
+
+// Auth guard
+requireAuth();
+fillSidebarUser();
+</script>
+<script src="mobile-init.js"></script>
+  <script src="brand.js"></script>
+</body>
+</html>

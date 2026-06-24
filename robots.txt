@@ -1,0 +1,18 @@
+User-agent: *
+Allow: /
+Disallow: /dashboard.html
+Disallow: /pos.html
+Disallow: /appointments.html
+Disallow: /customers.html
+Disallow: /inventory.html
+Disallow: /expenses.html
+Disallow: /reports.html
+Disallow: /settings.html
+Disallow: /team.html
+Disallow: /messages.html
+Disallow: /audit.html
+Disallow: /admin-vold.html
+Disallow: /vm-secure-panel.html
+Disallow: /workers.html
+
+Sitemap: https://www.voldmotor.com/sitemap.xml

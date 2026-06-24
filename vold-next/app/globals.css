@@ -1,0 +1,41 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ── Theme tints (5 premium backgrounds) applied via [data-theme] on <html> ── */
+:root { --app-bg: #f9fafb; }
+html[data-theme='slate']    { --app-bg: #eef2f7; }
+html[data-theme='zinc']     { --app-bg: #f4f4f5; }
+html[data-theme='neutral']  { --app-bg: #f5f5f4; }
+html[data-theme='bluegray'] { --app-bg: #e9eff5; }
+html[data-theme='stone']    { --app-bg: #f5f3ef; }
+
+body {
+  background: var(--app-bg);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* RTL niceties */
+[dir='rtl'] .ltr { direction: ltr; }
+
+/* thin scrollbars */
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { scrollbar-width: none; }
+
+/* Receipt print isolation. */
+@media print {
+  body * { visibility: hidden !important; }
+  /* 80mm thermal receipt (in-app modal) */
+  .print-receipt, .print-receipt * { visibility: visible !important; }
+  .print-receipt {
+    position: fixed; top: 0; left: 50%; transform: translateX(-50%);
+    width: 80mm; margin: 0; padding: 4mm; box-shadow: none !important;
+  }
+  /* full-width public digital receipt */
+  .receipt-public, .receipt-public * { visibility: visible !important; }
+  .receipt-public {
+    position: absolute; top: 0; left: 50%; transform: translateX(-50%);
+    width: 100%; max-width: 460px; margin: 0; box-shadow: none !important; border: none !important;
+  }
+  @page { margin: 8mm; }
+}

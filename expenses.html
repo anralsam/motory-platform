@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>المصروفات — VOLD MOTOR</title>
+<link href="https://fonts.googleapis.com/css2?family=Almarai:wght@300;400;700;800&&&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="roles.js"></script>
+<script src="supabase-client.js"></script>
+<script src="lang.js" defer></script>
+<style>
+.exp-grid{display:grid;grid-template-columns:360px 1fr;gap:24px;align-items:start}
+.exp-form-card,.exp-list-card{background:var(--paper);border-radius:18px;border:1px solid var(--line);padding:26px;box-shadow:var(--shadow-sm)}
+.exp-form-card{position:sticky;top:80px}
+.field-group{margin-bottom:16px}
+.field-group label{display:block;font-weight:800;font-size:.9rem;color:var(--ink);margin-bottom:7px}
+.field-group input,.field-group select,.field-group textarea{
+  width:100%;padding:12px 14px;border:1.5px solid var(--line);border-radius:11px;
+  font-family:inherit;font-size:.95rem;color:var(--ink);background:var(--lilac);
+  transition:border .15s,box-shadow .15s;outline:none}
+.field-group input:focus,.field-group select:focus,.field-group textarea:focus{
+  border-color:var(--violet);box-shadow:0 0 0 3px rgba(59,130,246,.12)}
+.field-group select option{background:var(--paper);color:var(--ink)}
+.cat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px}
+.cat-btn{padding:12px 6px;border:1.5px solid var(--line);border-radius:10px;background:var(--lilac);
+  cursor:pointer;text-align:center;font-family:inherit;font-size:.84rem;font-weight:700;color:var(--muted);
+  transition:.15s;min-height:48px}
+.cat-btn:hover,.cat-btn.sel{border-color:var(--violet);background:var(--violet-soft);color:var(--violet)}
+.summary-strip{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:22px}
+.sum-card{background:var(--lilac);border:1px solid var(--line);border-radius:14px;padding:16px;text-align:center}
+.sum-card .lbl{font-size:.8rem;color:var(--muted);font-weight:700;margin-bottom:4px}
+.sum-card .val{font-size:1.25rem;font-weight:700;color:var(--ink)}
+.sum-card.violet .val{color:var(--violet)}
+.exp-row{display:grid;grid-template-columns:auto 1fr auto auto;gap:12px;align-items:center;padding:13px 0;border-bottom:1px solid var(--line)}
+.exp-row:last-child{border-bottom:none}
+.cat-icon{width:40px;height:40px;border-radius:11px;display:grid;place-items:center;font-size:1.1rem;flex-shrink:0}
+.exp-desc{font-weight:700;font-size:.95rem;color:var(--ink)}
+.exp-sub{font-size:.8rem;color:var(--muted)}
+.exp-amount{font-weight:900;color:var(--violet);font-size:1.05rem;white-space:nowrap}
+.del-btn{background:none;border:none;cursor:pointer;color:var(--muted);padding:6px;border-radius:8px;transition:.15s;min-width:32px;min-height:32px;display:grid;place-items:center}
+.del-btn:hover{color:var(--red);background:var(--rose)}
+.month-filter{display:flex;gap:8px;align-items:center;margin-bottom:18px;flex-wrap:wrap}
+.month-filter select{padding:9px 12px;border:1.5px solid var(--line);border-radius:9px;font-family:inherit;font-size:.9rem;outline:none;background:var(--lilac);color:var(--ink)}
+.progress-bar{background:var(--line);border-radius:99px;height:8px;overflow:hidden;margin-top:6px}
+.progress-fill{height:100%;border-radius:99px;background:var(--violet);transition:width .4s}
+@media(max-width:900px){.exp-grid{grid-template-columns:1fr}.exp-form-card{position:static}.summary-strip{grid-template-columns:repeat(2,1fr)}.cat-grid{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:560px){.summary-strip{grid-template-columns:repeat(2,1fr)}.cat-grid{grid-template-columns:repeat(2,1fr)}}
+</style>
+</head>
+<body>
+<div class="app-layout">
+
+<!-- SIDEBAR -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-logo" style="display:flex;align-items:center;gap:9px;direction:ltr;justify-content:flex-start;font-family:'Nippo',sans-serif">
+    <svg width="28" height="28" viewBox="0 0 48 48" fill="none" aria-hidden="true" style="flex:none"><path d="M6 10 L24 42 L42 10" stroke="url(#sbg)" stroke-width="4.8" stroke-linecap="round" stroke-linejoin="round"/><defs><linearGradient id="sbg" x1="6" y1="10" x2="42" y2="42" gradientUnits="userSpaceOnUse"><stop stop-color="#FAFAFA"/><stop offset=".55" stop-color="#3b82f6"/><stop offset="1" stop-color="#2563eb"/></linearGradient></defs></svg>
+    <span style="display:inline-flex;align-items:center;gap:.35em;line-height:1"><span style="font-weight:800;font-size:1.12rem;letter-spacing:.02em;color:var(--ink)">VOLD</span><span style="font-weight:300;font-size:1.12rem;letter-spacing:.16em;color:var(--ink)">MOTOR</span></span>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-section">
+      <a href="dashboard.html" class="nav-item"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg> <span data-i18n="d.nav.dash">لوحة التحكم</span></a>
+      <a href="services.html" class="nav-item"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94z"/></svg> <span>الخدمات</span></a>
+      <a href="appointments.html" class="nav-item"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg> <span data-i18n="d.nav.appt">الحجوزات</span></a>
+      <a href="customers.html" class="nav-item"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg> <span data-i18n="d.nav.cust">العملاء</span></a>
+      <a href="inventory.html" class="nav-item"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M20 7H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg> <span data-i18n="d.nav.inv">المخزون</span></a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label" data-i18n="side.sec.manage">الإدارة</div>
+      <a href="expenses.html" class="nav-item active"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg> <span data-i18n="d.nav.exp">المصروفات</span></a>
+      <a href="reports.html" class="nav-item"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg> <span data-i18n="d.nav.rep">التقارير</span></a>
+      <a href="settings.html" class="nav-item"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg> <span data-i18n="d.nav.set">الإعدادات</span></a>
+    </div>
+  </nav>
+  <div class="sidebar-user">
+    <div class="avatar" style="background:var(--violet)" id="sideAvatar">أ</div>
+    <div class="info"><b id="sideName">...</b><span id="sideShop">VOLD MOTOR</span></div>
+    <a href="#" onclick="doLogout();return false;" title="خروج"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#7a7875" stroke-width="2.2" stroke-linecap="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></a>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<div class="main-area">
+  <div class="topbar">
+    <div style="display:flex;align-items:center;gap:14px">
+      <button class="burger-btn" onclick="document.getElementById('sidebar').classList.toggle('open')"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M3 6h18M3 12h18M3 18h18"/></svg></button>
+      <a href="dashboard.html" class="back-btn">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>
+        <span data-i18n="c.back">العودة</span>
+      </a>
+      <span class="topbar-title" data-i18n="e.title">💰 المصروفات</span>
+    </div>
+    <div class="topbar-actions">
+      <button class="lang-toggle-dash" onclick="toggleLang()" title="Switch to English" style="background:none;border:1.5px solid var(--line);border-radius:8px;padding:5px 12px;font-family:'Nippo',sans-serif;font-size:.95rem;letter-spacing:.06em;color:var(--ink);cursor:pointer;transition:.15s">EN</button>
+    </div>
+  </div>
+
+  <div class="page-content">
+
+    <!-- ملخص الشهر -->
+    <div class="summary-strip fade-in" id="summaryStrip">
+      <div class="sum-card"><div class="lbl" data-i18n="e.monthExp">مصروفات الشهر</div><div class="val" id="sumMonth">—</div></div>
+      <div class="sum-card"><div class="lbl" data-i18n="e.todayExp">مصروفات اليوم</div><div class="val" id="sumToday">—</div></div>
+      <div class="sum-card"><div class="lbl" data-i18n="e.topItem">أكبر بند</div><div class="val" id="sumTop" style="font-size:.95rem">—</div></div>
+      <div class="sum-card violet"><div class="lbl" data-i18n="e.itemCount">عدد البنود هذا الشهر</div><div class="val" id="sumCount">—</div></div>
+    </div>
+
+    <div class="exp-grid">
+      <!-- ── فورم الإضافة ── -->
+      <div class="exp-form-card">
+        <h3 style="font-size:1.05rem;font-weight:900;margin-bottom:18px" data-i18n="e.addExp">➕ إضافة مصروف</h3>
+
+        <!-- الفئة -->
+        <div style="margin-bottom:14px">
+          <div style="font-weight:800;font-size:.87rem;margin-bottom:8px" data-i18n="i.category">الفئة</div>
+          <div class="cat-grid">
+            <button class="cat-btn" onclick="selCat(this,'rent')" data-i18n="e.catRent">🏠 إيجار</button>
+            <button class="cat-btn" onclick="selCat(this,'electric')" data-i18n="e.catElec">⚡ كهرباء</button>
+            <button class="cat-btn" onclick="selCat(this,'water')" data-i18n="e.catWater">💧 مياه</button>
+            <button class="cat-btn" onclick="selCat(this,'salaries')" data-i18n="e.catSalary">👷 رواتب</button>
+            <button class="cat-btn" onclick="selCat(this,'supplies')" data-i18n="e.catSupplies">🛒 مستلزمات</button>
+            <button class="cat-btn" onclick="selCat(this,'other')" data-i18n="e.catOther">📦 أخرى</button>
+          </div>
+        </div>
+
+        <div class="field-group">
+          <label><span data-i18n="e.desc">الوصف</span> <span style="color:var(--violet)">*</span></label>
+          <input id="fDesc" type="text" placeholder="مثال: إيجار شهر يناير" data-i18n-ph="e.descPh">
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+          <div class="field-group">
+            <label><span data-i18n="e.amount">المبلغ (ريال)</span> <span style="color:var(--violet)">*</span></label>
+            <input id="fAmount" type="number" min="0" step="0.5" placeholder="0.00">
+          </div>
+          <div class="field-group">
+            <label data-i18n="a.date">التاريخ</label>
+            <input id="fDate" type="date">
+          </div>
+        </div>
+
+        <div class="field-group" style="display:flex;align-items:center;gap:10px;margin-bottom:18px">
+          <input type="checkbox" id="fRecurring" style="width:18px;height:18px;accent-color:var(--violet)">
+          <label for="fRecurring" style="margin:0;font-weight:600;cursor:pointer" data-i18n="e.recurring">مصروف دوري (شهري)</label>
+        </div>
+
+        <button class="btn btn-violet" style="width:100%;justify-content:center;padding:13px;font-size:.97rem;border-radius:12px" onclick="saveExpense(this)">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+          <span data-i18n="e.save">حفظ المصروف</span>
+        </button>
+      </div>
+
+      <!-- ── قائمة المصروفات ── -->
+      <div class="exp-list-card">
+        <style>
+        #exp-period{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;margin-bottom:16px}
+        #exp-period::-webkit-scrollbar{display:none}
+        #exp-period button{flex:none;border:1px solid var(--line);background:var(--paper);color:var(--muted);font-family:inherit;font-size:.82rem;font-weight:800;padding:7px 15px;border-radius:20px;cursor:pointer;white-space:nowrap;transition:.12s}
+        #exp-period button.active{background:var(--violet);color:#fff;border-color:var(--violet)}
+        </style>
+        <h3 style="font-size:1.05rem;font-weight:900;margin-bottom:10px" data-i18n="e.log">سجل المصروفات</h3>
+        <div id="exp-period">
+          <button onclick="setExpPeriod('today',this)">اليوم</button>
+          <button onclick="setExpPeriod('week',this)">أسبوع</button>
+          <button class="active" onclick="setExpPeriod('month',this)">شهر</button>
+          <button onclick="setExpPeriod('3m',this)">٣ أشهر</button>
+          <button onclick="setExpPeriod('6m',this)">٦ أشهر</button>
+          <button onclick="setExpPeriod('year',this)">سنة</button>
+          <button onclick="setExpPeriod('all',this)">الكل</button>
+        </div>
+
+        <!-- توزيع الفئات -->
+        <div id="catBreakdown" style="margin-bottom:20px;display:grid;grid-template-columns:repeat(3,1fr);gap:10px"></div>
+
+        <div id="expList"><div style="text-align:center;padding:40px;color:var(--muted)">⏳ تحميل...</div></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+</div>
+
+<script>
+let SESSION, MERCHANT_ID;
+let selectedCat = 'other';
+
+const CAT_INFO = {
+  rent:      { label:'إيجار',      icon:'🏠', color:'#fef3c7' },
+  electric:  { label:'كهرباء',     icon:'⚡', color:'#fde68a' },
+  water:     { label:'مياه',       icon:'💧', color:'#dbeafe' },
+  salaries:  { label:'رواتب',      icon:'👷', color:'#dcfce7' },
+  supplies:  { label:'مستلزمات',   icon:'🛒', color:'#ede9fe' },
+  other:     { label:'أخرى',       icon:'📦', color:'#f1f5f9' },
+};
+
+(async () => {
+  SESSION = await requireAuth();
+  if (!SESSION) return;
+  const meta = SESSION.user.user_metadata || {};
+  // RBAC: Expenses is OWNER-only — managers & technicians have no access
+  const _role = window.vmRoleOf ? window.vmRoleOf(meta.role) : 'owner';
+  if (_role !== 'owner') { window.location.replace(_role === 'technician' ? 'worker.html' : 'dashboard.html'); return; }
+  MERCHANT_ID = SESSION.user.id;
+  document.getElementById('sideName').textContent  = meta.full_name || 'المستخدم';
+  document.getElementById('sideShop').textContent  = meta.shop_name || 'VOLD MOTOR';
+  document.getElementById('sideAvatar').textContent = (meta.full_name || 'م')[0];
+
+  // Set default date to today
+  document.getElementById('fDate').value = new Date().toISOString().split('T')[0];
+
+  // Default cat
+  selCat(document.querySelector('.cat-btn'), 'rent');
+  await loadExpenses();
+})();
+
+function selCat(btn, cat) {
+  document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('sel'));
+  btn.classList.add('sel');
+  selectedCat = cat;
+}
+
+let _expPeriod = 'month';
+function expRange(p){
+  const now = new Date(); const ymd = d => d.toISOString().split('T')[0]; const end = ymd(now);
+  if (p === 'all') return { start:'2000-01-01', end };
+  const d = new Date(now);
+  if (p === 'today') return { start:end, end };
+  if (p === 'week')  { d.setDate(now.getDate()-6); return { start:ymd(d), end }; }
+  if (p === 'month') return { start:ymd(new Date(now.getFullYear(), now.getMonth(), 1)), end };
+  if (p === '3m')    { d.setMonth(now.getMonth()-3); return { start:ymd(d), end }; }
+  if (p === '6m')    { d.setMonth(now.getMonth()-6); return { start:ymd(d), end }; }
+  if (p === 'year')  return { start:ymd(new Date(now.getFullYear(), 0, 1)), end };
+  return { start:end, end };
+}
+function setExpPeriod(p, el){
+  _expPeriod = p;
+  el.parentElement.querySelectorAll('button').forEach(b => b.classList.remove('active')); el.classList.add('active');
+  loadExpenses();
+}
+async function loadExpenses() {
+  const { start: startDate, end: endDate } = expRange(_expPeriod);
+
+  const { data: expenses } = await _sb.from('expenses')
+    .select('*')
+    .eq('merchant_id', MERCHANT_ID)
+    .gte('expense_date', startDate)
+    .lte('expense_date', endDate)
+    .order('expense_date', { ascending: false });
+
+  renderSummary(expenses || []);
+  renderCatBreakdown(expenses || []);
+  renderList(expenses || []);
+}
+
+function renderSummary(expenses) {
+  const total = expenses.reduce((s, e) => s + e.amount, 0);
+  const today = new Date().toISOString().split('T')[0];
+  const todayTotal = expenses.filter(e => e.expense_date === today).reduce((s, e) => s + e.amount, 0);
+
+  // Top category
+  const catTotals = {};
+  expenses.forEach(e => { catTotals[e.category] = (catTotals[e.category] || 0) + e.amount; });
+  const topCat = Object.entries(catTotals).sort((a,b) => b[1]-a[1])[0];
+
+  document.getElementById('sumMonth').textContent  = toAr(total) + ' ريال';
+  document.getElementById('sumToday').textContent  = toAr(todayTotal) + ' ريال';
+  document.getElementById('sumTop').textContent    = topCat ? `${CAT_INFO[topCat[0]]?.icon} ${CAT_INFO[topCat[0]]?.label}` : '—';
+  document.getElementById('sumCount').textContent  = toAr(expenses.length);
+}
+
+function renderCatBreakdown(expenses) {
+  const catTotals = {};
+  const total = expenses.reduce((s, e) => s + e.amount, 0);
+  expenses.forEach(e => { catTotals[e.category] = (catTotals[e.category] || 0) + e.amount; });
+
+  const box = document.getElementById('catBreakdown');
+  if (!Object.keys(catTotals).length) { box.innerHTML = ''; return; }
+
+  box.innerHTML = Object.entries(catTotals).sort((a,b) => b[1]-a[1]).map(([cat, amt]) => {
+    const info = CAT_INFO[cat] || CAT_INFO.other;
+    const pct  = total ? Math.round(amt / total * 100) : 0;
+    return `<div style="background:${info.color};border-radius:12px;padding:12px">
+      <div style="font-size:1.1rem">${info.icon}</div>
+      <div style="font-size:.82rem;font-weight:700;color:var(--ink)">${info.label}</div>
+      <div style="font-size:1rem;font-weight:900;color:var(--violet);margin-top:2px">${toAr(amt)} ريال</div>
+      <div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>
+      <div style="font-size:.75rem;color:var(--muted);margin-top:3px">${toAr(pct)}٪</div>
+    </div>`;
+  }).join('');
+}
+
+function renderList(expenses) {
+  const list = document.getElementById('expList');
+  if (!expenses.length) {
+    list.innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted)"><div style="font-size:2rem;margin-bottom:8px">💸</div>لا توجد مصروفات في هذا الشهر</div>';
+    return;
+  }
+  list.innerHTML = expenses.map(e => {
+    const info = CAT_INFO[e.category] || CAT_INFO.other;
+    const d = new Date(e.expense_date + 'T00:00:00').toLocaleDateString('ar-SA', {day:'numeric',month:'short'});
+    return `<div class="exp-row">
+      <div class="cat-icon" style="background:${info.color}">${info.icon}</div>
+      <div>
+        <div class="exp-desc">${e.description}</div>
+        <div class="exp-sub">${info.label} · ${d}${e.is_recurring ? ' · 🔄 دوري' : ''}</div>
+      </div>
+      <div class="exp-amount">${toAr(e.amount)} ريال</div>
+      <button class="del-btn" onclick="deleteExpense('${e.id}')" title="حذف">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+      </button>
+    </div>`;
+  }).join('');
+}
+
+async function saveExpense(btn) {
+  const desc   = document.getElementById('fDesc').value.trim();
+  const amount = parseFloat(document.getElementById('fAmount').value) || 0;
+  const date   = document.getElementById('fDate').value;
+  const recur  = document.getElementById('fRecurring').checked;
+
+  if (!desc)   { showToast('أدخل وصف المصروف', 'error'); return; }
+  if (!amount) { showToast('أدخل المبلغ', 'error'); return; }
+  if (!date)   { showToast('اختر التاريخ', 'error'); return; }
+
+  btn.disabled = true; btn.textContent = '⏳ حفظ...';
+
+  let _wb='all'; try{ _wb=localStorage.getItem('vm_active_branch')||'all'; }catch(e){}
+  const { error } = await _sb.from('expenses').insert({
+    merchant_id:  MERCHANT_ID,
+    category:     selectedCat,
+    description:  desc,
+    amount,
+    expense_date: date,
+    is_recurring: recur,
+    branch_id:    _wb === 'all' ? null : _wb   // null → DB trigger assigns primary branch
+  });
+
+  btn.disabled = false;
+  btn.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg> حفظ المصروف`;
+
+  if (error) { showToast('خطأ: ' + error.message, 'error'); return; }
+
+  showToast('✅ تم حفظ المصروف', 'success');
+  document.getElementById('fDesc').value   = '';
+  document.getElementById('fAmount').value = '';
+  document.getElementById('fRecurring').checked = false;
+  await loadExpenses();
+}
+
+async function deleteExpense(id) {
+  if (!confirm('حذف هذا المصروف؟')) return;
+  await _sb.from('expenses').delete().eq('id', id);
+  await loadExpenses();
+}
+
+function toAr(n) {
+  if (typeof n === 'number') n = n.toLocaleString('ar-SA', {minimumFractionDigits: n % 1 ? 2 : 0});
+  return String(n).replace(/\d/g, d => '0123456789'[d]);
+}
+
+function showToast(msg, type='info') {
+  const t = document.createElement('div');
+  t.style.cssText = `position:fixed;bottom:24px;left:50%;transform:translateX(-50%);z-index:9999;padding:12px 22px;border-radius:12px;font-weight:700;font-size:.93rem;font-family:'Nippo','Almarai',sans-serif;box-shadow:0 8px 24px rgba(0,0,0,.15);background:${type==='error'?'#fef2f2;color:#b91c1c':type==='success'?'#f0fdf4;color:#166534':'#fff;color:#111'}`;
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 3000);
+}
+</script>
+<script src="mobile-init.js"></script>
+<script>document.addEventListener("DOMContentLoaded",()=>{ if(typeof fillSidebarUser==="function") fillSidebarUser(); });</script>
+  <script src="brand.js"></script>
+</body>
+</html>

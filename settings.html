@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>الإعدادات — VOLD MOTOR</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Almarai:wght@300;400;700;800&&&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<style>
+.settings-layout{display:grid;grid-template-columns:220px 1fr;gap:22px;align-items:start}
+.settings-menu{background:var(--paper);border:1.5px solid var(--line);border-radius:18px;overflow:hidden;position:sticky;top:24px}
+.set-menu-item{display:flex;align-items:center;gap:10px;padding:15px 18px;font-size:.92rem;font-weight:700;color:var(--muted);cursor:pointer;border-bottom:1px solid var(--line);transition:.15s;min-height:50px}
+.set-menu-item:last-child{border:0}
+.set-menu-item:hover{color:var(--ink);background:var(--lilac)}
+.set-menu-item.active{color:var(--violet);background:var(--violet-soft)}
+.set-menu-item svg{flex:none}
+.set-panel{display:none}
+.set-panel.active{display:block}
+.set-card{background:var(--paper);border:1.5px solid var(--line);border-radius:18px;padding:26px 28px;margin-bottom:20px}
+.set-card h3{font-size:1.05rem;font-weight:700;color:var(--ink);margin-bottom:4px}
+.set-card .set-desc{font-size:.85rem;color:var(--muted);margin-bottom:22px}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}
+.form-row.one{grid-template-columns:1fr}
+.form-group{display:flex;flex-direction:column;gap:6px}
+.form-group label{font-size:.83rem;font-weight:800;color:var(--muted)}
+.form-group input,.form-group select,.form-group textarea{
+  padding:12px 14px;border-radius:11px;border:1.5px solid var(--line);
+  background:var(--lilac);font-family:inherit;font-size:.93rem;font-weight:600;
+  color:var(--ink);transition:.15s,box-shadow .15s;resize:vertical;min-height:44px;width:100%;box-sizing:border-box}
+.form-group input:focus,.form-group select:focus,.form-group textarea:focus{
+  outline:none;border-color:var(--violet);box-shadow:0 0 0 3px rgba(59,130,246,.12)}
+.form-group select option{background:var(--paper);color:var(--ink)}
+.form-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:22px}
+
+.svc-price-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.svc-price-item{background:var(--paper);border:1.5px solid var(--line);border-radius:14px;padding:14px 16px;display:flex;flex-direction:column;gap:8px}
+.svc-price-item .sp-name{font-size:.88rem;font-weight:800;color:var(--ink);display:flex;align-items:center;gap:7px}
+.svc-price-item .sp-icon{width:30px;height:30px;border-radius:8px;background:var(--violet-soft);display:grid;place-items:center;color:var(--violet)}
+.svc-price-item input{padding:10px 12px;border-radius:9px;border:1.5px solid var(--line);font-family:inherit;font-size:.95rem;font-weight:800;color:var(--ink);background:var(--lilac);text-align:center;width:100%;box-sizing:border-box;min-height:44px}
+.svc-price-item input:focus{outline:none;border-color:var(--violet)}
+.svc-price-item .sp-lbl{font-size:.75rem;color:var(--muted);text-align:center;font-weight:600}
+
+.toggle-row{display:flex;align-items:center;justify-content:space-between;padding:14px 0;border-bottom:1px solid var(--line)}
+.toggle-row:last-child{border:0}
+.toggle-row .tr-info .tr-title{font-size:.93rem;font-weight:800;color:var(--ink)}
+.toggle-row .tr-info .tr-sub{font-size:.82rem;color:var(--muted);margin-top:2px}
+.toggle{position:relative;width:44px;height:24px;flex:none}
+.toggle input{opacity:0;width:0;height:0}
+.toggle-slider{position:absolute;inset:0;background:var(--line);border-radius:99px;cursor:pointer;transition:.2s}
+.toggle-slider:before{content:'';position:absolute;width:18px;height:18px;bottom:3px;right:3px;background:#fff;border-radius:50%;transition:.2s}
+.toggle input:checked+.toggle-slider{background:var(--violet)}
+.toggle input:checked+.toggle-slider:before{transform:translateX(-20px)}
+
+.danger-zone{border-color:#ef4444}
+.danger-zone h3{color:#ef4444}
+.btn-danger{background:#ef4444;color:#fff;border-color:#ef4444}
+.btn-danger:hover{background:#dc2626}
+
+.save-toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--ink);color:#fff;padding:12px 24px;border-radius:12px;font-size:.9rem;font-weight:700;transition:transform .3s ease;z-index:999;pointer-events:none}
+.save-toast.show{transform:translateX(-50%) translateY(0)}
+
+@media(max-width:860px){.settings-layout{grid-template-columns:1fr}.settings-menu{position:static}.svc-price-grid{grid-template-columns:1fr 1fr}.form-row{grid-template-columns:1fr}}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="roles.js"></script>
+<script src="supabase-client.js"></script>
+<script src="lang.js" defer></script>
+</head>
+<body>
+<div class="app-layout">
+
+<!-- SIDEBAR -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-logo" style="display:flex;align-items:center;gap:9px;direction:ltr;justify-content:flex-start;font-family:'Nippo',sans-serif">
+    <svg width="28" height="28" viewBox="0 0 48 48" fill="none" aria-hidden="true" style="flex:none"><path d="M6 10 L24 42 L42 10" stroke="url(#sbg)" stroke-width="4.8" stroke-linecap="round" stroke-linejoin="round"/><defs><linearGradient id="sbg" x1="6" y1="10" x2="42" y2="42" gradientUnits="userSpaceOnUse"><stop stop-color="#FAFAFA"/><stop offset=".55" stop-color="#3b82f6"/><stop offset="1" stop-color="#2563eb"/></linearGradient></defs></svg>
+    <span style="display:inline-flex;align-items:center;gap:.35em;line-height:1"><span style="font-weight:800;font-size:1.12rem;letter-spacing:.02em;color:var(--ink)">VOLD</span><span style="font-weight:300;font-size:1.12rem;letter-spacing:.16em;color:var(--ink)">MOTOR</span></span>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-section">
+      <a href="dashboard.html" class="nav-item"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg> <span data-i18n="d.nav.dash">لوحة التحكم</span></a>
+      <a href="services.html" class="nav-item"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94z"/></svg> <span>الخدمات</span></a>
+      <a href="customers.html" class="nav-item"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg> <span data-i18n="d.nav.cust">العملاء</span></a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label" data-i18n="side.sec.manage">الإدارة</div>
+      <a href="expenses.html" class="nav-item"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg> <span data-i18n="d.nav.exp">المصروفات</span></a>
+      <a href="reports.html" class="nav-item"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg> <span data-i18n="d.nav.rep">التقارير</span></a>
+      <a href="settings.html" class="nav-item active"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg> <span data-i18n="d.nav.set">الإعدادات</span></a>
+    </div>
+  </nav>
+  <div class="sidebar-user">
+    <div class="avatar" style="background:#3b82f6" id="sb-avatar">م</div>
+    <div class="info"><b id="sb-name">جاري...</b><span>VOLD MOTOR</span></div>
+    <a href="#" onclick="doLogout();return false;" title="خروج"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#7a7875" stroke-width="2.2" stroke-linecap="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></a>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<div class="main-area">
+  <div class="topbar">
+    <div style="display:flex;align-items:center;gap:14px">
+      <button class="burger-btn" onclick="document.getElementById('sidebar').classList.toggle('open')"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M3 6h18M3 12h18M3 18h18"/></svg></button>
+      <a href="dashboard.html" class="back-btn">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>
+        <span data-i18n="c.back">العودة</span>
+      </a>
+      <span class="topbar-title" data-i18n="d.nav.set">الإعدادات</span>
+    </div>
+    <div class="topbar-actions">
+      <button class="lang-toggle-dash" onclick="toggleLang()" title="Switch to English" style="background:none;border:1.5px solid var(--line);border-radius:8px;padding:5px 12px;font-family:'Nippo',sans-serif;font-size:.95rem;letter-spacing:.06em;color:var(--ink);cursor:pointer;transition:.15s">EN</button>
+    </div>
+  </div>
+
+  <div class="page-content">
+    <div class="settings-layout">
+
+      <!-- Settings Menu -->
+      <div class="settings-menu fade-in">
+        <div class="set-menu-item active" onclick="showPanel('center')">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+          <span data-i18n="s.center">المركز</span>
+        </div>
+        <div class="set-menu-item" onclick="showPanel('services')">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          <span data-i18n="s.svcPricesMenu">الخدمات والأسعار</span>
+        </div>
+        <div class="set-menu-item" onclick="showPanel('branding')">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="13.5" cy="6.5" r="2.5"/><circle cx="17.5" cy="10.5" r="2.5"/><circle cx="8.5" cy="7.5" r="2.5"/><circle cx="6.5" cy="12.5" r="2.5"/><path d="M12 2a10 10 0 0 0 0 20 2.5 2.5 0 0 0 2-4 2.5 2.5 0 0 1 2-4h2a4 4 0 0 0 4-4 10 10 0 0 0-10-8z"/></svg>
+          <span>العلامة والمظهر</span>
+        </div>
+        <div class="set-menu-item" onclick="showPanel('account')">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          <span data-i18n="s.account">الحساب</span>
+        </div>
+        <div class="set-menu-item" onclick="showPanel('notifications')">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+          <span data-i18n="s.notifications">الإشعارات</span>
+        </div>
+        <div class="set-menu-item" onclick="showPanel('danger')">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2.2" stroke-linecap="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          <span style="color:#ef4444" data-i18n="s.danger">منطقة الخطر</span>
+        </div>
+      </div>
+
+      <!-- Panels -->
+      <div>
+
+        <!-- Center Panel -->
+        <div class="set-panel active fade-in" id="panel-center">
+          <div class="set-card">
+            <h3 data-i18n="s.centerInfo">معلومات المركز</h3>
+            <p class="set-desc" data-i18n="s.centerDesc">البيانات الأساسية التي تظهر في الفواتير والتقارير</p>
+            <div class="form-row">
+              <div class="form-group">
+                <label data-i18n="s.centerName">اسم المركز</label>
+                <input type="text" id="cfg-name" placeholder="مثال: VOLD MOTOR" data-i18n-ph="s.centerNamePh">
+              </div>
+              <div class="form-group">
+                <label data-i18n="d.phone">رقم الجوال</label>
+                <input type="tel" id="cfg-phone" placeholder="05XXXXXXXX">
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label data-i18n="s.city">المدينة</label>
+                <input type="text" id="cfg-city" placeholder="الرياض" data-i18n-ph="s.cityPh">
+              </div>
+              <div class="form-group">
+                <label data-i18n="s.district">الحي</label>
+                <input type="text" id="cfg-district" placeholder="حي النسيم" data-i18n-ph="s.districtPh">
+              </div>
+            </div>
+            <div class="form-row one">
+              <div class="form-group">
+                <label data-i18n="s.address">عنوان المركز (اختياري)</label>
+                <input type="text" id="cfg-address" placeholder="شارع الملك فهد، حي النسيم" data-i18n-ph="s.addressPh">
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label data-i18n="s.openTime">وقت الفتح</label>
+                <input type="time" id="cfg-open" value="08:00">
+              </div>
+              <div class="form-group">
+                <label data-i18n="s.closeTime">وقت الإغلاق</label>
+                <input type="time" id="cfg-close" value="22:00">
+              </div>
+            </div>
+            <div class="form-row one">
+              <div class="form-group">
+                <label data-i18n="s.invoiceNote">ملاحظة تظهر في الفاتورة (اختياري)</label>
+                <textarea id="cfg-note" rows="2" placeholder="شكراً لزيارتكم..." data-i18n-ph="s.invoiceNotePh"></textarea>
+              </div>
+            </div>
+            <div class="form-actions">
+              <button class="btn btn-violet" onclick="saveCenterSettings()" >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+                <span data-i18n="t.save">حفظ</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Services Panel -->
+        <div class="set-panel fade-in" id="panel-services">
+          <div class="set-card">
+            <h3 data-i18n="s.svcPrices">أسعار الخدمات</h3>
+            <p class="set-desc" data-i18n="s.svcPricesDesc">حدد السعر الافتراضي لكل خدمة — يمكن تعديله عند كل عملية في الكاشير</p>
+            <div class="svc-price-grid">
+              <div class="svc-price-item">
+                <div class="sp-name">
+                  <div class="sp-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg></div>
+                  <span data-i18n="d.svc.wash">غسيل</span>
+                </div>
+                <input type="number" id="price-wash" placeholder="30" min="0">
+                <div class="sp-lbl" data-i18n="a.sar">ريال سعودي</div>
+              </div>
+              <div class="svc-price-item">
+                <div class="sp-name">
+                  <div class="sp-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><rect x="2" y="3" width="20" height="14" rx="2"/></svg></div>
+                  <span data-i18n="d.svc.tint">تظليل</span>
+                </div>
+                <input type="number" id="price-tint" placeholder="300" min="0">
+                <div class="sp-lbl" data-i18n="a.sar">ريال سعودي</div>
+              </div>
+              <div class="svc-price-item">
+                <div class="sp-name">
+                  <div class="sp-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg></div>
+                  <span data-i18n="a.svcPolish">تلميع</span>
+                </div>
+                <input type="number" id="price-polish" placeholder="200" min="0">
+                <div class="sp-lbl" data-i18n="a.sar">ريال سعودي</div>
+              </div>
+              <div class="svc-price-item">
+                <div class="sp-name">
+                  <div class="sp-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M20 7H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z"/></svg></div>
+                  <span data-i18n="d.svc.oil">تغيير زيت</span>
+                </div>
+                <input type="number" id="price-oil" placeholder="150" min="0">
+                <div class="sp-lbl" data-i18n="a.sar">ريال سعودي</div>
+              </div>
+              <div class="svc-price-item">
+                <div class="sp-name">
+                  <div class="sp-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3"/></svg></div>
+                  <span data-i18n="a.svcTire">بناشر</span>
+                </div>
+                <input type="number" id="price-tire" placeholder="50" min="0">
+                <div class="sp-lbl" data-i18n="a.sar">ريال سعودي</div>
+              </div>
+              <div class="svc-price-item">
+                <div class="sp-name">
+                  <div class="sp-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
+                  <span data-i18n="d.svc.paint">حماية طلاء</span>
+                </div>
+                <input type="number" id="price-ceramic" placeholder="800" min="0">
+                <div class="sp-lbl" data-i18n="a.sar">ريال سعودي</div>
+              </div>
+            </div>
+            <div class="form-actions">
+              <button class="btn btn-violet" onclick="savePrices()" >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/></svg>
+                <span data-i18n="s.savePrices">حفظ الأسعار</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Branding & Appearance Panel -->
+        <div class="set-panel fade-in" id="panel-branding">
+          <div class="set-card">
+            <h3>شعار المركز (White-Label)</h3>
+            <p class="set-desc">ارفع شعار مركزك ليحل محل شعار VOLD الافتراضي في الشريط الجانبي</p>
+            <div style="display:flex;align-items:center;gap:20px;flex-wrap:wrap">
+              <div id="logo-dropzone" onclick="document.getElementById('logo-file').click()"
+                   style="flex:1;min-width:240px;border:2px dashed var(--line);border-radius:16px;padding:26px;text-align:center;cursor:pointer;transition:.15s;background:var(--lilac)">
+                <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="var(--violet)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:10px"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                <div style="font-weight:800;color:var(--ink);font-size:.92rem">اسحب الشعار هنا أو اضغط للرفع</div>
+                <div style="font-size:.8rem;color:var(--muted);margin-top:4px">PNG أو SVG أو JPG — يفضّل خلفية شفافة (أقل من 1MB)</div>
+                <input type="file" id="logo-file" accept="image/png,image/jpeg,image/svg+xml,image/webp" style="display:none" onchange="onLogoChosen(this)">
+              </div>
+              <div style="text-align:center">
+                <div style="font-size:.78rem;color:var(--muted);font-weight:700;margin-bottom:8px">المعاينة</div>
+                <div style="width:150px;height:80px;border:1.5px solid var(--line);border-radius:14px;display:grid;place-items:center;background:#0f172a;overflow:hidden">
+                  <img id="logo-preview" alt="" style="max-width:130px;max-height:60px;object-fit:contain;display:none">
+                  <span id="logo-preview-empty" style="font-size:.78rem;color:#94a3b8">لا شعار مخصص</span>
+                </div>
+                <button id="logo-remove" onclick="removeLogo()" style="display:none;margin-top:8px;background:none;border:0;color:#ef4444;font-family:inherit;font-weight:800;font-size:.8rem;cursor:pointer">إزالة الشعار</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="set-card">
+            <h3>مظهر اللوحة (Theme)</h3>
+            <p class="set-desc">اختر درجة لون الخلفية المفضّلة — تُطبّق على كل صفحات لوحتك</p>
+            <div id="theme-swatches" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:14px"></div>
+            <div class="form-actions">
+              <button class="btn btn-ghost" onclick="selectTheme('default')">استعادة الافتراضي</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Account Panel -->
+        <div class="set-panel fade-in" id="panel-account">
+          <div class="set-card">
+            <h3 data-i18n="s.accInfo">بيانات الحساب</h3>
+            <p class="set-desc" data-i18n="s.accDesc">معلومات حساب المركز</p>
+            <div class="form-row one">
+              <div class="form-group">
+                <label data-i18n="s.emailOrPhone">البريد الإلكتروني / رقم الجوال</label>
+                <input type="text" id="acc-email" readonly style="background:var(--paper);color:var(--muted)">
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label data-i18n="s.newPw">كلمة مرور جديدة</label>
+                <input type="password" id="acc-pw" placeholder="اتركه فارغاً إذا لا تريد تغييره" data-i18n-ph="s.newPwPh">
+              </div>
+              <div class="form-group">
+                <label data-i18n="s.confirmPw">تأكيد كلمة المرور</label>
+                <input type="password" id="acc-pw2" placeholder="أعد كتابة كلمة المرور" data-i18n-ph="s.confirmPwPh">
+              </div>
+            </div>
+            <div class="form-actions">
+              <button class="btn btn-violet" onclick="savePassword()" data-i18n="s.updatePw">تحديث كلمة المرور</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Notifications Panel -->
+        <div class="set-panel fade-in" id="panel-notifications">
+          <div class="set-card">
+            <h3 data-i18n="s.notifSettings">إعدادات الإشعارات</h3>
+            <p class="set-desc" data-i18n="s.notifDesc">تحكم في التنبيهات التي تصلك</p>
+            <div class="toggle-row">
+              <div class="tr-info">
+                <div class="tr-title" data-i18n="s.notifVisit">تنبيه عند إضافة عملية جديدة</div>
+                <div class="tr-sub" data-i18n="s.notifVisitSub">صوت تنبيه عند حفظ زيارة في الكاشير</div>
+              </div>
+              <label class="toggle"><input type="checkbox" id="notif-visit" checked><span class="toggle-slider"></span></label>
+            </div>
+            <div class="toggle-row">
+              <div class="tr-info">
+                <div class="tr-title" data-i18n="s.notifPromo">تنبيه انتهاء أكواد الخصم</div>
+                <div class="tr-sub" data-i18n="s.notifPromoSub">تنبيه عند اقتراب انتهاء صلاحية كود الخصم</div>
+              </div>
+              <label class="toggle"><input type="checkbox" id="notif-promo"><span class="toggle-slider"></span></label>
+            </div>
+            <div class="toggle-row">
+              <div class="tr-info">
+                <div class="tr-title" data-i18n="s.notifDaily">تقرير يومي</div>
+                <div class="tr-sub" data-i18n="s.notifDailySub">ملخص إيرادات اليوم عند نهاية الدوام</div>
+              </div>
+              <label class="toggle"><input type="checkbox" id="notif-daily" checked><span class="toggle-slider"></span></label>
+            </div>
+            <div class="toggle-row">
+              <div class="tr-info">
+                <div class="tr-title" data-i18n="s.notifNewCust">تنبيه العميل الجديد</div>
+                <div class="tr-sub" data-i18n="s.notifNewCustSub">تنبيه عند تسجيل سيارة لأول مرة</div>
+              </div>
+              <label class="toggle"><input type="checkbox" id="notif-new-customer"><span class="toggle-slider"></span></label>
+            </div>
+            <div class="form-actions">
+              <button class="btn btn-violet" onclick="saveNotifications()" data-i18n="s.saveSettings">حفظ الإعدادات</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Danger Panel -->
+        <div class="set-panel fade-in" id="panel-danger">
+          <div class="set-card danger-zone">
+            <h3 data-i18n="s.dangerTitle">⚠️ منطقة الخطر</h3>
+            <p class="set-desc" style="color:#ef4444" data-i18n="s.dangerDesc">هذه الإجراءات لا يمكن التراجع عنها</p>
+            <div style="display:flex;flex-direction:column;gap:16px">
+              <div style="display:flex;align-items:center;justify-content:space-between;padding:16px;background:#fef2f2;border-radius:12px;gap:16px">
+                <div>
+                  <div style="font-weight:800;font-size:.93rem;color:var(--ink)" data-i18n="s.delMonth">مسح بيانات الشهر</div>
+                  <div style="font-size:.82rem;color:var(--muted);margin-top:2px" data-i18n="s.delMonthSub">حذف جميع زيارات ومصروفات الشهر الحالي</div>
+                </div>
+                <button class="btn btn-danger btn-sm" onclick="confirmDelete('month')" data-i18n="s.delete">مسح</button>
+              </div>
+              <div style="display:flex;align-items:center;justify-content:space-between;padding:16px;background:#fef2f2;border-radius:12px;gap:16px">
+                <div>
+                  <div style="font-weight:800;font-size:.93rem;color:var(--ink)" data-i18n="s.delAll">مسح كل البيانات</div>
+                  <div style="font-size:.82rem;color:var(--muted);margin-top:2px" data-i18n="s.delAllSub">حذف جميع الزيارات والمصروفات وأكواد الخصم</div>
+                </div>
+                <button class="btn btn-danger btn-sm" onclick="confirmDelete('all')" data-i18n="s.deleteAll">مسح الكل</button>
+              </div>
+              <div style="display:flex;align-items:center;justify-content:space-between;padding:16px;background:#fef2f2;border-radius:12px;gap:16px">
+                <div>
+                  <div style="font-weight:800;font-size:.93rem;color:var(--ink)" data-i18n="s.logout">تسجيل الخروج</div>
+                  <div style="font-size:.82rem;color:var(--muted);margin-top:2px" data-i18n="s.logoutSub">الخروج من الحساب على هذا الجهاز</div>
+                </div>
+                <button class="btn btn-danger btn-sm" onclick="doLogout()" data-i18n="s.logoutBtn">خروج</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- Toast -->
+<div class="save-toast" id="toast" data-i18n="s.savedOk">✅ تم الحفظ بنجاح</div>
+
+<script>
+const _sb = window._supabase;
+let SESSION, MERCHANT_ID;
+
+async function requireAuth(){
+  const {data:{session}} = await _sb.auth.getSession();
+  if(!session){location.href='login.html?mode=login';return null;}
+  return session;
+}
+function doLogout(){_sb.auth.signOut().then(()=>location.href='login.html?mode=login');}
+
+function showPanel(id){
+  document.querySelectorAll('.set-panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.set-menu-item').forEach(m=>m.classList.remove('active'));
+  document.getElementById('panel-'+id).classList.add('active');
+  event.currentTarget.classList.add('active');
+}
+
+function showToast(msg='✅ تم الحفظ بنجاح'){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2800);
+}
+
+const STORAGE_KEY = ()=>`voldmotor_settings_${MERCHANT_ID}`;
+
+function loadSettings(){
+  try{
+    const data = JSON.parse(localStorage.getItem(STORAGE_KEY())||'{}');
+    // Center
+    if(data.name) document.getElementById('cfg-name').value=data.name;
+    if(data.phone) document.getElementById('cfg-phone').value=data.phone;
+    if(data.city) document.getElementById('cfg-city').value=data.city;
+    if(data.district) document.getElementById('cfg-district').value=data.district;
+    if(data.address) document.getElementById('cfg-address').value=data.address;
+    if(data.open) document.getElementById('cfg-open').value=data.open;
+    if(data.close) document.getElementById('cfg-close').value=data.close;
+    if(data.note) document.getElementById('cfg-note').value=data.note;
+    // Prices
+    const prices = data.prices||{};
+    ['wash','tint','polish','oil','tire','ceramic'].forEach(s=>{
+      const el=document.getElementById('price-'+s);
+      if(el && prices[s]) el.value=prices[s];
+    });
+    // Notifications
+    const notifs = data.notifs||{};
+    if('visit' in notifs) document.getElementById('notif-visit').checked=notifs.visit;
+    if('promo' in notifs) document.getElementById('notif-promo').checked=notifs.promo;
+    if('daily' in notifs) document.getElementById('notif-daily').checked=notifs.daily;
+    if('newCustomer' in notifs) document.getElementById('notif-new-customer').checked=notifs.newCustomer;
+  }catch(e){}
+}
+
+function saveCenterSettings(){
+  const data = JSON.parse(localStorage.getItem(STORAGE_KEY())||'{}');
+  data.name = document.getElementById('cfg-name').value.trim();
+  data.phone = document.getElementById('cfg-phone').value.trim();
+  data.city = document.getElementById('cfg-city').value.trim();
+  data.district = document.getElementById('cfg-district').value.trim();
+  data.address = document.getElementById('cfg-address').value.trim();
+  data.open = document.getElementById('cfg-open').value;
+  data.close = document.getElementById('cfg-close').value;
+  data.note = document.getElementById('cfg-note').value.trim();
+  localStorage.setItem(STORAGE_KEY(), JSON.stringify(data));
+  // Update user metadata
+  _sb.auth.updateUser({data:{center_name:data.name,phone:data.phone}}).then(()=>{
+    document.getElementById('sb-name').textContent = data.name || SESSION.user.email;
+    showToast('✅ تم حفظ بيانات المركز');
+  });
+}
+
+function savePrices(){
+  const data = JSON.parse(localStorage.getItem(STORAGE_KEY())||'{}');
+  data.prices = {};
+  ['wash','tint','polish','oil','tire','ceramic'].forEach(s=>{
+    const v = document.getElementById('price-'+s).value;
+    if(v) data.prices[s]=Number(v);
+  });
+  localStorage.setItem(STORAGE_KEY(), JSON.stringify(data));
+  showToast('✅ تم حفظ الأسعار');
+}
+
+function saveNotifications(){
+  const data = JSON.parse(localStorage.getItem(STORAGE_KEY())||'{}');
+  data.notifs = {
+    visit: document.getElementById('notif-visit').checked,
+    promo: document.getElementById('notif-promo').checked,
+    daily: document.getElementById('notif-daily').checked,
+    newCustomer: document.getElementById('notif-new-customer').checked
+  };
+  localStorage.setItem(STORAGE_KEY(), JSON.stringify(data));
+  showToast('✅ تم حفظ إعدادات الإشعارات');
+}
+
+async function savePassword(){
+  const pw = document.getElementById('acc-pw').value;
+  const pw2 = document.getElementById('acc-pw2').value;
+  if(!pw){showToast('⚠️ أدخل كلمة مرور جديدة');return;}
+  if(pw!==pw2){showToast('❌ كلمتا المرور غير متطابقتين');return;}
+  if(pw.length<6){showToast('⚠️ كلمة المرور يجب أن تكون 6 أحرف على الأقل');return;}
+  const {error} = await _sb.auth.updateUser({password:pw});
+  if(error){showToast('❌ '+error.message);}
+  else{
+    document.getElementById('acc-pw').value='';
+    document.getElementById('acc-pw2').value='';
+    showToast('✅ تم تغيير كلمة المرور');
+  }
+}
+
+async function confirmDelete(type){
+  const msg = type==='all'
+    ? 'سيتم حذف جميع البيانات نهائياً. هل أنت متأكد؟'
+    : 'سيتم حذف بيانات الشهر الحالي. هل أنت متأكد؟';
+  if(!confirm(msg)) return;
+  const today = new Date().toISOString().slice(0,10);
+  const monthStart = today.slice(0,7)+'-01';
+  if(type==='all'){
+    await Promise.all([
+      _sb.from('visits').delete().eq('merchant_id',MERCHANT_ID),
+      _sb.from('expenses').delete().eq('merchant_id',MERCHANT_ID),
+      _sb.from('promo_codes').delete().eq('merchant_id',MERCHANT_ID)
+    ]);
+    showToast('🗑️ تم مسح جميع البيانات');
+  } else {
+    await Promise.all([
+      _sb.from('visits').delete().eq('merchant_id',MERCHANT_ID).gte('created_at',monthStart),
+      _sb.from('expenses').delete().eq('merchant_id',MERCHANT_ID).gte('expense_date',monthStart)
+    ]);
+    showToast('🗑️ تم مسح بيانات الشهر');
+  }
+}
+
+/* ── White-label logo upload ─────────────────────────────────────────────────── */
+function onLogoChosen(input){
+  const file = input.files && input.files[0]; if(!file) return;
+  if(file.size > 1024*1024){ showToast('⚠️ الحجم يتجاوز 1MB'); input.value=''; return; }
+  const reader = new FileReader();
+  reader.onload = e => {
+    const dataUrl = e.target.result;
+    if(window.vmSetLogo) window.vmSetLogo(dataUrl);   // persist + repaint sidebar globally
+    else { try{ localStorage.setItem('vm_logo', dataUrl); }catch(_){ } }
+    applyLogoPreview(dataUrl);
+    showToast('✅ تم تحديث شعار المركز');
+  };
+  reader.readAsDataURL(file);
+}
+function removeLogo(){
+  if(window.vmSetLogo) window.vmSetLogo('');
+  else { try{ localStorage.removeItem('vm_logo'); }catch(_){ } }
+  applyLogoPreview('');
+  showToast('🗑️ تمت إزالة الشعار المخصص');
+}
+function applyLogoPreview(dataUrl){
+  const img = document.getElementById('logo-preview');
+  const empty = document.getElementById('logo-preview-empty');
+  const rm = document.getElementById('logo-remove');
+  if(dataUrl){ img.src=dataUrl; img.style.display='block'; empty.style.display='none'; rm.style.display='inline-block'; }
+  else { img.removeAttribute('src'); img.style.display='none'; empty.style.display='inline'; rm.style.display='none'; }
+}
+
+/* ── Theme customizer (5 premium tints) ──────────────────────────────────────── */
+const THEME_LIST = [
+  { key:'slate',    label:'Slate · رمادي مزرقّ', bg:'#eef2f7' },
+  { key:'zinc',     label:'Zinc · زنكي',         bg:'#f4f4f5' },
+  { key:'neutral',  label:'Neutral · محايد',     bg:'#f5f5f4' },
+  { key:'bluegray', label:'Blue-gray · أزرق رمادي', bg:'#e9eff5' },
+  { key:'stone',    label:'Stone · حجري',        bg:'#f5f3ef' },
+];
+function currentTheme(){ try{ return localStorage.getItem('vm_theme')||'default'; }catch(e){ return 'default'; } }
+function renderThemeSwatches(){
+  const cur = currentTheme();
+  document.getElementById('theme-swatches').innerHTML = THEME_LIST.map(t=>`
+    <button onclick="selectTheme('${t.key}')" data-key="${t.key}" style="
+      border:2px solid ${t.key===cur?'var(--violet)':'var(--line)'};border-radius:14px;padding:0;overflow:hidden;cursor:pointer;background:none;font-family:inherit;text-align:start;transition:.15s">
+      <div style="height:58px;background:${t.bg};display:flex;align-items:center;gap:6px;padding:0 12px">
+        <span style="width:26px;height:26px;border-radius:7px;background:#fff;border:1px solid rgba(0,0,0,.06)"></span>
+        <span style="width:42px;height:10px;border-radius:99px;background:#fff"></span>
+        ${t.key===cur?'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--violet)" stroke-width="3" stroke-linecap="round" style="margin-inline-start:auto"><path d="M20 6 9 17l-5-5"/></svg>':''}
+      </div>
+      <div style="padding:9px 12px;font-size:.8rem;font-weight:800;color:var(--ink);background:var(--paper)">${t.label}</div>
+    </button>`).join('');
+}
+function selectTheme(key){
+  if(window.vmApplyTheme) window.vmApplyTheme(key);
+  else { try{ localStorage.setItem('vm_theme',key); }catch(e){} }
+  renderThemeSwatches();
+  showToast('✅ تم تطبيق المظهر');
+}
+
+(async()=>{
+  SESSION = await requireAuth(); if(!SESSION) return;
+  const meta = SESSION.user.user_metadata||{};
+  // RBAC: settings hidden from technicians
+  const _role = window.vmRoleOf ? window.vmRoleOf(meta.role) : 'owner';
+  if (_role === 'technician') { window.location.replace('worker.html'); return; }
+  MERCHANT_ID = SESSION.user.id;
+  const name = meta.center_name||meta.full_name||SESSION.user.email||'';
+  document.getElementById('sb-name').textContent = name;
+  document.getElementById('sb-avatar').textContent = name.charAt(0)||'م';
+  document.getElementById('acc-email').value = SESSION.user.email||'';
+  loadSettings();
+  renderThemeSwatches();
+  try{ const lg=localStorage.getItem('vm_logo'); if(lg) applyLogoPreview(lg); }catch(e){}
+})();
+</script>
+<script src="mobile-init.js"></script>
+<script>document.addEventListener("DOMContentLoaded",()=>{ if(typeof fillSidebarUser==="function") fillSidebarUser(); });</script>
+  <script src="brand.js"></script>
+</body>
+</html>

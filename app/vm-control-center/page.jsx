@@ -18,12 +18,13 @@ import { SUPABASE_URL } from '@/lib/supabase/config';
 
 const EDGE = `${SUPABASE_URL}/functions/v1`;
 
-const STATUS_LABEL = { pending: 'معلّق', approved: 'مفعّل', rejected: 'مرفوض' };
+const STATUS_LABEL = { pending: 'معلّق', approved: 'مفعّل', rejected: 'مرفوض', locked: 'مقفول' };
 const TABLE_TITLES = {
   all: 'جميع الطلبات',
   pending: 'الطلبات المعلّقة',
   approved: 'المراكز المفعّلة',
   rejected: 'الطلبات المرفوضة',
+  locked: 'حسابات مقفولة (تجاوز محاولات الدخول)',
 };
 const MONTH_LABELS = ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'];
 const DAY_NAMES = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
@@ -47,7 +48,7 @@ export default function AdminPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [merchants, setMerchants] = useState([]);
-  const [stats, setStats] = useState({ pending: 0, approved: 0, rejected: 0, total: 0 });
+  const [stats, setStats] = useState({ pending: 0, approved: 0, rejected: 0, locked: 0, total: 0 });
   const [filter, setFilter] = useState('all');
   const [search, setSearch] = useState('');
   const [busyId, setBusyId] = useState(null);
@@ -99,6 +100,7 @@ export default function AdminPage() {
           pending: statsRes.pending ?? 0,
           approved: statsRes.approved ?? 0,
           rejected: statsRes.rejected ?? 0,
+          locked: statsRes.locked ?? 0,
           total: statsRes.total ?? 0,
         });
       } catch (e) {
@@ -177,10 +179,11 @@ export default function AdminPage() {
       { name: 'مفعّل', value: stats.approved, color: '#16a34a' },
       { name: 'انتظار', value: stats.pending, color: '#ca8a04' },
       { name: 'مرفوض', value: stats.rejected, color: '#dc2626' },
+      { name: 'مقفول', value: stats.locked || 0, color: '#a21caf' },
     ],
     [stats],
   );
-  const donutTotal = stats.approved + stats.pending + stats.rejected;
+  const donutTotal = stats.approved + stats.pending + stats.rejected + (stats.locked || 0);
 
   // ── Actions ──
   async function doApprove(id) {
@@ -218,6 +221,19 @@ export default function AdminPage() {
     try {
       await adminCall({ action: 'suspend', id });
       showToast('تم إيقاف تفعيل المركز');
+      await loadAll();
+    } catch (e) {
+      showToast(e.message, 'error');
+    } finally {
+      setBusyId(null);
+    }
+  }
+
+  async function doUnlock(id) {
+    setBusyId(id);
+    try {
+      await adminCall({ action: 'unlock', id });
+      showToast('تم فك القفل وإعادة تفعيل الحساب');
       await loadAll();
     } catch (e) {
       showToast(e.message, 'error');
@@ -572,7 +588,7 @@ export default function AdminPage() {
                 <h3>{TABLE_TITLES[filter] || 'الطلبات'}</h3>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
                   <div className="filter-tabs">
-                    {['all', 'pending', 'approved', 'rejected'].map((f) => (
+                    {['all', 'pending', 'approved', 'rejected', 'locked'].map((f) => (
                       <button key={f} className={`ftab${filter === f ? ' active' : ''}`} onClick={() => setFilter(f)}>
                         {f === 'all' ? 'الكل' : STATUS_LABEL[f]}
                       </button>
@@ -667,6 +683,7 @@ export default function AdminPage() {
                                     setRejectNotes('');
                                   }}
                                   onSuspend={() => doSuspend(m.id)}
+                                  onUnlock={() => doUnlock(m.id)}
                                 />
                               </td>
                             </tr>
@@ -717,6 +734,7 @@ export default function AdminPage() {
                                 setRejectNotes('');
                               }}
                               onSuspend={() => doSuspend(m.id)}
+                              onUnlock={() => doUnlock(m.id)}
                             />
                           </div>
                         </div>
@@ -758,7 +776,7 @@ export default function AdminPage() {
 }
 
 // ── Per-row action buttons (status-aware) ──
-function RowActions({ m, busy, onApprove, onReject, onSuspend }) {
+function RowActions({ m, busy, onApprove, onReject, onSuspend, onUnlock }) {
   if (busy) {
     return <span style={{ display: 'inline-block', width: 16, height: 16, border: '2px solid var(--vm-line)', borderTopColor: 'var(--vm-blue)', borderRadius: '50%', animation: 'spin .7s linear infinite' }} />;
   }
@@ -781,6 +799,13 @@ function RowActions({ m, busy, onApprove, onReject, onSuspend }) {
     return (
       <div className="action-btns">
         <button className="ab ab-approve" onClick={onApprove}>✅ إعادة قبول</button>
+      </div>
+    );
+  }
+  if (m.status === 'locked') {
+    return (
+      <div className="action-btns">
+        <button className="ab ab-unlock" onClick={onUnlock}>🔓 فك القفل وإعادة التفعيل</button>
       </div>
     );
   }
@@ -923,6 +948,7 @@ const CSS = `
 .status-badge.pending{ background:#fef9c3; color:#a16207; }
 .status-badge.approved{ background:#dcfce7; color:#15803d; }
 .status-badge.rejected{ background:#fee2e2; color:#b91c1c; }
+.status-badge.locked{ background:#fae8ff; color:#a21caf; }
 .services-tags{ display:flex; flex-wrap:wrap; gap:4px; max-width:180px; }
 .svc-tag{ padding:2px 8px; border-radius:6px; background:rgba(37,99,235,.08); color:#2563eb; font-size:.7rem; font-weight:700; }
 
@@ -943,6 +969,8 @@ const CSS = `
 .ab-reject:hover{ background:#b91c1c; color:#fff; border-color:#b91c1c; }
 .ab-suspend{ background:#fef9c3; color:#a16207; border-color:#fde68a; }
 .ab-suspend:hover{ background:#a16207; color:#fff; border-color:#a16207; }
+.ab-unlock{ background:#fae8ff; color:#a21caf; border-color:#f0abfc; }
+.ab-unlock:hover{ background:#a21caf; color:#fff; border-color:#a21caf; }
 
 /* Empty + loading */
 .empty-state{ text-align:center; padding:64px 20px; color:var(--vm-muted); }

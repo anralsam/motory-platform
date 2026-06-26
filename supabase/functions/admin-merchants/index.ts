@@ -114,7 +114,7 @@ Deno.serve(async (req) => {
     if (action === "stats") {
       const { data, error } = await sb.from("join_requests").select("status");
       if (error) throw error;
-      const counts = { pending: 0, approved: 0, rejected: 0, total: data?.length || 0 };
+      const counts = { pending: 0, approved: 0, rejected: 0, locked: 0, total: data?.length || 0 };
       (data || []).forEach((r: any) => { if (r.status in counts) (counts as any)[r.status]++; });
       return new Response(JSON.stringify(counts), {
         headers: { "Content-Type": "application/json", ...CORS },
@@ -130,9 +130,9 @@ Deno.serve(async (req) => {
         .from("join_requests").select("email, shop_name").eq("id", id).single();
       if (rErr || !reqRow) throw new Error("الطلب غير موجود");
 
-      // 2) Mark approved
+      // 2) Mark approved (also clears any auto-lock + failed-attempt counter)
       const { error } = await sb.from("join_requests")
-        .update({ status: "approved", notes: null, reviewed_at: new Date().toISOString() })
+        .update({ status: "approved", notes: null, failed_attempts: 0, locked_at: null, reviewed_at: new Date().toISOString() })
         .eq("id", id);
       if (error) throw error;
 
@@ -164,6 +164,19 @@ Deno.serve(async (req) => {
       if (!id) throw new Error("id مطلوب");
       const { error } = await sb.from("join_requests")
         .update({ status: "rejected", reviewed_at: new Date().toISOString() })
+        .eq("id", id);
+      if (error) throw error;
+      return new Response(JSON.stringify({ success: true }), {
+        headers: { "Content-Type": "application/json", ...CORS },
+      });
+    }
+
+    // Reactivate a locked account after support has verified the cause.
+    if (action === "unlock") {
+      const { id } = body;
+      if (!id) throw new Error("id مطلوب");
+      const { error } = await sb.from("join_requests")
+        .update({ status: "approved", notes: null, failed_attempts: 0, locked_at: null, reviewed_at: new Date().toISOString() })
         .eq("id", id);
       if (error) throw error;
       return new Response(JSON.stringify({ success: true }), {

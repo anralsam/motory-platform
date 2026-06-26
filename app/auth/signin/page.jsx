@@ -8,6 +8,7 @@ import { supabase } from '@/lib/supabaseClient';
 import { workerEmail, workerPassword } from '@/lib/team';
 import { roleOf } from '@/lib/roles';
 import { TURNSTILE_SITE_KEY, verifyTurnstile } from '@/lib/turnstile';
+import { SUPABASE_URL, SUPABASE_ANON_KEY } from '@/lib/supabase/config';
 
 /* Bilingual copy — the language switcher flips the whole login page live. */
 const STRINGS = {
@@ -25,8 +26,21 @@ const STRINGS = {
     errHuman: 'فشل التحقق البشري. حدّث الصفحة وحاول مرة أخرى.',
     errCredEmail: 'البريد أو كلمة المرور غير صحيحة.', errCredPhone: 'رقم الجوال أو الرمز السري غير صحيح.',
     errUnconfirmed: 'لم يتم تأكيد الحساب بعد.', errGeneric: 'تعذّر تسجيل الدخول.',
-    lockPre: 'تم تجاوز عدد محاولات الدخول. حاول مرة أخرى بعد ', lockUnit: ' ثانية.',
-    attemptsPre: 'محاولات متبقية قبل القفل المؤقت: ',
+    attemptsPre: 'محاولات متبقية قبل قفل الحساب: ',
+    lockedTitle: 'تم قفل الحساب مؤقتًا',
+    lockedMsg: 'تم قفل حسابك بعد تجاوز ١٥ محاولة دخول خاطئة متتالية، حمايةً لك. الحساب الآن قيد المراجعة من فريق الدعم الفني.',
+    lockedAction: 'يرجى التواصل مع الدعم الفني لإثبات هويتك وإعادة تفعيل الحساب بعد التأكد من السبب.',
+    supportBtn: '✉️ التواصل مع الدعم الفني',
+    // ── email 2FA step ──
+    otpTitle: 'التحقق عبر البريد',
+    otpSubPre: 'أرسلنا رمز تحقق مكوّن من ٦ أرقام إلى ',
+    otpCodeLabel: 'رمز التحقق',
+    otpVerify: 'تأكيد ودخول', otpVerifying: 'جاري التحقق...',
+    otpResend: 'إعادة إرسال الرمز', otpResendIn: 'إعادة الإرسال خلال ',
+    otpChange: '‹ تغيير البريد', otpSent: '📩 تم إرسال رمز جديد إلى بريدك.',
+    errOtpRequired: 'أدخل رمز التحقق المكوّن من ٦ أرقام.',
+    errOtpInvalid: 'الرمز غير صحيح أو منتهي الصلاحية. أعد المحاولة.',
+    errOtpSend: 'تعذّر إرسال رمز التحقق. حاول مرة أخرى.',
     forgotNeedEmail: 'اكتب بريدك الإلكتروني في الحقل أعلاه ثم اضغط على الرابط.',
     resetFail: 'تعذّر إرسال رابط الاستعادة. تأكد من البريد وحاول مجددًا.',
     resetOk: '📩 أرسلنا رابط استعادة كلمة المرور إلى بريدك.',
@@ -45,19 +59,30 @@ const STRINGS = {
     errHuman: 'Human verification failed. Refresh the page and try again.',
     errCredEmail: 'Incorrect email or password.', errCredPhone: 'Incorrect phone number or PIN.',
     errUnconfirmed: 'Account is not confirmed yet.', errGeneric: 'Could not sign in.',
-    lockPre: 'Too many sign-in attempts. Try again in ', lockUnit: 's.',
-    attemptsPre: 'Attempts left before a temporary lock: ',
+    attemptsPre: 'Attempts left before the account is locked: ',
+    lockedTitle: 'Account temporarily locked',
+    lockedMsg: 'Your account was locked after 15 consecutive failed sign-in attempts, to protect you. It is now under review by our technical support team.',
+    lockedAction: 'Please contact technical support to verify your identity and reactivate the account once the cause is confirmed.',
+    supportBtn: '✉️ Contact technical support',
+    // ── email 2FA step ──
+    otpTitle: 'Email verification',
+    otpSubPre: 'We sent a 6-digit verification code to ',
+    otpCodeLabel: 'Verification code',
+    otpVerify: 'Verify & sign in', otpVerifying: 'Verifying...',
+    otpResend: 'Resend code', otpResendIn: 'Resend in ',
+    otpChange: '‹ Change email', otpSent: '📩 A new code was sent to your email.',
+    errOtpRequired: 'Enter the 6-digit verification code.',
+    errOtpInvalid: 'The code is wrong or expired. Please try again.',
+    errOtpSend: 'Could not send the verification code. Try again.',
     forgotNeedEmail: 'Type your email in the field above, then click the link.',
     resetFail: 'Could not send the recovery link. Check the email and try again.',
     resetOk: '📩 We sent a password recovery link to your email.',
   },
 };
 
-/* Login attempt limiting — 5 failed tries → 60s temporary lock, persisted in the
-   browser so a page refresh can't bypass it. */
-const MAX_ATTEMPTS = 5;
-const LOCK_MS = 60 * 1000;
-const LS_KEY = 'vm_login_lock';
+const EDGE = `${SUPABASE_URL}/functions/v1`;
+const SUPPORT_EMAIL = 'support@voldmotor.com';
+const OTP_RESEND_SECS = 60;
 
 export default function SignInPage() {
   return (
@@ -88,51 +113,39 @@ function SignInForm() {
   const turnstileRef = useRef(null);
   const resetCaptcha = () => { setCaptchaToken(''); turnstileRef.current?.reset(); };
 
-  // attempt-limit state
-  const [attempts, setAttempts] = useState(0);
-  const [lockUntil, setLockUntil] = useState(0);
-  const [now, setNow] = useState(0);
+  // ── flow state ──
+  // step: 'creds' (email+password) → 'otp' (6-digit email code, 2nd factor)
+  const [step, setStep] = useState('creds');
+  const [otpEmail, setOtpEmail] = useState('');   // verified email awaiting its code
+  const [otpCode, setOtpCode] = useState('');
+  const [attemptsLeft, setAttemptsLeft] = useState(null); // remaining tries (from server)
+  const [accountLocked, setAccountLocked] = useState(false); // 15-strike server lock
+  const [resendIn, setResendIn] = useState(0);
 
-  // restore any active lock / attempt count from a previous load
+  // resend cooldown ticker
   useEffect(() => {
-    try {
-      const raw = localStorage.getItem(LS_KEY);
-      if (raw) {
-        const s = JSON.parse(raw);
-        if (typeof s.attempts === 'number') setAttempts(s.attempts);
-        if (typeof s.lockUntil === 'number') setLockUntil(s.lockUntil);
-      }
-    } catch { /* ignore corrupt storage */ }
-    setNow(Date.now());
-  }, []);
-
-  // tick every second while a lock is active so the countdown stays live
-  useEffect(() => {
-    if (lockUntil <= Date.now()) return;
-    const id = setInterval(() => setNow(Date.now()), 1000);
+    if (resendIn <= 0) return;
+    const id = setInterval(() => setResendIn((s) => (s <= 1 ? 0 : s - 1)), 1000);
     return () => clearInterval(id);
-  }, [lockUntil]);
+  }, [resendIn]);
 
-  const locked = lockUntil > now;
-  const lockSecs = locked ? Math.ceil((lockUntil - now) / 1000) : 0;
-  const attemptsLeft = MAX_ATTEMPTS - attempts;
+  const maskEmail = (mail) => mail.replace(/(.{2}).*(@.*)/, '$1•••$2');
 
-  const persistLock = (a, until) => {
-    try { localStorage.setItem(LS_KEY, JSON.stringify({ attempts: a, lockUntil: until })); } catch { /* ignore */ }
-  };
-  const clearLock = () => {
-    setAttempts(0); setLockUntil(0);
-    try { localStorage.removeItem(LS_KEY); } catch { /* ignore */ }
-  };
+  // Send (or resend) the Supabase email OTP for the verified account.
+  async function sendEmailOtp(email) {
+    const { error: err } = await supabase.auth.signInWithOtp({
+      email,
+      options: { shouldCreateUser: false },
+    });
+    return err;
+  }
 
+  // STEP 1 — email + password (+ captcha). Email accounts go through the
+  // server guard (attempt counter + lock) then the email-OTP second factor.
+  // Worker phone/PIN accounts keep the direct password sign-in.
   async function onSubmit(e) {
     e.preventDefault();
     setError(''); setNotice('');
-    if (lockUntil > Date.now()) {
-      setNow(Date.now());
-      setError(t.lockPre + Math.ceil((lockUntil - Date.now()) / 1000) + t.lockUnit);
-      return;
-    }
     const id = identifier.trim();
     if (!id || !password) { setError(t.errFields); return; }
     if (!captchaToken) { setError(t.errCaptcha); return; }
@@ -142,34 +155,87 @@ function SignInForm() {
     if (!human.ok) { setLoading(false); resetCaptcha(); setError(t.errHuman); return; }
 
     const isEmail = id.includes('@');
-    const loginEmail = isEmail ? id.toLowerCase() : workerEmail(id);
-    const loginPassword = isEmail ? password : workerPassword(password);
 
-    const { data, error: err } = await supabase.auth.signInWithPassword({ email: loginEmail, password: loginPassword });
-    if (err) {
-      setLoading(false); resetCaptcha();
-      // count this failed attempt; lock the form once the cap is reached
-      const nextAttempts = attempts + 1;
-      const nowTs = Date.now();
-      if (nextAttempts >= MAX_ATTEMPTS) {
-        const until = nowTs + LOCK_MS;
-        setAttempts(nextAttempts); setLockUntil(until); setNow(nowTs);
-        persistLock(nextAttempts, until);
-        setError(t.lockPre + Math.ceil(LOCK_MS / 1000) + t.lockUnit);
+    // ── Worker phone/PIN: no email inbox → keep the direct password flow ──
+    if (!isEmail) {
+      const { data, error: err } = await supabase.auth.signInWithPassword({
+        email: workerEmail(id), password: workerPassword(password),
+      });
+      if (err) {
+        setLoading(false); resetCaptcha();
+        setError(/invalid login credentials/i.test(err.message) ? t.errCredPhone : (err.message || t.errGeneric));
         return;
       }
-      setAttempts(nextAttempts); persistLock(nextAttempts, 0);
-      const msg = /invalid login credentials/i.test(err.message) ? (isEmail ? t.errCredEmail : t.errCredPhone)
-        : /email not confirmed/i.test(err.message) ? t.errUnconfirmed
-        : err.message || t.errGeneric;
-      setError(msg);
+      const role = roleOf(data?.user?.user_metadata?.role);
+      router.replace(role === 'technician' ? '/worker-tasks' : redirectTo);
+      router.refresh();
       return;
     }
-    clearLock();
+
+    // ── Email account: server-side guard verifies the password & counts tries ──
+    const email = id.toLowerCase();
+    let guard;
+    try {
+      const res = await fetch(`${EDGE}/login-guard`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${SUPABASE_ANON_KEY}` },
+        body: JSON.stringify({ email, password }),
+      });
+      guard = await res.json();
+    } catch {
+      setLoading(false); resetCaptcha(); setError(t.errGeneric); return;
+    }
+
+    if (guard?.locked) {
+      setLoading(false); resetCaptcha();
+      setAccountLocked(true);
+      return;
+    }
+    if (!guard?.passwordValid) {
+      setLoading(false); resetCaptcha();
+      if (typeof guard?.attemptsLeft === 'number') setAttemptsLeft(guard.attemptsLeft);
+      setError(t.errCredEmail);
+      return;
+    }
+
+    // Password correct → send the email OTP (second factor) and switch step.
+    const otpErr = await sendEmailOtp(email);
+    if (otpErr) { setLoading(false); resetCaptcha(); setError(t.errOtpSend); return; }
+    setOtpEmail(email);
+    setAttemptsLeft(null);
+    setOtpCode('');
+    setStep('otp');
+    setResendIn(OTP_RESEND_SECS);
+    setLoading(false);
+  }
+
+  // STEP 2 — verify the 6-digit email code → this is what creates the session.
+  async function onVerifyOtp(e) {
+    e.preventDefault();
+    setError(''); setNotice('');
+    const code = otpCode.replace(/\D/g, '');
+    if (code.length !== 6) { setError(t.errOtpRequired); return; }
+
+    setLoading(true);
+    const { data, error: err } = await supabase.auth.verifyOtp({ email: otpEmail, token: code, type: 'email' });
+    if (err) { setLoading(false); setError(t.errOtpInvalid); return; }
+
     const role = roleOf(data?.user?.user_metadata?.role);
-    const dest = role === 'technician' ? '/worker-tasks' : redirectTo;
-    router.replace(dest);
+    router.replace(role === 'technician' ? '/worker-tasks' : redirectTo);
     router.refresh();
+  }
+
+  async function onResendOtp() {
+    if (resendIn > 0 || !otpEmail) return;
+    setError(''); setNotice('');
+    const err = await sendEmailOtp(otpEmail);
+    if (err) { setError(t.errOtpSend); return; }
+    setNotice(t.otpSent);
+    setResendIn(OTP_RESEND_SECS);
+  }
+
+  function backToCreds() {
+    setStep('creds'); setOtpCode(''); setError(''); setNotice(''); resetCaptcha();
   }
 
   async function onForgot(e) {
@@ -242,81 +308,144 @@ function SignInForm() {
               <div className="mt-5 rounded-lg border border-emerald-200 bg-emerald-50 px-3.5 py-3 text-sm font-semibold text-emerald-700">{notice}</div>
             )}
 
-            <form onSubmit={onSubmit} className="mt-5 space-y-4">
-              <div>
-                <label className="mb-1.5 block text-[13px] font-bold text-gray-700">{t.emailLabel}</label>
-                <input
-                  type="text" dir="ltr" autoComplete="username"
-                  value={identifier} onChange={(e) => setIdentifier(e.target.value)}
-                  placeholder={t.emailPh}
-                  className="w-full rounded-lg border border-gray-300 bg-white px-3.5 py-2 text-left text-[13px] font-medium text-gray-900 outline-none transition placeholder:text-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
-                />
-              </div>
-
-              <div>
-                <label className="mb-1.5 block text-[13px] font-bold text-gray-700">{t.pwLabel}</label>
-                <div className="relative">
-                  <input
-                    type={showPw ? 'text' : 'password'} dir="ltr" autoComplete="current-password"
-                    value={password} onChange={(e) => setPassword(e.target.value)}
-                    placeholder={t.pwPh}
-                    className="w-full rounded-lg border border-gray-300 bg-white py-2 pl-10 pr-3.5 text-left text-[13px] font-medium text-gray-900 outline-none transition placeholder:text-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
-                  />
-                  <button type="button" onClick={() => setShowPw((s) => !s)} className="absolute inset-y-0 left-2 my-auto grid h-8 w-8 place-items-center rounded-md text-gray-400 transition hover:text-gray-700" aria-label="show password">
-                    {showPw ? (
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20C5 20 1 12 1 12a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19M1 1l22 22" /></svg>
-                    ) : (
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" /><circle cx="12" cy="12" r="3" /></svg>
-                    )}
-                  </button>
+            {/* ── VIEW 1 · account locked after 15 failed attempts ── */}
+            {accountLocked ? (
+              <div className="mt-6 text-center">
+                <div className="mx-auto grid h-14 w-14 place-items-center rounded-full bg-red-50">
+                  <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#dc2626" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" /></svg>
                 </div>
+                <h2 className="mt-4 text-base font-extrabold text-gray-900">{t.lockedTitle}</h2>
+                <p className="mt-2 text-[13px] leading-relaxed text-gray-600">{t.lockedMsg}</p>
+                <p className="mt-2 text-[13px] leading-relaxed text-gray-600">{t.lockedAction}</p>
+                <a
+                  href={`mailto:${SUPPORT_EMAIL}`}
+                  className="mt-5 flex w-full items-center justify-center gap-2 rounded-lg bg-[#2563eb] py-2.5 text-[13px] font-extrabold text-white transition hover:bg-[#1d4ed8]"
+                >
+                  {t.supportBtn}
+                </a>
+                <p className="mt-3 text-xs font-medium text-gray-400" dir="ltr">{SUPPORT_EMAIL}</p>
               </div>
 
-              <div className="flex justify-center">
-                <Turnstile
-                  ref={turnstileRef}
-                  siteKey={TURNSTILE_SITE_KEY}
-                  options={{ theme: 'light', size: 'normal', language: lang }}
-                  onSuccess={setCaptchaToken}
-                  onExpire={resetCaptcha}
-                  onError={resetCaptcha}
-                />
-              </div>
+            /* ── VIEW 2 · email OTP (second factor) ── */
+            ) : step === 'otp' ? (
+              <form onSubmit={onVerifyOtp} className="mt-5 space-y-4">
+                <button type="button" onClick={backToCreds} className="text-[13px] font-bold text-blue-600 hover:underline">{t.otpChange}</button>
+                <div className="rounded-lg bg-blue-50 px-3.5 py-3 text-[13px] leading-relaxed text-gray-700">
+                  <span className="font-bold text-gray-900">{t.otpTitle}</span><br />
+                  {t.otpSubPre}<span dir="ltr" className="font-bold text-gray-900">{maskEmail(otpEmail)}</span>
+                </div>
 
-              <button
-                type="submit"
-                disabled={loading || !captchaToken || locked}
-                className="flex w-full items-center justify-center gap-2 rounded-lg bg-[#2563eb] py-2.5 text-[13px] font-extrabold text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.2)] transition hover:bg-[#1d4ed8] disabled:cursor-not-allowed disabled:opacity-60"
-              >
-                {locked ? (
-                  t.lockPre + lockSecs + t.lockUnit
-                ) : loading ? (
-                  <>
-                    <svg className="animate-spin" width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="#fff" strokeOpacity="0.25" strokeWidth="4" /><path d="M22 12a10 10 0 0 1-10 10" stroke="#fff" strokeWidth="4" strokeLinecap="round" /></svg>
-                    {t.loading}
-                  </>
-                ) : t.submit}
-              </button>
+                <div>
+                  <label className="mb-1.5 block text-[13px] font-bold text-gray-700">{t.otpCodeLabel}</label>
+                  <input
+                    type="text" inputMode="numeric" dir="ltr" autoComplete="one-time-code" maxLength={6}
+                    value={otpCode}
+                    onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                    placeholder="••••••"
+                    className="w-full rounded-lg border border-gray-300 bg-white px-3.5 py-2.5 text-center text-lg font-extrabold tracking-[0.5em] text-gray-900 outline-none transition placeholder:tracking-[0.3em] placeholder:text-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
+                  />
+                </div>
 
-              {!locked && attempts > 0 && attemptsLeft <= 2 && (
-                <p className="text-center text-xs font-semibold text-amber-600">{t.attemptsPre}{attemptsLeft}</p>
-              )}
-            </form>
+                <button
+                  type="submit"
+                  disabled={loading || otpCode.length !== 6}
+                  className="flex w-full items-center justify-center gap-2 rounded-lg bg-[#2563eb] py-2.5 text-[13px] font-extrabold text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.2)] transition hover:bg-[#1d4ed8] disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {loading ? (
+                    <>
+                      <svg className="animate-spin" width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="#fff" strokeOpacity="0.25" strokeWidth="4" /><path d="M22 12a10 10 0 0 1-10 10" stroke="#fff" strokeWidth="4" strokeLinecap="round" /></svg>
+                      {t.otpVerifying}
+                    </>
+                  ) : t.otpVerify}
+                </button>
 
-            {/* footer links (mirror the reference) */}
-            <div className="mt-6 space-y-1.5 text-center text-sm text-gray-500">
-              <p>
-                {t.noAccount}{' '}
-                <Link href="/auth/signup" className="font-bold text-blue-600 hover:underline">{t.signupLink}</Link>
-              </p>
-              <p>
-                {t.forgotPre}
-                <button onClick={onForgot} className={linkCls}>{t.fEmail}</button>
-                {t.forgotOr}
-                <button onClick={onForgot} className={linkCls}>{t.fPw}</button>
-                {t.forgotEnd}
-              </p>
-            </div>
+                <div className="text-center">
+                  {resendIn > 0 ? (
+                    <span className="text-xs font-semibold text-gray-400">{t.otpResendIn}{resendIn}s</span>
+                  ) : (
+                    <button type="button" onClick={onResendOtp} className="text-xs font-bold text-blue-600 hover:underline">{t.otpResend}</button>
+                  )}
+                </div>
+              </form>
+
+            /* ── VIEW 3 · credentials (email + password + captcha) ── */
+            ) : (
+              <>
+                <form onSubmit={onSubmit} className="mt-5 space-y-4">
+                  <div>
+                    <label className="mb-1.5 block text-[13px] font-bold text-gray-700">{t.emailLabel}</label>
+                    <input
+                      type="text" dir="ltr" autoComplete="username"
+                      value={identifier} onChange={(e) => setIdentifier(e.target.value)}
+                      placeholder={t.emailPh}
+                      className="w-full rounded-lg border border-gray-300 bg-white px-3.5 py-2 text-left text-[13px] font-medium text-gray-900 outline-none transition placeholder:text-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="mb-1.5 block text-[13px] font-bold text-gray-700">{t.pwLabel}</label>
+                    <div className="relative">
+                      <input
+                        type={showPw ? 'text' : 'password'} dir="ltr" autoComplete="current-password"
+                        value={password} onChange={(e) => setPassword(e.target.value)}
+                        placeholder={t.pwPh}
+                        className="w-full rounded-lg border border-gray-300 bg-white py-2 pl-10 pr-3.5 text-left text-[13px] font-medium text-gray-900 outline-none transition placeholder:text-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
+                      />
+                      <button type="button" onClick={() => setShowPw((s) => !s)} className="absolute inset-y-0 left-2 my-auto grid h-8 w-8 place-items-center rounded-md text-gray-400 transition hover:text-gray-700" aria-label="show password">
+                        {showPw ? (
+                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20C5 20 1 12 1 12a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19M1 1l22 22" /></svg>
+                        ) : (
+                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" /><circle cx="12" cy="12" r="3" /></svg>
+                        )}
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="flex justify-center">
+                    <Turnstile
+                      ref={turnstileRef}
+                      siteKey={TURNSTILE_SITE_KEY}
+                      options={{ theme: 'light', size: 'normal', language: lang }}
+                      onSuccess={setCaptchaToken}
+                      onExpire={resetCaptcha}
+                      onError={resetCaptcha}
+                    />
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={loading || !captchaToken}
+                    className="flex w-full items-center justify-center gap-2 rounded-lg bg-[#2563eb] py-2.5 text-[13px] font-extrabold text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.2)] transition hover:bg-[#1d4ed8] disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    {loading ? (
+                      <>
+                        <svg className="animate-spin" width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="#fff" strokeOpacity="0.25" strokeWidth="4" /><path d="M22 12a10 10 0 0 1-10 10" stroke="#fff" strokeWidth="4" strokeLinecap="round" /></svg>
+                        {t.loading}
+                      </>
+                    ) : t.submit}
+                  </button>
+
+                  {attemptsLeft !== null && attemptsLeft <= 5 && (
+                    <p className="text-center text-xs font-semibold text-amber-600">{t.attemptsPre}{attemptsLeft}</p>
+                  )}
+                </form>
+
+                {/* footer links (mirror the reference) */}
+                <div className="mt-6 space-y-1.5 text-center text-sm text-gray-500">
+                  <p>
+                    {t.noAccount}{' '}
+                    <Link href="/auth/signup" className="font-bold text-blue-600 hover:underline">{t.signupLink}</Link>
+                  </p>
+                  <p>
+                    {t.forgotPre}
+                    <button onClick={onForgot} className={linkCls}>{t.fEmail}</button>
+                    {t.forgotOr}
+                    <button onClick={onForgot} className={linkCls}>{t.fPw}</button>
+                    {t.forgotEnd}
+                  </p>
+                </div>
+              </>
+            )}
           </div>
 
           {/* terms note under the card */}

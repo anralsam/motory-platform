@@ -1,5 +1,5 @@
 'use client';
-import { useRef, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { Turnstile } from '@marsidev/react-turnstile';
 import Logo from '@/components/Logo';
@@ -29,6 +29,10 @@ const STRINGS = {
     tj2: '، و', cookies: 'سياسة ملفات تعريف الارتباط', termsEnd: ' الخاصة بـ VOLD MOTOR.',
     errShop: 'الرجاء إدخال اسم المركز.', errPhone: 'الرجاء إدخال رقم الجوال.',
     errEmail: 'البريد الإلكتروني غير صحيح.', errPw: 'كلمة المرور يجب أن تكون ٨ خانات على الأقل.',
+    errPwWeak: 'كلمة المرور لا تستوفي جميع الشروط المطلوبة.',
+    pwReqTitle: 'يجب أن تحتوي كلمة المرور على:',
+    pwLen: '٨ خانات على الأقل', pwUpper: 'حرف كبير (A–Z)', pwLower: 'حرف صغير (a–z)',
+    pwNum: 'رقم واحد على الأقل (٠–٩)', pwSpecial: 'رمز خاص (‎!@#$…)',
     errCaptcha: 'الرجاء إكمال التحقق «أنا لست روبوتًا».',
     errHuman: 'فشل التحقق البشري. حدّث الصفحة وحاول مرة أخرى.',
     errSubmit: 'تعذّر إرسال الطلب. حاول مرة أخرى.', errConn: 'تعذّر الاتصال بالخادم. تحقّق من اتصالك وحاول مجددًا.',
@@ -51,6 +55,10 @@ const STRINGS = {
     tj2: ', and ', cookies: 'cookie policy', termsEnd: '.',
     errShop: 'Please enter the center name.', errPhone: 'Please enter the phone number.',
     errEmail: 'Invalid email address.', errPw: 'Password must be at least 8 characters.',
+    errPwWeak: 'Password does not meet all requirements.',
+    pwReqTitle: 'Password must contain:',
+    pwLen: 'At least 8 characters', pwUpper: 'An uppercase letter (A–Z)', pwLower: 'A lowercase letter (a–z)',
+    pwNum: 'At least one number (0–9)', pwSpecial: 'A special character (!@#$…)',
     errCaptcha: 'Please complete the “I am human” check.',
     errHuman: 'Human verification failed. Refresh the page and try again.',
     errSubmit: 'Could not submit the request. Try again.', errConn: 'Could not reach the server. Check your connection and retry.',
@@ -65,6 +73,20 @@ export default function SignUpPage() {
 
   const [form, setForm] = useState({ shop_name: '', owner_name: '', phone: '', email: '', password: '', center_type: '' });
   const [showPw, setShowPw] = useState(false);
+  const [pwFocused, setPwFocused] = useState(false);
+
+  // ── Live password-strength conditions ──
+  const pwChecks = useMemo(() => {
+    const p = form.password;
+    return {
+      len: p.length >= 8,
+      upper: /[A-Z]/.test(p),
+      lower: /[a-z]/.test(p),
+      num: /[0-9]/.test(p),
+      special: /[^A-Za-z0-9]/.test(p),
+    };
+  }, [form.password]);
+  const pwAllOk = Object.values(pwChecks).every(Boolean);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [done, setDone] = useState(false);
@@ -85,7 +107,7 @@ export default function SignUpPage() {
     if (!form.center_type) return setError(t.errType);
     if (!phone) return setError(t.errPhone);
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return setError(t.errEmail);
-    if (form.password.length < 8) return setError(t.errPw);
+    if (!pwAllOk) return setError(t.errPwWeak);
     if (!captchaToken) return setError(t.errCaptcha);
 
     setLoading(true);
@@ -232,7 +254,7 @@ export default function SignUpPage() {
                 <div>
                   <label className={labelCls}>{t.pwLabel}</label>
                   <div className="relative">
-                    <input type={showPw ? 'text' : 'password'} dir="ltr" autoComplete="new-password" value={form.password} onChange={set('password')} placeholder={t.pwPh} className={`${inputCls} pl-10 text-left`} />
+                    <input type={showPw ? 'text' : 'password'} dir="ltr" autoComplete="new-password" value={form.password} onChange={set('password')} onFocus={() => setPwFocused(true)} placeholder={t.pwPh} className={`${inputCls} pl-10 text-left`} />
                     <button type="button" onClick={() => setShowPw((s) => !s)} className="absolute inset-y-0 left-2 my-auto grid h-8 w-8 place-items-center rounded-md text-gray-400 transition hover:text-gray-700" aria-label="show password">
                       {showPw ? (
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20C5 20 1 12 1 12a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19M1 1l22 22" /></svg>
@@ -241,6 +263,31 @@ export default function SignUpPage() {
                       )}
                     </button>
                   </div>
+
+                  {/* Live password conditions — appear once the field is touched */}
+                  {(pwFocused || form.password) && (
+                    <div className="mt-2 rounded-lg border border-gray-100 bg-gray-50/70 px-3 py-2.5">
+                      <p className="mb-1.5 text-[11px] font-bold text-gray-500">{t.pwReqTitle}</p>
+                      <ul className="grid grid-cols-1 gap-1 sm:grid-cols-2">
+                        {[
+                          [pwChecks.len, t.pwLen],
+                          [pwChecks.upper, t.pwUpper],
+                          [pwChecks.lower, t.pwLower],
+                          [pwChecks.num, t.pwNum],
+                          [pwChecks.special, t.pwSpecial],
+                        ].map(([ok, label], i) => (
+                          <li key={i} className={`flex items-center gap-1.5 text-[11.5px] font-semibold transition-colors ${ok ? 'text-emerald-600' : 'text-gray-400'}`}>
+                            {ok ? (
+                              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="flex-none"><path d="M20 6 9 17l-5-5" /></svg>
+                            ) : (
+                              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" className="flex-none"><circle cx="12" cy="12" r="9" /></svg>
+                            )}
+                            <span>{label}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
                 </div>
 
                 <div className="flex justify-center">

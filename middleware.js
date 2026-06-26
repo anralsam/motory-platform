@@ -29,7 +29,7 @@ export async function middleware(request) {
   const isAuthRoute = path.startsWith('/auth');
   // '/' is the public landing page now. Only the app areas are protected.
   const isProtected =
-    path.startsWith('/dashboard') || path.startsWith('/worker-tasks') || path.startsWith('/admin');
+    path.startsWith('/dashboard') || path.startsWith('/worker-tasks') || path.startsWith('/vm-secure-panel');
 
   // Not signed in → bounce protected routes to the login page.
   if (!user && isProtected) {

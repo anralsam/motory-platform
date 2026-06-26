@@ -98,7 +98,7 @@ export default function AdminPage() {
       } = await supabase.auth.getSession();
       if (!active) return;
       if (!session) {
-        router.replace('/auth/signin?redirect=/admin');
+        router.replace('/auth/signin?redirect=/vm-secure-panel');
         return;
       }
       const t = session.access_token;

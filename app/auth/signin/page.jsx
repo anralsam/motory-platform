@@ -1,5 +1,5 @@
 'use client';
-import { Suspense, useRef, useState } from 'react';
+import { Suspense, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Turnstile } from '@marsidev/react-turnstile';
@@ -25,6 +25,8 @@ const STRINGS = {
     errHuman: 'فشل التحقق البشري. حدّث الصفحة وحاول مرة أخرى.',
     errCredEmail: 'البريد أو كلمة المرور غير صحيحة.', errCredPhone: 'رقم الجوال أو الرمز السري غير صحيح.',
     errUnconfirmed: 'لم يتم تأكيد الحساب بعد.', errGeneric: 'تعذّر تسجيل الدخول.',
+    lockPre: 'تم تجاوز عدد محاولات الدخول. حاول مرة أخرى بعد ', lockUnit: ' ثانية.',
+    attemptsPre: 'محاولات متبقية قبل القفل المؤقت: ',
     forgotNeedEmail: 'اكتب بريدك الإلكتروني في الحقل أعلاه ثم اضغط على الرابط.',
     resetFail: 'تعذّر إرسال رابط الاستعادة. تأكد من البريد وحاول مجددًا.',
     resetOk: '📩 أرسلنا رابط استعادة كلمة المرور إلى بريدك.',
@@ -43,11 +45,19 @@ const STRINGS = {
     errHuman: 'Human verification failed. Refresh the page and try again.',
     errCredEmail: 'Incorrect email or password.', errCredPhone: 'Incorrect phone number or PIN.',
     errUnconfirmed: 'Account is not confirmed yet.', errGeneric: 'Could not sign in.',
+    lockPre: 'Too many sign-in attempts. Try again in ', lockUnit: 's.',
+    attemptsPre: 'Attempts left before a temporary lock: ',
     forgotNeedEmail: 'Type your email in the field above, then click the link.',
     resetFail: 'Could not send the recovery link. Check the email and try again.',
     resetOk: '📩 We sent a password recovery link to your email.',
   },
 };
+
+/* Login attempt limiting — 5 failed tries → 60s temporary lock, persisted in the
+   browser so a page refresh can't bypass it. */
+const MAX_ATTEMPTS = 5;
+const LOCK_MS = 60 * 1000;
+const LS_KEY = 'vm_login_lock';
 
 export default function SignInPage() {
   return (
@@ -78,9 +88,51 @@ function SignInForm() {
   const turnstileRef = useRef(null);
   const resetCaptcha = () => { setCaptchaToken(''); turnstileRef.current?.reset(); };
 
+  // attempt-limit state
+  const [attempts, setAttempts] = useState(0);
+  const [lockUntil, setLockUntil] = useState(0);
+  const [now, setNow] = useState(0);
+
+  // restore any active lock / attempt count from a previous load
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(LS_KEY);
+      if (raw) {
+        const s = JSON.parse(raw);
+        if (typeof s.attempts === 'number') setAttempts(s.attempts);
+        if (typeof s.lockUntil === 'number') setLockUntil(s.lockUntil);
+      }
+    } catch { /* ignore corrupt storage */ }
+    setNow(Date.now());
+  }, []);
+
+  // tick every second while a lock is active so the countdown stays live
+  useEffect(() => {
+    if (lockUntil <= Date.now()) return;
+    const id = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(id);
+  }, [lockUntil]);
+
+  const locked = lockUntil > now;
+  const lockSecs = locked ? Math.ceil((lockUntil - now) / 1000) : 0;
+  const attemptsLeft = MAX_ATTEMPTS - attempts;
+
+  const persistLock = (a, until) => {
+    try { localStorage.setItem(LS_KEY, JSON.stringify({ attempts: a, lockUntil: until })); } catch { /* ignore */ }
+  };
+  const clearLock = () => {
+    setAttempts(0); setLockUntil(0);
+    try { localStorage.removeItem(LS_KEY); } catch { /* ignore */ }
+  };
+
   async function onSubmit(e) {
     e.preventDefault();
     setError(''); setNotice('');
+    if (lockUntil > Date.now()) {
+      setNow(Date.now());
+      setError(t.lockPre + Math.ceil((lockUntil - Date.now()) / 1000) + t.lockUnit);
+      return;
+    }
     const id = identifier.trim();
     if (!id || !password) { setError(t.errFields); return; }
     if (!captchaToken) { setError(t.errCaptcha); return; }
@@ -96,12 +148,24 @@ function SignInForm() {
     const { data, error: err } = await supabase.auth.signInWithPassword({ email: loginEmail, password: loginPassword });
     if (err) {
       setLoading(false); resetCaptcha();
+      // count this failed attempt; lock the form once the cap is reached
+      const nextAttempts = attempts + 1;
+      const nowTs = Date.now();
+      if (nextAttempts >= MAX_ATTEMPTS) {
+        const until = nowTs + LOCK_MS;
+        setAttempts(nextAttempts); setLockUntil(until); setNow(nowTs);
+        persistLock(nextAttempts, until);
+        setError(t.lockPre + Math.ceil(LOCK_MS / 1000) + t.lockUnit);
+        return;
+      }
+      setAttempts(nextAttempts); persistLock(nextAttempts, 0);
       const msg = /invalid login credentials/i.test(err.message) ? (isEmail ? t.errCredEmail : t.errCredPhone)
         : /email not confirmed/i.test(err.message) ? t.errUnconfirmed
         : err.message || t.errGeneric;
       setError(msg);
       return;
     }
+    clearLock();
     const role = roleOf(data?.user?.user_metadata?.role);
     const dest = role === 'technician' ? '/worker-tasks' : redirectTo;
     router.replace(dest);
@@ -221,16 +285,22 @@ function SignInForm() {
 
               <button
                 type="submit"
-                disabled={loading || !captchaToken}
+                disabled={loading || !captchaToken || locked}
                 className="flex w-full items-center justify-center gap-2 rounded-lg bg-[#2563eb] py-2.5 text-[13px] font-extrabold text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.2)] transition hover:bg-[#1d4ed8] disabled:cursor-not-allowed disabled:opacity-60"
               >
-                {loading ? (
+                {locked ? (
+                  t.lockPre + lockSecs + t.lockUnit
+                ) : loading ? (
                   <>
                     <svg className="animate-spin" width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="#fff" strokeOpacity="0.25" strokeWidth="4" /><path d="M22 12a10 10 0 0 1-10 10" stroke="#fff" strokeWidth="4" strokeLinecap="round" /></svg>
                     {t.loading}
                   </>
                 ) : t.submit}
               </button>
+
+              {!locked && attempts > 0 && attemptsLeft <= 2 && (
+                <p className="text-center text-xs font-semibold text-amber-600">{t.attemptsPre}{attemptsLeft}</p>
+              )}
             </form>
 
             {/* footer links (mirror the reference) */}

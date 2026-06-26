@@ -18,7 +18,7 @@ export default async function AdminLayout({ children }) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (!user) redirect('/auth/signin?redirect=/vm-secure-panel');
+  if (!user) redirect('/auth/signin?redirect=/vm-control-center');
 
   let isAdmin =
     (user.email || '').toLowerCase().endsWith('@' + ADMIN_DOMAIN) ||

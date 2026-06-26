@@ -24,7 +24,9 @@ const nextConfig = {
       ['/appointments.html', '/dashboard/orders'],
       ['/orders.html', '/dashboard/orders'],
       ['/expenses.html', '/dashboard'],
-      ['/admin-vold.html', '/dashboard'],
+      ['/admin-vold.html', '/vm-control-center'],
+      ['/vm-control-center.html', '/vm-control-center'],
+      ['/vm-secure-panel.html', '/vm-control-center'],
     ];
     return map.map(([source, destination]) => ({
       source,

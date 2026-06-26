@@ -392,10 +392,6 @@ export default function LandingPage() {
         {/* Hero */}
         <header className="mx-auto max-w-3xl px-5 pt-12 text-center sm:pt-20">
           <FadeIn>
-            {/* VOLD MOTOR wordmark — focal point */}
-            <div className="mb-5 flex items-center justify-center">
-              <Logo className="h-10 w-auto sm:h-14" />
-            </div>
             <div className="mx-auto mb-6 inline-flex items-center gap-2 rounded-full border border-zinc-800 bg-zinc-900/60 px-3 py-1 text-[11px] font-medium text-zinc-500">
               <span className="h-1.5 w-1.5 rounded-full bg-zinc-500" /> نظام تشغيل متكامل لمراكز العناية بالسيارات
             </div>

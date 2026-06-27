@@ -4,6 +4,12 @@
   "installCommand": "npm install",
   "outputDirectory": ".next",
   "devCommand": "npm run dev",
+  "build": {
+    "env": {
+      "NEXT_PUBLIC_SUPABASE_URL": "https://pycyttykvmbhykltnxzj.supabase.co",
+      "NEXT_PUBLIC_SUPABASE_ANON_KEY": "sb_publishable_QGTGGkzIeeQBecLpszHzAQ_S2LNZ59g"
+    }
+  },
   "env": {
     "NEXT_PUBLIC_SUPABASE_URL": "https://pycyttykvmbhykltnxzj.supabase.co",
     "NEXT_PUBLIC_SUPABASE_ANON_KEY": "sb_publishable_QGTGGkzIeeQBecLpszHzAQ_S2LNZ59g"

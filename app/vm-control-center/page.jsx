@@ -1,4 +1,5 @@
 'use client';
+// Force re-render of dashboard — trivial change to trigger a fresh Vercel build
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import {

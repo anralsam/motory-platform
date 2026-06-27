@@ -273,6 +273,12 @@ export default function LandingPage() {
                   <p className="text-lg leading-relaxed text-zinc-400">
                     لا توجد رسوم شهرية ثابتة، ولا تكاليف خفية. نحن ندعم نمو مركزك ونتقاضى عمولة رمزية فقط عند إتمام العمليات بنجاح. نجاحنا مرتبط بنجاحك.
                   </p>
+                  <Link
+                    href={registerHref}
+                    className="mt-8 inline-flex items-center justify-center rounded-xl bg-white px-7 py-3 text-sm font-semibold text-[#0a0a0a] shadow-lg shadow-black/20 transition hover:bg-zinc-100"
+                  >
+                    ابدأ الآن مجاناً
+                  </Link>
                 </div>
 
                 {/* Right — features checklist */}
@@ -285,7 +291,7 @@ export default function LandingPage() {
                       'جميع المزايا المؤسسية مفتوحة بلا حدود',
                     ].map((t, i) => (
                       <li key={i} className="flex items-center gap-4 px-4 py-4">
-                        <span className="grid h-7 w-7 flex-none place-items-center rounded-full border border-emerald-400/20 bg-emerald-400/10 text-emerald-300">
+                        <span className="grid h-7 w-7 flex-none place-items-center rounded-full border border-indigo-400/20 bg-indigo-400/10 text-indigo-300">
                           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6 9 17l-5-5" /></svg>
                         </span>
                         <span className="text-base font-medium text-zinc-200">{t}</span>
@@ -317,7 +323,7 @@ export default function LandingPage() {
                 ['هل الفواتير متوافقة مع هيئة الزكاة؟', 'نعم، فواتير ضريبية مبسطة متوافقة مع ZATCA مع رمز QR قابل للمسح.'],
                 ['هل أقدر أدير أكثر من فرع؟', 'نعم، تتنقّل بين كل فروعك من نفس اللوحة وبيانات منفصلة لكل فرع.'],
               ].map(([q, a], i) => (
-                <details key={i} className="group rounded-xl border border-zinc-800 bg-[#121212] px-5 py-4 transition-colors hover:border-zinc-700">
+                <details key={i} className="group rounded-xl border border-white/10 bg-zinc-900/40 px-5 py-4 backdrop-blur-md transition-colors hover:border-white/20">
                   <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-sm font-medium text-white [&::-webkit-details-marker]:hidden">
                     {q}
                     <svg className="flex-none text-zinc-600 transition-transform duration-300 group-open:rotate-45" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M12 5v14M5 12h14" /></svg>
@@ -326,6 +332,17 @@ export default function LandingPage() {
                 </details>
               ))}
             </div>
+          </FadeIn>
+          <FadeIn delay={0.1}>
+            <p className="mt-10 text-center text-sm font-light text-zinc-500">
+              لديك المزيد من الأسئلة؟{' '}
+              <a
+                href="mailto:voldmotorglobal@gmail.com"
+                className="font-medium text-zinc-200 underline decoration-zinc-600 underline-offset-4 transition hover:text-white hover:decoration-white"
+              >
+                تواصل معنا
+              </a>
+            </p>
           </FadeIn>
         </section>
 

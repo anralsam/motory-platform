@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { supabase } from '@/lib/supabaseClient';
 
+
 /* ──────────────────────────────────────────────────────────────────────────
    VOLD MOTOR — Landing Page
    Ultra-premium B2B SaaS aesthetic (Stripe / Vercel / Linear).
@@ -108,10 +109,10 @@ function HeroPreview() {
 }
 
 const BENTOS = [
-  { key: 'pos', tag: 'الاستقبال', title: 'لوحة الاستقبال الذكية', desc: 'استقبل السيارة وأسندها لفني في ثوانٍ — بقراءة لوحة سعودية حقيقية.' },
-  { key: 'kanban', tag: 'العمليات', title: 'لوحة الفنيين اللحظية', desc: 'تابع كل سيارة من قيد الانتظار حتى التسليم، بسحب وإفلات.' },
-  { key: 'reports', tag: 'التقارير', title: 'تقارير لحظية', desc: 'إيرادك وإشغالك ونموّك في رسوم بيانية حيّة تتحدث عن نفسها.' },
-  { key: 'invoice', tag: 'الفوترة', title: 'فواتير ZATCA إلكترونية', desc: 'فاتورة ضريبية متوافقة برمز QR تُرسل للعميل عبر واتساب.' },
+  { key: 'pos', tag: 'الاستقبال', title: 'الاستقبال الذكي', desc: 'أتمتة كاملة لدخول المركبات. تعرّف آلي على لوحات السيارات وتوجيه فوري للفنيين في ثوانٍ معدودة.' },
+  { key: 'kanban', tag: 'العمليات', title: 'تحكم مطلق بسير العمل', desc: 'تتبع دقيق لحالة كل سيارة من لحظة الدخول حتى التسليم بواجهة تفاعلية بسيطة وفعالة.' },
+  { key: 'reports', tag: 'التقارير', title: 'بياناتك، دليلك للنمو', desc: 'رؤى حية وتحليلات دقيقة للإيرادات ومعدلات الإشغال لاتخاذ قرارات استراتيجية مدعومة بالأرقام.' },
+  { key: 'invoice', tag: 'الفوترة', title: 'امتثال تام، دون تعقيد', desc: 'فواتير ضريبية معتمدة من (ZATCA)، تُصدر بضغطة زر وتُرسل تلقائياً لعملائك عبر واتساب.' },
 ];
 
 export default function LandingPage() {
@@ -153,14 +154,14 @@ export default function LandingPage() {
 
       <div className="relative">
         {/* Nav */}
-        <nav className="mx-auto flex max-w-6xl items-center justify-between px-5 py-5">
+        <nav className="mx-auto flex max-w-6xl items-center justify-between px-5 py-4">
           <Link href="/" className="flex items-center" aria-label="VOLD MOTOR">
             <Logo className="h-7 w-auto text-white" />
           </Link>
           <div className="hidden items-center gap-7 md:flex">
-            <a href="#features" className="text-sm font-light text-zinc-400 transition hover:text-white">المزايا</a>
-            <a href="#pricing" className="text-sm font-light text-zinc-400 transition hover:text-white">الأسعار</a>
-            <a href="#faq" className="text-sm font-light text-zinc-400 transition hover:text-white">الأسئلة الشائعة</a>
+            <a href="#features" className="text-sm font-normal text-zinc-300 transition hover:text-white">المزايا</a>
+            <a href="#pricing" className="text-sm font-normal text-zinc-300 transition hover:text-white">الأسعار</a>
+            <a href="#faq" className="text-sm font-normal text-zinc-300 transition hover:text-white">الأسئلة الشائعة</a>
           </div>
           <div className="flex items-center gap-2">
             <Link href={appHref} className="rounded-lg px-3 py-2 text-sm font-light text-zinc-400 transition hover:text-white">{loginLabel}</Link>
@@ -169,19 +170,20 @@ export default function LandingPage() {
         </nav>
 
         {/* Hero */}
-        <header className="mx-auto max-w-3xl px-5 pt-12 text-center sm:pt-20">
+        <header className="mx-auto max-w-4xl px-5 pt-2 text-center sm:pt-4">
           <HeroIn delay={0.05}>
-            <div className="mx-auto mb-6 inline-flex items-center gap-2 rounded-full border border-zinc-800 bg-zinc-900/60 px-3 py-1 text-[11px] font-medium text-zinc-500">
-              <span className="h-1.5 w-1.5 rounded-full bg-zinc-500" /> نظام تشغيل متكامل لمراكز العناية بالسيارات
+            <div className="mx-auto mb-7 inline-flex items-center gap-2 whitespace-nowrap rounded-full border border-white/10 bg-zinc-900/60 px-4 py-1.5 text-xs font-medium text-zinc-300">
+              <span className="h-1.5 w-1.5 flex-none rounded-full bg-emerald-400/80" />
+              <span>نظام تشغيل متكامل لمراكز العناية بالسيارات</span>
             </div>
           </HeroIn>
           <HeroIn delay={0.15}>
-            <h1 className="text-balance bg-gradient-to-br from-white via-zinc-200 to-zinc-500 bg-clip-text pb-2 text-5xl font-extrabold leading-tight tracking-tight text-transparent md:text-7xl">
-              نظام التشغيل المتكامل<br />لمراكز العناية بالسيارات
+            <h1 className="mx-auto max-w-3xl text-balance bg-gradient-to-b from-white to-zinc-400 bg-clip-text py-3 text-4xl font-extrabold leading-[1.45] tracking-tight text-transparent sm:text-5xl md:text-6xl">
+              نظام التشغيل المتكامل لمراكز العناية بالسيارات
             </h1>
           </HeroIn>
           <HeroIn delay={0.3}>
-            <p className="mx-auto mt-5 max-w-2xl text-balance text-lg leading-relaxed text-zinc-400 md:text-xl">
+            <p className="mx-auto mt-6 max-w-xl text-balance text-base leading-relaxed text-zinc-400 md:text-lg">
               تحكم كامل في عمليات مركزك، من استقبال العميل وحتى إصدار الفاتورة الضريبية — في واجهة واحدة.
             </p>
           </HeroIn>
@@ -241,9 +243,9 @@ export default function LandingPage() {
                 transition={{ duration: 0.5, delay: i * 0.08, ease: [0.22, 1, 0.36, 1] }}
                 className="flex h-full min-h-[200px] flex-col justify-center rounded-2xl border border-white/10 bg-zinc-900/50 p-8 transition-colors duration-300 hover:border-white/20"
               >
-                <div className="text-[10px] font-medium uppercase tracking-[0.35em] text-zinc-600">{b.tag}</div>
-                <h3 className="mt-3 text-base font-medium tracking-tight text-white">{b.title}</h3>
-                <p className="mt-1.5 text-sm font-light leading-relaxed text-zinc-400">{b.desc}</p>
+                <div className="text-[10px] font-medium uppercase tracking-[0.35em] text-zinc-500">{b.tag}</div>
+                <h3 className="mt-3 text-lg font-semibold tracking-tight text-white">{b.title}</h3>
+                <p className="mt-2 text-sm font-normal leading-relaxed text-zinc-300">{b.desc}</p>
               </motion.div>
             ))}
           </div>
@@ -252,57 +254,48 @@ export default function LandingPage() {
         {/* ════ Pricing ════ */}
         <section id="pricing" className="mx-auto max-w-6xl px-5 py-24">
           <FadeIn>
-            <div className="mb-14 text-center">
-              <div className="text-[10px] font-medium uppercase tracking-[0.4em] text-zinc-600">PRICING</div>
-              <h2 className="mt-4 text-3xl font-medium tracking-tight text-white sm:text-4xl">
-                ادفع فقط لمّا تكسب
-              </h2>
-              <p className="mx-auto mt-3 max-w-lg text-sm font-light leading-relaxed text-zinc-400">
-                بدون اشتراك شهري. عمولة رمزية على العمليات المكتملة فقط — مصلحتنا مرتبطة بنجاحك.
-              </p>
+            <div className="relative mx-auto max-w-5xl">
+              {/* soft background glow */}
+              <div
+                aria-hidden
+                className="pointer-events-none absolute -inset-x-10 -inset-y-12 -z-0 rounded-[3rem] bg-[radial-gradient(60%_60%_at_50%_40%,rgba(37,99,235,0.18),rgba(124,58,237,0.10)_45%,transparent_75%)] blur-3xl"
+              />
+
+              <div className="relative z-10 grid items-center gap-12 rounded-3xl border border-white/10 bg-zinc-900/60 p-8 backdrop-blur-2xl md:grid-cols-2 md:p-14">
+                {/* Left — hook & value prop */}
+                <div>
+                  <span className="mb-6 inline-block rounded-full border border-white/10 bg-white/5 px-4 py-1.5 text-sm font-medium text-zinc-300">
+                    التسعير المرن
+                  </span>
+                  <h3 className="mb-6 text-4xl font-bold leading-tight text-white md:text-5xl">
+                    شراكة حقيقية.<br />ادفع فقط عندما تكسب.
+                  </h3>
+                  <p className="text-lg leading-relaxed text-zinc-400">
+                    لا توجد رسوم شهرية ثابتة، ولا تكاليف خفية. نحن ندعم نمو مركزك ونتقاضى عمولة رمزية فقط عند إتمام العمليات بنجاح. نجاحنا مرتبط بنجاحك.
+                  </p>
+                </div>
+
+                {/* Right — features checklist */}
+                <div className="rounded-2xl border border-white/10 bg-white/5 p-2">
+                  <ul className="divide-y divide-white/5">
+                    {[
+                      'لا رسوم شهرية ثابتة – أبداً',
+                      'عمولة واضحة تُدفع فقط عند إتمام العملية',
+                      'تُحسب فقط على العمليات المكتملة',
+                      'جميع المزايا المؤسسية مفتوحة بلا حدود',
+                    ].map((t, i) => (
+                      <li key={i} className="flex items-center gap-4 px-4 py-4">
+                        <span className="grid h-7 w-7 flex-none place-items-center rounded-full border border-emerald-400/20 bg-emerald-400/10 text-emerald-300">
+                          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6 9 17l-5-5" /></svg>
+                        </span>
+                        <span className="text-base font-medium text-zinc-200">{t}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
             </div>
           </FadeIn>
-
-          <div className="grid grid-cols-1 items-center gap-6 md:grid-cols-2">
-            <FadeIn>
-              <ul className="space-y-5">
-                {[
-                  'لا رسوم شهرية ثابتة — أبداً',
-                  'عمولة واضحة تُدفع فقط عند إتمام العملية',
-                  'تُحسب فقط على العمليات المكتملة',
-                  'جميع المزايا مفتوحة بلا حدود',
-                ].map((t, i) => (
-                  <li key={i} className="flex items-center gap-3">
-                    <span className="grid h-6 w-6 flex-none place-items-center rounded-full border border-zinc-700 bg-zinc-900 text-zinc-400">
-                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6 9 17l-5-5" /></svg>
-                    </span>
-                    <span className="text-sm font-light text-zinc-400">{t}</span>
-                  </li>
-                ))}
-              </ul>
-            </FadeIn>
-
-            <FadeIn delay={0.08}>
-              <div className="rounded-2xl border border-zinc-800 bg-[#121212] p-8">
-                <span className="inline-flex items-center rounded-full border border-zinc-800 bg-zinc-900 px-3 py-1 text-[11px] font-medium text-zinc-500">بدون اشتراك شهري</span>
-                <div className="mt-6 flex items-end gap-2" dir="rtl">
-                  <span className="text-5xl font-medium leading-none text-white">٠</span>
-                  <span className="mb-0.5 text-base font-light text-zinc-500">ريال شهرياً</span>
-                </div>
-                <p className="mt-1 text-right text-sm font-light text-zinc-600">دائماً وأبداً — مهما كبر مركزك</p>
-                <div className="my-6 border-t border-zinc-800" />
-                <p className="text-sm font-light leading-relaxed text-zinc-400">
-                  إذا ربحت، تدفع عمولة رمزية فقط. ما ربحت؟ ما تدفع شيء.
-                </p>
-                <p className="mt-2 text-xs font-light leading-relaxed text-zinc-600">
-                  تفاصيل العمولة الكاملة تظهر لك بشفافية عند تسجيل مركزك.
-                </p>
-                <Link href={registerHref} className="mt-6 flex w-full items-center justify-center rounded-xl bg-white py-3 text-sm font-medium text-[#0a0a0a] transition hover:bg-zinc-100">
-                  {heroCtaLabel}
-                </Link>
-              </div>
-            </FadeIn>
-          </div>
         </section>
 
         {/* ════ FAQ ════ */}

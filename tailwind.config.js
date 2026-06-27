@@ -7,7 +7,7 @@ module.exports = {
   theme: {
     extend: {
       fontFamily: {
-        sans: ['var(--font-cairo)', 'Cairo', 'Almarai', 'system-ui', 'sans-serif'],
+        sans: ['var(--font-tajawal)', 'Tajawal', 'Almarai', 'system-ui', 'sans-serif'],
         inter: ['var(--font-inter)', 'Inter', 'system-ui', 'sans-serif'],
       },
       colors: {

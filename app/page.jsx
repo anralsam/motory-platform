@@ -26,81 +26,25 @@ function FadeIn({ children, delay = 0, y = 18, className = '' }) {
   );
 }
 
+/* ── On-load entrance — staggered fade-in-up for the hero (plays on mount,
+   not on scroll). Smooth, fast (0.5s), ease-out. No bounce. ── */
+function HeroIn({ children, delay = 0, y = 20, className = '' }) {
+  return (
+    <motion.div
+      className={className}
+      initial={{ opacity: 0, y }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5, delay, ease: [0.22, 1, 0.36, 1] }}
+    >
+      {children}
+    </motion.div>
+  );
+}
+
 /* ── VOLD MOTOR wordmark — dark-mode variant (white text, transparent) ── */
 function Logo({ className = 'h-7 w-auto' }) {
   // eslint-disable-next-line @next/next/no-img-element
   return <img src="/logo-white.png" alt="VOLD MOTOR" className={className} />;
-}
-
-/* ── Signature feature: high-fidelity Saudi license plate (pure SVG) ──
-   Realistic white face with paper-grain gradient, embossed national seal,
-   bold Arabic + Latin glyphs, and a diagonal glass light-reflection overlay. */
-function SaudiPlate({ ar = '١ ٢ ٣ ٤', arLetters = 'ر ق ص', latin = '1 2 3 4', latinLetters = 'S Q R', size = 'md' }) {
-  const dims = { sm: { w: 196, h: 64 }, md: { w: 260, h: 86 }, lg: { w: 320, h: 104 } }[size] || { w: 260, h: 86 };
-  return (
-    <svg viewBox="0 0 320 104" width={dims.w} height={dims.h} className="select-none drop-shadow-[0_8px_18px_rgba(0,0,0,0.4)]" role="img" aria-label="لوحة سعودية">
-      <defs>
-        {/* paper-grain white face */}
-        <linearGradient id="plateFace" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stopColor="#ffffff" />
-          <stop offset="0.5" stopColor="#f4f5f7" />
-          <stop offset="1" stopColor="#e7e9ee" />
-        </linearGradient>
-        {/* blue KSA band */}
-        <linearGradient id="plateBand" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stopColor="#1e63e9" />
-          <stop offset="1" stopColor="#143fae" />
-        </linearGradient>
-        {/* diagonal glossy reflection */}
-        <linearGradient id="plateGloss" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0" stopColor="#ffffff" stopOpacity="0.55" />
-          <stop offset="0.22" stopColor="#ffffff" stopOpacity="0.10" />
-          <stop offset="0.45" stopColor="#ffffff" stopOpacity="0" />
-        </linearGradient>
-        <radialGradient id="plateSeal" cx="0.5" cy="0.5" r="0.5">
-          <stop offset="0" stopColor="#c2c7d0" stopOpacity="0.55" />
-          <stop offset="1" stopColor="#c2c7d0" stopOpacity="0" />
-        </radialGradient>
-      </defs>
-
-      {/* body + thin metallic frame, flat white face */}
-      <rect x="1.5" y="1.5" width="317" height="101" rx="12" fill="#aeb3bd" />
-      <rect x="3" y="3" width="314" height="98" rx="10.5" fill="#ffffff" stroke="#c7ccd4" strokeWidth="1" />
-
-      {/* mounting bolt holes (top corners) */}
-      <circle cx="120" cy="12" r="2.4" fill="#c7ccd4" />
-      <circle cx="248" cy="12" r="2.4" fill="#c7ccd4" />
-
-      {/* top KSA caption strip */}
-      <text x="184" y="20" textAnchor="middle" fontSize="9" fontWeight="700" fill="#9aa0ab" fontFamily="Arial" letterSpacing="1">KINGDOM OF SAUDI ARABIA</text>
-      <line x1="52" y1="26" x2="316" y2="26" stroke="#e1e4ea" strokeWidth="1" />
-
-      {/* left blue band: flag + KSA + السعودية */}
-      <path d="M3 14a11 11 0 0 1 11-11h36v98H14A11 11 0 0 1 3 90z" fill="url(#plateBand)" />
-      <g>
-        <rect x="11" y="14" width="30" height="20" rx="2.5" fill="#157a3c" />
-        <rect x="11" y="14" width="30" height="20" rx="2.5" fill="none" stroke="#ffffff" strokeOpacity="0.5" strokeWidth="0.8" />
-        <text x="26" y="27" textAnchor="middle" fontSize="7" fill="#ffffff" fontFamily="Arial">السعودية</text>
-      </g>
-      <text x="26" y="52" textAnchor="middle" fontSize="15" fontWeight="800" fill="#ffffff" fontFamily="Arial">KSA</text>
-      <text x="26" y="78" textAnchor="middle" fontSize="9" fontWeight="700" fill="#cfe0ff" fontFamily="Arial">السعودية</text>
-
-      {/* center divider between numbers (left) and letters (right) */}
-      <line x1="186" y1="34" x2="186" y2="92" stroke="#d4d8e0" strokeWidth="1.4" />
-
-      {/* glyphs — Arabic (top) over Latin (bottom). Letters RIGHT, numbers LEFT (KSA reading order) */}
-      <g fontFamily="Arial" fill="#16181d">
-        {/* numbers (left section) */}
-        <text x="118" y="62" textAnchor="middle" fontSize="30" fontWeight="800" letterSpacing="4">{ar}</text>
-        <text x="118" y="86" textAnchor="middle" fontSize="15" fontWeight="700" letterSpacing="5" fill="#5a606b">{latin}</text>
-        {/* letters (right section) */}
-        <text x="252" y="62" textAnchor="middle" fontSize="30" fontWeight="800" letterSpacing="6">{arLetters}</text>
-        <text x="252" y="86" textAnchor="middle" fontSize="15" fontWeight="700" letterSpacing="6" fill="#5a606b">{latinLetters}</text>
-      </g>
-
-      {/* flat — no gloss (looks like a real, official plate) */}
-    </svg>
-  );
 }
 
 /* ── Hero app preview (mirrors the real dashboard) ── */
@@ -163,176 +107,11 @@ function HeroPreview() {
   );
 }
 
-/* ── [1] POS — Saudi plate, centred with a subtle shadow ── */
-function BentoPOS() {
-  return (
-    <div className="flex w-full items-center justify-center">
-      <SaudiPlate size="sm" />
-    </div>
-  );
-}
-
-/* ── [2] Kanban — realistic technician task board (neutral, enterprise) ── */
-function BentoKanban() {
-  const cols = [
-    { t: 'قيد الانتظار', count: '٣', dot: 'bg-zinc-600', car: 'تويوتا كامري', svc: 'غسيل خارجي', plate: '٤٥٢١', time: 'منذ ٤٥ د', tech: 'ع' },
-    { t: 'جاري العمل', count: '٢', dot: 'bg-zinc-400', car: 'لكزس ES', svc: 'تلميع وتشميع', plate: '٧٨٩٣', time: '١٨ د', tech: 'س' },
-    { t: 'جاهزة', count: '٥', dot: 'bg-zinc-300', car: 'نيسان باترول', svc: 'تغيير زيت', plate: '٢٢٦٠', time: 'تم', tech: 'ف' },
-  ];
-  return (
-    <div className="grid w-full grid-cols-3 gap-2">
-      {cols.map((c, i) => (
-        <div key={i} className="flex min-w-0 flex-col gap-1.5">
-          <div className="flex items-center justify-between">
-            <div className="flex min-w-0 items-center gap-1">
-              <span className={`h-1.5 w-1.5 flex-none rounded-full ${c.dot}`} />
-              <span className="truncate text-[8px] font-semibold text-zinc-400">{c.t}</span>
-            </div>
-            <span className="flex-none rounded bg-zinc-800 px-1 text-[7px] font-bold text-zinc-500">{c.count}</span>
-          </div>
-          <div className="rounded-lg border border-zinc-800 bg-[#181818] p-1.5">
-            <div className="truncate text-[8.5px] font-bold text-zinc-100">{c.car}</div>
-            <div className="mt-0.5 truncate text-[7px] text-zinc-500">{c.svc}</div>
-            <div className="mt-1.5 inline-flex overflow-hidden rounded-[3px] border border-zinc-700 font-mono text-[6.5px]" dir="ltr">
-              <span className="bg-[#1d4ed8] px-1 text-white">KSA</span>
-              <span className="bg-white px-1 font-bold tracking-wider text-neutral-900">{c.plate}</span>
-            </div>
-            <div className="mt-1.5 flex items-center justify-between border-t border-zinc-800 pt-1.5">
-              <span className="text-[7px] text-zinc-500">{c.time}</span>
-              <span className="grid h-3.5 w-3.5 place-items-center rounded-full bg-zinc-700 text-[6px] font-bold text-zinc-300">{c.tech}</span>
-            </div>
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-}
-
-/* ── [3] Reports — glowing hand-coded SVG area chart (no library) ── */
-function BentoReports() {
-  // smooth area path + line path over a 220×88 viewport
-  const line = 'M4 64 C 28 58, 40 40, 62 44 S 104 22, 126 30 S 168 8, 190 16 216 10';
-  const area = 'M4 64 C 28 58, 40 40, 62 44 S 104 22, 126 30 S 168 8, 190 16 216 10 L216 84 L4 84 Z';
-  return (
-    <div className="w-full">
-      <div className="mb-2 flex items-center justify-between">
-        <span className="text-[10px] font-medium text-zinc-500">الإيراد · آخر ٧ أيام</span>
-        <span className="inline-flex items-center gap-0.5 rounded-full border border-zinc-700 bg-zinc-900 px-1.5 py-0.5 text-[9px] font-semibold text-zinc-400">
-          <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M12 19V5M5 12l7-7 7 7" /></svg>
-          ٢٣٪
-        </span>
-      </div>
-      <svg viewBox="0 0 220 88" className="w-full" preserveAspectRatio="none" height="100">
-        <defs>
-          <linearGradient id="repFill" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0" stopColor="#52525b" stopOpacity="0.4" />
-            <stop offset="1" stopColor="#52525b" stopOpacity="0" />
-          </linearGradient>
-        </defs>
-        {[24, 44, 64].map((y) => <line key={y} x1="4" y1={y} x2="216" y2={y} stroke="rgba(255,255,255,0.04)" strokeWidth="1" />)}
-        <path d={area} fill="url(#repFill)" />
-        <path d={line} fill="none" stroke="#71717a" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-        <circle cx="216" cy="10" r="3.2" fill="#d4d4d8" stroke="#71717a" strokeWidth="2" />
-      </svg>
-    </div>
-  );
-}
-
-/* ── [4] Invoice — simulated thermal receipt w/ paper texture + sharp QR ── */
-function ThermalQR() {
-  // deterministic 11×11 QR-style matrix with three finder eyes
-  const N = 11;
-  const eye = (r, c) => (r < 3 && c < 3) || (r < 3 && c > N - 4) || (r > N - 4 && c < 3);
-  const cells = [];
-  for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) {
-    if (eye(r, c)) continue;
-    if (((r * 7 + c * 13 + r * c) % 3) === 0) cells.push(<rect key={`${r}-${c}`} x={c * 4} y={r * 4} width="4" height="4" />);
-  }
-  const finder = (x, y) => (
-    <g transform={`translate(${x} ${y})`}>
-      <rect width="12" height="12" fill="#0a0a0a" />
-      <rect x="2" y="2" width="8" height="8" fill="#fff" />
-      <rect x="3.5" y="3.5" width="5" height="5" fill="#0a0a0a" />
-    </g>
-  );
-  return (
-    <svg viewBox="0 0 44 44" width="56" height="56" shapeRendering="crispEdges" className="rounded-[3px] bg-white p-[2px]">
-      <g fill="#0a0a0a">{cells}</g>
-      {finder(0, 0)}{finder(32, 0)}{finder(0, 32)}
-    </svg>
-  );
-}
-function BentoInvoice() {
-  // scalloped bottom edge (receipt tear) via a repeating radial mask
-  const scallop = {
-    WebkitMaskImage: 'radial-gradient(circle 5px at 8px 100%, transparent 98%, #000 100%)',
-    maskImage: 'radial-gradient(circle 5px at 8px 100%, transparent 98%, #000 100%)',
-    WebkitMaskRepeat: 'repeat-x', maskRepeat: 'repeat-x',
-    WebkitMaskSize: '16px 100%', maskSize: '16px 100%',
-  };
-  return (
-    <div
-      className="relative mx-auto w-[164px] bg-[#fbfbf9] font-mono text-[9px] leading-tight text-neutral-900 shadow-[0_20px_45px_-14px_rgba(0,0,0,0.85)]"
-      style={{ borderRadius: '10px 10px 0 0', ...scallop }}
-    >
-      {/* paper grain */}
-      <div className="pointer-events-none absolute inset-0 opacity-50 mix-blend-multiply" style={{ backgroundImage: 'radial-gradient(rgba(0,0,0,0.045) 0.5px, transparent 0.5px)', backgroundSize: '3px 3px' }} />
-      {/* brand accent */}
-      <div className="h-1 w-full rounded-t-[10px] bg-zinc-900" />
-      <div className="relative px-4 pb-5 pt-3">
-        <div className="flex flex-col items-center gap-1">
-          <span className="grid h-6 w-6 place-items-center rounded-md bg-neutral-900">
-            <svg width="12" height="12" viewBox="0 0 48 48" fill="none"><path d="M6 10 L24 42 L42 10" stroke="#fff" strokeWidth="6" strokeLinecap="round" strokeLinejoin="round" /></svg>
-          </span>
-          <div className="text-[11px] font-extrabold tracking-tight">مركز رائد للعناية</div>
-          <div className="text-[7px] text-neutral-500">الرقم الضريبي: 300012345600003</div>
-          <div className="mt-0.5 rounded-sm bg-neutral-900 px-1.5 py-0.5 text-[7px] font-bold tracking-wide text-white">فاتورة ضريبية مبسطة</div>
-        </div>
-        <div className="my-2 border-t border-dashed border-neutral-300" />
-        <div className="flex justify-between"><span className="text-neutral-500">رقم الفاتورة</span><span className="font-bold">INV-9A1F</span></div>
-        <div className="mt-0.5 flex justify-between"><span className="text-neutral-500">التاريخ والوقت</span><span className="font-bold">٢٣/٠٦/٢٠٢٦ · ٢:٤٥م</span></div>
-        <div className="mt-0.5 flex justify-between"><span className="text-neutral-500">العميل</span><span className="font-bold">سعد العتيبي</span></div>
-        <div className="my-2 border-t border-dashed border-neutral-300" />
-        <div className="flex justify-between text-[7px] font-bold text-neutral-400"><span>الصنف</span><span>الإجمالي</span></div>
-        <div className="mt-1 flex justify-between"><span>غسيل VIP خارجي وداخلي</span><span className="font-bold">90.00</span></div>
-        <div className="mt-0.5 flex justify-between text-neutral-500"><span>الكمية ×١ · سعر 90.00</span></div>
-        <div className="my-2 border-t border-dashed border-neutral-300" />
-        <div className="flex justify-between text-neutral-600"><span>الإجمالي قبل الضريبة</span><span>90.00</span></div>
-        <div className="mt-0.5 flex justify-between text-neutral-600"><span>ضريبة القيمة المضافة ١٥٪</span><span>13.50</span></div>
-        <div className="mt-1.5 flex items-center justify-between rounded-md bg-neutral-900 px-2 py-1.5 text-[11px] font-extrabold text-white"><span>الإجمالي شامل الضريبة</span><span>103.50</span></div>
-        <div className="mt-3 flex flex-col items-center gap-1">
-          <ThermalQR />
-          <div className="text-[7px] tracking-wide text-neutral-500">امسح رمز QR للتحقق — هيئة الزكاة والضريبة</div>
-          <div className="mt-1 text-[8px] font-bold text-neutral-700">شكراً لزيارتكم 🤍</div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-/* ── Desktop window frame that wraps each feature mock ── */
-function WindowFrame({ label = '', children }) {
-  return (
-    <div className="w-full overflow-hidden rounded-xl border border-zinc-800 bg-zinc-950 shadow-[0_16px_40px_-12px_rgba(0,0,0,0.7)]">
-      {/* chrome bar */}
-      <div className="flex items-center gap-1.5 border-b border-zinc-800/80 bg-zinc-900/60 px-3 py-2.5">
-        <span className="h-2 w-2 rounded-full bg-zinc-700" />
-        <span className="h-2 w-2 rounded-full bg-zinc-700" />
-        <span className="h-2 w-2 rounded-full bg-zinc-700" />
-        {label && (
-          <span className="mx-auto pr-6 text-[10px] font-medium tracking-wide text-zinc-600">{label}</span>
-        )}
-      </div>
-      <div className="p-4">{children}</div>
-    </div>
-  );
-}
-
 const BENTOS = [
-  { key: 'pos', tag: 'الاستقبال', title: 'لوحة الاستقبال الذكية', desc: 'استقبل السيارة وأسندها لفني في ثوانٍ — بقراءة لوحة سعودية حقيقية.', Mock: BentoPOS },
-  { key: 'kanban', tag: 'العمليات', title: 'لوحة الفنيين اللحظية', desc: 'تابع كل سيارة من قيد الانتظار حتى التسليم، بسحب وإفلات.', Mock: BentoKanban },
-  { key: 'reports', tag: 'التقارير', title: 'تقارير لحظية', desc: 'إيرادك وإشغالك ونموّك في رسوم بيانية حيّة تتحدث عن نفسها.', Mock: BentoReports },
-  { key: 'invoice', tag: 'الفوترة', title: 'فواتير ZATCA إلكترونية', desc: 'فاتورة ضريبية متوافقة برمز QR تُرسل للعميل عبر واتساب.', Mock: BentoInvoice },
+  { key: 'pos', tag: 'الاستقبال', title: 'لوحة الاستقبال الذكية', desc: 'استقبل السيارة وأسندها لفني في ثوانٍ — بقراءة لوحة سعودية حقيقية.' },
+  { key: 'kanban', tag: 'العمليات', title: 'لوحة الفنيين اللحظية', desc: 'تابع كل سيارة من قيد الانتظار حتى التسليم، بسحب وإفلات.' },
+  { key: 'reports', tag: 'التقارير', title: 'تقارير لحظية', desc: 'إيرادك وإشغالك ونموّك في رسوم بيانية حيّة تتحدث عن نفسها.' },
+  { key: 'invoice', tag: 'الفوترة', title: 'فواتير ZATCA إلكترونية', desc: 'فاتورة ضريبية متوافقة برمز QR تُرسل للعميل عبر واتساب.' },
 ];
 
 export default function LandingPage() {
@@ -354,7 +133,7 @@ export default function LandingPage() {
   const navStartLabel = authed ? 'لوحة التحكم' : 'ابدأ الآن';
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-[#0a0a0a] font-inter text-white antialiased">
+    <div className="relative min-h-screen overflow-hidden bg-[#0a0a0a] font-sans text-white antialiased">
       {/* faint grid */}
       <div
         className="pointer-events-none absolute inset-0"
@@ -391,22 +170,22 @@ export default function LandingPage() {
 
         {/* Hero */}
         <header className="mx-auto max-w-3xl px-5 pt-12 text-center sm:pt-20">
-          <FadeIn>
+          <HeroIn delay={0.05}>
             <div className="mx-auto mb-6 inline-flex items-center gap-2 rounded-full border border-zinc-800 bg-zinc-900/60 px-3 py-1 text-[11px] font-medium text-zinc-500">
               <span className="h-1.5 w-1.5 rounded-full bg-zinc-500" /> نظام تشغيل متكامل لمراكز العناية بالسيارات
             </div>
-          </FadeIn>
-          <FadeIn delay={0.05}>
-            <h1 className="text-balance pb-2 text-4xl font-medium leading-[1.2] tracking-tight text-white sm:text-5xl">
+          </HeroIn>
+          <HeroIn delay={0.15}>
+            <h1 className="text-balance bg-gradient-to-br from-white via-zinc-200 to-zinc-500 bg-clip-text pb-2 text-5xl font-extrabold leading-tight tracking-tight text-transparent md:text-7xl">
               نظام التشغيل المتكامل<br />لمراكز العناية بالسيارات
             </h1>
-          </FadeIn>
-          <FadeIn delay={0.1}>
-            <p className="mx-auto mt-5 max-w-xl text-balance text-base font-light leading-relaxed text-zinc-400">
+          </HeroIn>
+          <HeroIn delay={0.3}>
+            <p className="mx-auto mt-5 max-w-2xl text-balance text-lg leading-relaxed text-zinc-400 md:text-xl">
               تحكم كامل في عمليات مركزك، من استقبال العميل وحتى إصدار الفاتورة الضريبية — في واجهة واحدة.
             </p>
-          </FadeIn>
-          <FadeIn delay={0.15}>
+          </HeroIn>
+          <HeroIn delay={0.45}>
             <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
               <Link
                 href={registerHref}
@@ -418,14 +197,14 @@ export default function LandingPage() {
                 استكشف المنصة
               </Link>
             </div>
-          </FadeIn>
-          <FadeIn delay={0.2}>
+          </HeroIn>
+          <HeroIn delay={0.6}>
             <div className="mt-6 flex items-center justify-center gap-2 text-sm font-light text-zinc-500">
               <span>★ 4.9/5</span>
               <span className="text-zinc-700">·</span>
               <span>يثق بنا أكثر من +400 مركز شريك</span>
             </div>
-          </FadeIn>
+          </HeroIn>
         </header>
 
         {/* Hero glass mockup — 3D tilt + bottom mask */}
@@ -453,28 +232,20 @@ export default function LandingPage() {
           </FadeIn>
 
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-            {BENTOS.map((b, i) => {
-              const Mock = b.Mock;
-              return (
-                <motion.div
-                  key={b.key}
-                  initial={{ opacity: 0, y: 16 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true, margin: '-60px' }}
-                  transition={{ duration: 0.5, delay: i * 0.08, ease: [0.22, 1, 0.36, 1] }}
-                  className="flex h-full flex-col rounded-2xl border border-zinc-800 bg-[#121212] p-8 transition-colors duration-300 hover:border-zinc-700"
-                >
-                  <div className="text-[10px] font-medium uppercase tracking-[0.35em] text-zinc-600">{b.tag}</div>
-                  <h3 className="mt-3 text-base font-medium tracking-tight text-white">{b.title}</h3>
-                  <p className="mt-1.5 text-sm font-light leading-relaxed text-zinc-400">{b.desc}</p>
-                  <div className="mt-6">
-                    <WindowFrame label={b.tag}>
-                      <Mock />
-                    </WindowFrame>
-                  </div>
-                </motion.div>
-              );
-            })}
+            {BENTOS.map((b, i) => (
+              <motion.div
+                key={b.key}
+                initial={{ opacity: 0, y: 16 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: '-60px' }}
+                transition={{ duration: 0.5, delay: i * 0.08, ease: [0.22, 1, 0.36, 1] }}
+                className="flex h-full min-h-[200px] flex-col justify-center rounded-2xl border border-white/10 bg-zinc-900/50 p-8 transition-colors duration-300 hover:border-white/20"
+              >
+                <div className="text-[10px] font-medium uppercase tracking-[0.35em] text-zinc-600">{b.tag}</div>
+                <h3 className="mt-3 text-base font-medium tracking-tight text-white">{b.title}</h3>
+                <p className="mt-1.5 text-sm font-light leading-relaxed text-zinc-400">{b.desc}</p>
+              </motion.div>
+            ))}
           </div>
         </section>
 

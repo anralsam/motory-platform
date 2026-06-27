@@ -1,7 +1,12 @@
 import './globals.css';
-import { Cairo, Inter } from 'next/font/google';
+import { Tajawal, Inter } from 'next/font/google';
 
-const cairo = Cairo({ subsets: ['arabic', 'latin'], variable: '--font-cairo', display: 'swap' });
+const tajawal = Tajawal({
+  subsets: ['arabic', 'latin'],
+  weight: ['300', '400', '500', '700', '800'],
+  variable: '--font-tajawal',
+  display: 'swap',
+});
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter', display: 'swap' });
 
 export const metadata = {
@@ -11,7 +16,7 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="ar" dir="rtl" className={`${cairo.variable} ${inter.variable}`} suppressHydrationWarning>
+    <html lang="ar" dir="rtl" className={`${tajawal.variable} ${inter.variable}`} suppressHydrationWarning>
       <body className="font-sans text-gray-900">{children}</body>
     </html>
   );

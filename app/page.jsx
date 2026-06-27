@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { supabase } from '@/lib/supabaseClient';
+import Preloader from '@/components/Preloader';
 
 
 /* ──────────────────────────────────────────────────────────────────────────
@@ -135,6 +136,7 @@ export default function LandingPage() {
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-[#0a0a0a] font-sans text-white antialiased">
+      <Preloader />
       {/* faint grid */}
       <div
         className="pointer-events-none absolute inset-0"

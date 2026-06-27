@@ -118,6 +118,7 @@ function SignInForm() {
   const [step, setStep] = useState('creds');
   const [otpEmail, setOtpEmail] = useState('');   // verified email awaiting its code
   const [otpCode, setOtpCode] = useState('');
+  const otpRefs = useRef([]);        // refs to the 6 OTP input boxes (for auto-focus)
   const [attemptsLeft, setAttemptsLeft] = useState(null); // remaining tries (from server)
   const [accountLocked, setAccountLocked] = useState(false); // 15-strike server lock
   const [resendIn, setResendIn] = useState(0);
@@ -238,6 +239,45 @@ function SignInForm() {
     setStep('creds'); setOtpCode(''); setError(''); setNotice(''); resetCaptcha();
   }
 
+  // ─── 6-box OTP input behaviour (auto-advance, backspace, paste) ───
+  function focusOtpBox(i) {
+    const el = otpRefs.current[Math.max(0, Math.min(5, i))];
+    if (el) { el.focus(); el.select?.(); }
+  }
+  function onOtpChange(i, e) {
+    const digit = e.target.value.replace(/\D/g, '').slice(-1); // keep only the last typed digit
+    setError('');
+    setOtpCode((prev) => {
+      const arr = prev.split('');
+      arr[i] = digit || '';
+      return arr.join('').slice(0, 6);
+    });
+    if (digit && i < 5) focusOtpBox(i + 1);   // auto-advance to next box
+  }
+  function onOtpKeyDown(i, e) {
+    if (e.key === 'Backspace') {
+      setError('');
+      if (otpCode[i]) {
+        setOtpCode((prev) => { const a = prev.split(''); a[i] = ''; return a.join(''); });
+      } else if (i > 0) {
+        setOtpCode((prev) => { const a = prev.split(''); a[i - 1] = ''; return a.join(''); });
+        focusOtpBox(i - 1);                     // backspace on empty → jump back
+      }
+    } else if (e.key === 'ArrowLeft' && i > 0) {
+      focusOtpBox(i - 1);
+    } else if (e.key === 'ArrowRight' && i < 5) {
+      focusOtpBox(i + 1);
+    }
+  }
+  function onOtpPaste(e) {
+    e.preventDefault();
+    const digits = (e.clipboardData.getData('text') || '').replace(/\D/g, '').slice(0, 6);
+    if (!digits) return;
+    setError('');
+    setOtpCode(digits);
+    focusOtpBox(Math.min(digits.length, 6) - 1);  // focus last filled box
+  }
+
   async function onForgot(e) {
     e?.preventDefault();
     setError(''); setNotice('');
@@ -336,14 +376,32 @@ function SignInForm() {
                 </div>
 
                 <div>
-                  <label className="mb-1.5 block text-[13px] font-bold text-gray-700">{t.otpCodeLabel}</label>
-                  <input
-                    type="text" inputMode="numeric" dir="ltr" autoComplete="one-time-code" maxLength={6}
-                    value={otpCode}
-                    onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                    placeholder="••••••"
-                    className="w-full rounded-lg border border-gray-300 bg-white px-3.5 py-2.5 text-center text-lg font-extrabold tracking-[0.5em] text-gray-900 outline-none transition placeholder:tracking-[0.3em] placeholder:text-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
-                  />
+                  <label className="mb-2.5 block text-center text-[13px] font-bold text-gray-700">{t.otpCodeLabel}</label>
+                  <div dir="ltr" onPaste={onOtpPaste} className="flex items-center justify-center gap-2.5 sm:gap-3">
+                    {Array.from({ length: 6 }).map((_, i) => {
+                      const filled = Boolean(otpCode[i]);
+                      return (
+                        <input
+                          key={i}
+                          ref={(el) => (otpRefs.current[i] = el)}
+                          type="text"
+                          inputMode="numeric"
+                          autoComplete={i === 0 ? 'one-time-code' : 'off'}
+                          maxLength={1}
+                          value={otpCode[i] || ''}
+                          onChange={(e) => onOtpChange(i, e)}
+                          onKeyDown={(e) => onOtpKeyDown(i, e)}
+                          onFocus={(e) => e.target.select()}
+                          aria-label={`${t.otpCodeLabel} ${i + 1}`}
+                          className={`h-16 w-12 rounded-xl border bg-zinc-900/90 text-center text-2xl font-extrabold text-white caret-blue-400 outline-none transition-all duration-200 sm:w-14 ${
+                            filled
+                              ? 'scale-105 border-blue-500 shadow-lg shadow-blue-500/30 ring-2 ring-blue-500/40'
+                              : 'border-white/10 hover:border-white/25'
+                          } focus:scale-105 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/50`}
+                        />
+                      );
+                    })}
+                  </div>
                 </div>
 
                 <button

@@ -198,12 +198,29 @@ export default function SignUpPage() {
               <h1 className="text-xl font-extrabold tracking-tight text-gray-900">{t.title}</h1>
               <p className="mt-1 text-[13px] text-gray-500">{t.subtitle}</p>
 
-              {error && (
-                <div className="mt-5 flex items-start gap-2 rounded-lg border border-red-200 bg-red-50 px-3.5 py-3 text-sm font-semibold text-red-700">
+              {error && (() => {
+                const alreadyRegistered = error.includes('مسجّل بالفعل');
+                const boxCls = 'mt-5 flex items-start gap-2 rounded-lg border border-red-200 bg-red-50 px-3.5 py-3 text-sm font-semibold text-red-700';
+                const icon = (
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" className="mt-0.5 flex-none"><circle cx="12" cy="12" r="10" /><path d="M12 8v4M12 16h.01" /></svg>
-                  <span>{error}</span>
-                </div>
-              )}
+                );
+                if (alreadyRegistered) {
+                  // Turn the alert into a clickable CTA that routes to the sign-in page.
+                  const ctaText = error.replace('هل تريد تسجيل الدخول؟', 'اضغط هنا لتسجيل الدخول');
+                  return (
+                    <Link href="/auth/signin" className={`${boxCls} cursor-pointer transition hover:border-red-300 hover:bg-red-100`}>
+                      {icon}
+                      <span>{ctaText}</span>
+                    </Link>
+                  );
+                }
+                return (
+                  <div className={boxCls}>
+                    {icon}
+                    <span>{error}</span>
+                  </div>
+                );
+              })()}
 
               <form onSubmit={onSubmit} dir={dir} className="mt-5 space-y-3.5">
                 {/* اسم المركز — inherits dir from form */}

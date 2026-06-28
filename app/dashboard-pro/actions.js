@@ -103,3 +103,66 @@ export async function assignOrderToWorker(orderId, workerUserId) {
   revalidatePath('/dashboard-pro');
   return { ok: true };
 }
+
+/**
+ * Start a task: capture plate + service type, move the order to in_progress, and
+ * deduct the parts used from inventory (with a movement log per part).
+ * Allowed callers: admin, owning merchant, or the assigned technician.
+ * Validates ALL parts (ownership + sufficient stock) BEFORE any write, so a bad
+ * line item rejects the whole operation instead of partially applying.
+ */
+export async function startOrderWithParts(orderId, payload) {
+  const { plate, serviceType, parts } = payload || {};
+  if (!orderId) return { ok: false, error: 'مدخلات ناقصة' };
+
+  const supabase = createServerSupabase();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { ok: false, error: 'غير مصرّح — سجّل الدخول' };
+
+  const admin = getSupabaseAdmin();
+  if (!admin) return { ok: false, error: 'مفتاح الخدمة غير مهيّأ' };
+
+  const { data: ord } = await admin.from('orders').select('id, merchant_id, assigned_to, branch_id').eq('id', orderId).maybeSingle();
+  if (!ord) return { ok: false, error: 'الطلب غير موجود' };
+
+  if (!(await isAdmin(supabase, user)) && ord.merchant_id !== user.id && ord.assigned_to !== user.id) {
+    return { ok: false, error: 'لا تملك صلاحية على هذا الطلب' };
+  }
+
+  // Validate parts up front (ownership + stock) — no writes yet.
+  const list = (Array.isArray(parts) ? parts : []).filter((p) => p && p.itemId && Number(p.qty) > 0);
+  const toDeduct = [];
+  if (list.length) {
+    const { data: inv } = await admin
+      .from('inventory')
+      .select('id, name, quantity, merchant_id, branch_id')
+      .in('id', list.map((p) => p.itemId));
+    const byId = Object.fromEntries((inv || []).map((i) => [i.id, i]));
+    for (const p of list) {
+      const it = byId[p.itemId];
+      const used = Number(p.qty);
+      if (!it || it.merchant_id !== ord.merchant_id) return { ok: false, error: 'صنف غير صالح لهذا المركز' };
+      if ((it.quantity || 0) < used) return { ok: false, error: `الكمية غير كافية: ${it.name}` };
+      toDeduct.push({ it, used });
+    }
+  }
+
+  const now = new Date().toISOString();
+  const patch = { status: 'in_progress', started_at: now, updated_at: now };
+  if (plate) patch.plate = plate;
+  if (serviceType) patch.service_type = serviceType;
+
+  const { error: oerr } = await admin.from('orders').update(patch).eq('id', orderId);
+  if (oerr) return { ok: false, error: oerr.message };
+
+  for (const { it, used } of toDeduct) {
+    await admin.from('inventory').update({ quantity: Math.max(0, (it.quantity || 0) - used), updated_at: now }).eq('id', it.id);
+    await admin.from('inventory_movements').insert({
+      merchant_id: ord.merchant_id, item_id: it.id, type: 'out', quantity: used,
+      notes: 'صرف على مهمة', branch_id: it.branch_id || ord.branch_id || null,
+    });
+  }
+
+  revalidatePath('/dashboard-pro');
+  return { ok: true, deducted: toDeduct.length };
+}

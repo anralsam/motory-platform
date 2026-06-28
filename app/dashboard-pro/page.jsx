@@ -90,6 +90,20 @@ async function fetchAssignedOrders(workerUserId) {
   return Array.isArray(data) ? data : [];
 }
 
+// ── A technician's center, and that center's inventory (for parts deduction) ──
+async function fetchWorkerCenter(workerUserId) {
+  const admin = getSupabaseAdmin();
+  if (!admin || !workerUserId) return null;
+  const { data } = await admin.from('workers').select('center_id').eq('user_id', workerUserId).eq('status', 'active').maybeSingle();
+  return data?.center_id || null;
+}
+async function fetchCenterInventory(centerId) {
+  const admin = getSupabaseAdmin();
+  if (!admin || !centerId) return [];
+  const { data } = await admin.from('inventory').select('id, name, unit, quantity').eq('merchant_id', centerId).order('name');
+  return Array.isArray(data) ? data : [];
+}
+
 // ── Admin module (real data via service-role) ──
 async function renderAdminModule() {
   const admin = getSupabaseAdmin();
@@ -190,9 +204,18 @@ export default async function DashboardProPage() {
   const userName = (user?.email || '').split('@')[0] || 'المستخدم';
 
   let moduleNode;
-  if (role === 'admin') moduleNode = await renderAdminModule();
-  else if (role === 'worker') moduleNode = <WorkerModule orders={await fetchAssignedOrders(user?.id)} />;
-  else moduleNode = await renderShopModule(user?.id);
+  if (role === 'admin') {
+    moduleNode = await renderAdminModule();
+  } else if (role === 'worker') {
+    const centerId = await fetchWorkerCenter(user?.id);
+    const [assigned, inventory] = await Promise.all([
+      fetchAssignedOrders(user?.id),
+      fetchCenterInventory(centerId),
+    ]);
+    moduleNode = <WorkerModule orders={assigned} inventory={inventory} />;
+  } else {
+    moduleNode = await renderShopModule(user?.id);
+  }
 
   return (
     <DashboardShell role={role} userName={userName}>

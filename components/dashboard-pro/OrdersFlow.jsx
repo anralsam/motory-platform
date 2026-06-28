@@ -10,6 +10,7 @@
 import { useState, useEffect } from 'react';
 import { updateOrderStatus } from '@/app/dashboard-pro/actions';
 import NoData from './NoData';
+import StartTaskModal from './StartTaskModal';
 
 // Live elapsed-time counter. Initialised after mount (now=null on first render)
 // to avoid a server/client hydration mismatch, then ticks every 30s.
@@ -46,13 +47,25 @@ const STAGES = [
 const LABEL = { pending: 'انتظار', in_progress: 'جاري العمل', ready: 'جاهز', completed: 'تم' };
 const DOT = { pending: 'bg-amber-500', in_progress: 'bg-blue-600', ready: 'bg-violet-600', completed: 'bg-emerald-600' };
 
-export default function OrdersFlow({ orders = [] }) {
+export default function OrdersFlow({ orders = [], inventory = [] }) {
   const [items, setItems] = useState(orders);
   const [busyId, setBusyId] = useState(null);
   const [toast, setToast] = useState(null);
+  const [modalOrder, setModalOrder] = useState(null);
+
+  function handleStarted(orderId) {
+    setItems((prev) => prev.map((o) => (o.id === orderId ? { ...o, status: 'in_progress' } : o)));
+    setToast({ ok: true, msg: 'بدأت المهمة وخُصمت القطع' });
+    setTimeout(() => setToast(null), 2600);
+  }
 
   async function setStage(order, status) {
     if (order.status === status || busyId) return;
+    // Moving to "in progress" requires the start modal (plate + service + parts).
+    if (status === 'in_progress') {
+      setModalOrder(order);
+      return;
+    }
     const snapshot = items;
     setItems((prev) => prev.map((o) => (o.id === order.id ? { ...o, status } : o))); // optimistic, instant
     setBusyId(order.id);
@@ -112,6 +125,15 @@ export default function OrdersFlow({ orders = [] }) {
         <div className={`pointer-events-none fixed bottom-24 start-1/2 z-50 -translate-x-1/2 rounded-lg px-4 py-2 text-sm font-bold text-white lg:bottom-6 ${toast.ok ? 'bg-emerald-600' : 'bg-rose-600'}`}>
           {toast.msg}
         </div>
+      )}
+
+      {modalOrder && (
+        <StartTaskModal
+          order={modalOrder}
+          inventory={inventory}
+          onClose={() => setModalOrder(null)}
+          onStarted={handleStarted}
+        />
       )}
     </div>
   );

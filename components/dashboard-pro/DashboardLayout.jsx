@@ -16,14 +16,26 @@
  *   <DashboardLayout content={{ dashboard: <Admin/>, operations: <Ops/> }} />
  */
 import { useState } from 'react';
-import { LayoutDashboard, Activity, Wallet, ShieldCheck, ArrowLeft } from 'lucide-react';
+import { LayoutDashboard, Activity, Wallet, ShieldCheck, ClipboardList, ArrowLeft } from 'lucide-react';
 
-const PAGES = [
-  { key: 'dashboard', label: 'لوحة التحكم', Icon: LayoutDashboard },
-  { key: 'operations', label: 'العمليات', Icon: Activity },
-  { key: 'finance', label: 'المالية', Icon: Wallet },
-  { key: 'governance', label: 'الحوكمة', Icon: ShieldCheck },
-];
+// Pages (with their lucide icons) live in this CLIENT module — never passed from
+// the server (functions can't cross the RSC boundary). The server passes only the
+// `role` and a serializable `content` map keyed by page key.
+const PAGES_BY_ROLE = {
+  admin: [
+    { key: 'dashboard', label: 'لوحة التحكم', Icon: LayoutDashboard },
+    { key: 'operations', label: 'العمليات', Icon: Activity },
+    { key: 'finance', label: 'المالية', Icon: Wallet },
+    { key: 'governance', label: 'الحوكمة', Icon: ShieldCheck },
+  ],
+  merchant: [
+    { key: 'dashboard', label: 'لوحة التحكم', Icon: LayoutDashboard },
+    { key: 'operations', label: 'العمليات', Icon: Activity },
+  ],
+  worker: [
+    { key: 'tasks', label: 'مهامي', Icon: ClipboardList },
+  ],
+};
 
 function Logo() {
   return (
@@ -46,7 +58,8 @@ function Placeholder({ label }) {
   );
 }
 
-export default function DashboardLayout({ pages = PAGES, content = {}, userName = 'المستخدم' }) {
+export default function DashboardLayout({ role = 'admin', content = {}, userName = 'المستخدم' }) {
+  const pages = PAGES_BY_ROLE[role] || PAGES_BY_ROLE.admin;
   const [active, setActive] = useState(pages[0].key);
   const isRoot = active === pages[0].key;
   const activePage = pages.find((p) => p.key === active) || pages[0];

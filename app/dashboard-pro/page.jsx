@@ -55,7 +55,7 @@ function Icon({ name }) {
 
 export default function DashboardPro() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [activeNav, setActiveNav] = useState('overview');
+  const [activeNav, setActiveNav] = useState('dashboard');
   const [growthPeriod, setGrowthPeriod] = useState('month');
   const [today, setToday] = useState('VOLD MOTOR Platform');
 
@@ -77,10 +77,9 @@ export default function DashboardPro() {
   const pickNav = (k) => { setActiveNav(k); setSidebarOpen(false); };
 
   const NAV = [
-    { k: 'overview', label: 'نظرة عامة', icon: (<><rect x="3" y="3" width="7" height="7" /><rect x="14" y="3" width="7" height="7" /><rect x="3" y="14" width="7" height="7" /><rect x="14" y="14" width="7" height="7" /></>) },
-    { k: 'operations', label: 'العمليات', icon: (<><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></>) },
-    { k: 'analytics', label: 'التحليلات', icon: (<><path d="M3 3v18h18" /><path d="m19 9-5 5-4-4-3 3" /></>) },
-    { k: 'team', label: 'الفريق', icon: (<><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /></>) },
+    { k: 'dashboard', label: 'لوحة التحكم', icon: (<><rect x="3" y="3" width="7" height="7" /><rect x="14" y="3" width="7" height="7" /><rect x="3" y="14" width="7" height="7" /><rect x="14" y="14" width="7" height="7" /></>) },
+    { k: 'merchants', label: 'المراكز', icon: (<><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" /></>) },
+    { k: 'settings', label: 'الإعدادات', icon: (<><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" /></>) },
   ];
 
   return (
@@ -267,7 +266,7 @@ const CSS = `
 .yt-layout, .yt-layout *, .yt-layout *::before, .yt-layout *::after { box-sizing:border-box; }
 :root{
   --vm-blue:#2563eb; --vm-ink:#09090b; --vm-muted:#6b7280; --vm-paper:#fff;
-  --vm-bg:#f9f9f9; --vm-line:#e5e7eb; --vm-sidebar-w:230px;
+  --vm-bg:#fafafa; --vm-line:#e5e7eb; --vm-sidebar-w:230px;
   --vm-shadow-card:0 1px 3px rgba(0,0,0,.06),0 1px 2px rgba(0,0,0,.04);
 }
 .yt-layout{ display:flex; min-height:100vh; background:var(--vm-bg);
@@ -276,9 +275,10 @@ const CSS = `
 .yt-layout button{ font-family:inherit; cursor:pointer; }
 
 /* Sidebar */
-.yt-sidebar{ width:var(--vm-sidebar-w); background:#09090b; color:#fff;
+.yt-sidebar{ width:var(--vm-sidebar-w); background:#0B0B0B; color:#fff;
   display:flex; flex-direction:column; position:fixed; top:0; right:0; bottom:0;
-  z-index:100; overflow-y:auto; transition:transform .25s ease; }
+  z-index:100; overflow-y:auto; transition:transform .25s ease;
+  border-left:1px solid rgba(255,255,255,.06); }
 @media(max-width:960px){ .yt-sidebar{ transform:translateX(100%); } .yt-sidebar.open{ transform:translateX(0); } }
 .yt-sidebar-logo{ display:flex; align-items:center; gap:10px; padding:20px 18px 16px;
   border-bottom:1px solid rgba(255,255,255,.08); direction:ltr; justify-content:flex-start; }
@@ -293,7 +293,8 @@ const CSS = `
 .yt-nav-label{ font-size:.62rem; font-weight:700; color:rgba(255,255,255,.35);
   letter-spacing:.12em; text-transform:uppercase; padding:12px 18px 5px; }
 .yt-nav-item{ display:flex; align-items:center; gap:11px; padding:10px 18px;
-  font-size:.88rem; font-weight:700; color:rgba(255,255,255,.65); transition:.15s;
+  font-size:.88rem; font-weight:700; color:rgba(255,255,255,.65);
+  transition:background .18s ease, color .18s ease;
   cursor:pointer; border:0; background:none; width:100%; text-align:right; position:relative; }
 .yt-nav-item:hover{ background:rgba(255,255,255,.07); color:#fff; }
 .yt-nav-item.active{ background:rgba(37,99,235,.22); color:#fff; }

@@ -1,418 +1,356 @@
 'use client';
 
 /**
- * VOLD MOTOR — Dashboard Pro (clean Premium Bento Grid)
- * Fresh, self-contained shell: fixed dark sidebar + 4 metric cards + charts.
- * NO merchant / admin / Supabase logic. Styles injected inline via the yt- class
- * convention. This route is independent of /vm-control-center.
+ * VOLD MOTOR — Executive Dashboard ("Modern Executive" grid).
+ * Architecture note: this is a CLIENT component by necessity — Recharts, the
+ * sidebar/period toggles, and the browser Supabase client are all client-only,
+ * so a React Server Component cannot render this screen. Styling is 100% Tailwind
+ * utility classes (zero external/inline CSS). RTL-native, flat & razor-sharp.
  */
 import { useEffect, useMemo, useState } from 'react';
-import {
-  ResponsiveContainer,
-  AreaChart,
-  Area,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-} from 'recharts';
+import { useRouter } from 'next/navigation';
+import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts';
 import { supabase } from '@/lib/supabaseClient';
 
-const MONTH_LABELS = ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'];
-const DAY_NAMES = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
+const MONTHS_AR = ['ينا', 'فبر', 'مار', 'أبر', 'ماي', 'يون', 'يول', 'أغس', 'سبت', 'أكت', 'نوف', 'ديس'];
+const DAYS_AR = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
 
-// ── Demo data (static — no backend) ──
-const GROWTH = [4, 6, 5, 9, 8, 12, 11, 14, 13, 17, 16, 21];
-// liveKey maps each card to a computed count from join_requests.status.
-// `mock` is the fallback shown when the live fetch fails (UI never crashes).
-const METRICS = [
-  { key: 'total', liveKey: 'total', label: 'إجمالي الطلبات', mock: '1,284', icon: 'grid', foot: 'منذ الإطلاق', footClass: 'up' },
-  { key: 'active', liveKey: 'approved', label: 'المراكز المفعّلة', mock: '342', icon: 'store', foot: 'حسابات نشطة', footClass: 'up' },
-  { key: 'pending', liveKey: 'pending', label: 'الطلبات المعلّقة', mock: '27', icon: 'clock', foot: '⚠ تحتاج مراجعة', footClass: 'warn' },
-  { key: 'rejected', liveKey: 'rejected', label: 'الطلبات المرفوضة', mock: '12', icon: 'x', foot: 'من إجمالي الطلبات', footClass: '' },
+// ── Inline Lucide-style icons (no external dependency) ──
+const ic = { width: 18, height: 18, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 2, strokeLinecap: 'round', strokeLinejoin: 'round' };
+const IconGrid = (p) => (<svg {...ic} {...p}><rect x="3" y="3" width="7" height="7" rx="1" /><rect x="14" y="3" width="7" height="7" rx="1" /><rect x="3" y="14" width="7" height="7" rx="1" /><rect x="14" y="14" width="7" height="7" rx="1" /></svg>);
+const IconStore = (p) => (<svg {...ic} {...p}><path d="M3 9l1.5-5h15L21 9" /><path d="M4 9v10a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1V9" /><path d="M9 20v-6h6v6" /></svg>);
+const IconClock = (p) => (<svg {...ic} {...p}><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></svg>);
+const IconXCircle = (p) => (<svg {...ic} {...p}><circle cx="12" cy="12" r="9" /><path d="M15 9l-6 6M9 9l6 6" /></svg>);
+const IconSettings = (p) => (<svg {...ic} {...p}><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" /></svg>);
+const IconLogout = (p) => (<svg {...ic} {...p}><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><polyline points="16 17 21 12 16 7" /><line x1="21" y1="12" x2="9" y2="12" /></svg>);
+const IconMenu = (p) => (<svg {...ic} {...p}><path d="M3 6h18M3 12h18M3 18h18" /></svg>);
+const IconUp = (p) => (<svg {...ic} width="13" height="13" {...p}><polyline points="6 15 12 9 18 15" /></svg>);
+const IconDown = (p) => (<svg {...ic} width="13" height="13" {...p}><polyline points="6 9 12 15 18 9" /></svg>);
+const IconAlert = (p) => (<svg {...ic} {...p}><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" /><line x1="12" y1="9" x2="12" y2="13" /><line x1="12" y1="17" x2="12.01" y2="17" /></svg>);
+const IconInbox = (p) => (<svg {...ic} {...p}><polyline points="22 12 16 12 14 15 10 15 8 12 2 12" /><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z" /></svg>);
+
+const TONES = {
+  indigo: 'bg-indigo-50 text-indigo-600',
+  emerald: 'bg-emerald-50 text-emerald-600',
+  amber: 'bg-amber-50 text-amber-600',
+  rose: 'bg-rose-50 text-rose-600',
+};
+
+const NAV = [
+  { k: 'dashboard', label: 'لوحة التحكم', Icon: IconGrid },
+  { k: 'merchants', label: 'المراكز', Icon: IconStore },
+  { k: 'settings', label: 'الإعدادات', Icon: IconSettings },
 ];
-function Icon({ name }) {
-  const common = { width: 17, height: 17, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 2.2, strokeLinecap: 'round' };
-  switch (name) {
-    case 'grid':
-      return (<svg {...common}><rect x="3" y="3" width="7" height="7" /><rect x="14" y="3" width="7" height="7" /><rect x="3" y="14" width="7" height="7" /><rect x="14" y="14" width="7" height="7" /></svg>);
-    case 'pulse':
-      return (<svg {...common}><path d="M22 12h-4l-3 9L9 3l-3 9H2" /></svg>);
-    case 'clock':
-      return (<svg {...common}><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg>);
-    case 'chart':
-      return (<svg {...common}><path d="M3 3v18h18" /><path d="m19 9-5 5-4-4-3 3" /></svg>);
-    case 'store':
-      return (<svg {...common}><path d="M3 9l1.5-5h15L21 9" /><path d="M4 9v10a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1V9" /><path d="M9 20v-6h6v6" /></svg>);
-    case 'x':
-      return (<svg {...common}><circle cx="12" cy="12" r="10" /><line x1="15" y1="9" x2="9" y2="15" /><line x1="9" y1="9" x2="15" y2="15" /></svg>);
-    default:
-      return null;
-  }
-}
 
-export default function DashboardPro() {
+export default function ExecutiveDashboard() {
+  const router = useRouter();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activeNav, setActiveNav] = useState('dashboard');
-  const [growthPeriod, setGrowthPeriod] = useState('month');
-  const [today, setToday] = useState('VOLD MOTOR Platform');
-  // Live metric counts from join_requests, or null while loading / on failure.
-  const [live, setLive] = useState(null);
+  const [period, setPeriod] = useState('month');
+  const [today, setToday] = useState('VOLD MOTOR');
+  // status: 'loading' | 'ready' | 'empty'  (empty covers fetch-fail AND zero rows)
+  const [status, setStatus] = useState('loading');
+  const [data, setData] = useState(null);
 
   useEffect(() => {
-    const now = new Date();
-    setToday(`${DAY_NAMES[now.getDay()]}، ${now.toLocaleDateString('ar-SA', { year: 'numeric', month: 'long', day: 'numeric' })}`);
+    const n = new Date();
+    setToday(`${DAYS_AR[n.getDay()]}، ${n.toLocaleDateString('ar-SA', { year: 'numeric', month: 'long', day: 'numeric' })}`);
   }, []);
 
-  // ── Fetch real metric counts. On ANY failure (RLS, network, no session)
-  //    we leave `live` as null so the cards fall back to the mock values and
-  //    the dashboard never crashes. ──
   useEffect(() => {
-    let active = true;
-    (async () => {
-      try {
-        const { data, error } = await supabase.from('join_requests').select('status');
-        if (error) throw error;
-        if (!active || !Array.isArray(data)) return;
-        const counts = { total: data.length, pending: 0, approved: 0, rejected: 0 };
-        data.forEach((r) => {
-          if (r.status === 'pending') counts.pending++;
-          else if (r.status === 'approved') counts.approved++;
-          else if (r.status === 'rejected') counts.rejected++;
-        });
-        setLive(counts);
-      } catch {
-        // Keep mock UI visible — do not surface an error or blank the cards.
-        if (active) setLive(null);
-      }
-    })();
-    return () => {
-      active = false;
-    };
-  }, []);
-
-  // Esc closes the mobile sidebar
-  useEffect(() => {
-    const onKey = (e) => { if (e.key === 'Escape') setSidebarOpen(false); };
+    const onKey = (e) => e.key === 'Escape' && setSidebarOpen(false);
     document.addEventListener('keydown', onKey);
     return () => document.removeEventListener('keydown', onKey);
   }, []);
 
-  const growthData = useMemo(() => MONTH_LABELS.map((label, i) => ({ label, value: GROWTH[i] })), []);
-  // Deep-Insight: trend deltas derived from the growth series.
-  const insight = useMemo(() => {
-    const total = GROWTH.reduce((s, v) => s + v, 0);
-    const last = GROWTH[GROWTH.length - 1];
-    const prev = GROWTH[GROWTH.length - 2] || 0;
-    const momDelta = prev ? Math.round(((last - prev) / prev) * 100) : 0;
-    const avg = Math.round(total / GROWTH.length);
-    const peak = Math.max(...GROWTH);
-    const peakShare = total ? Math.round((peak / total) * 100) : 0;
-    return { total, last, momDelta, avg, peak, peakShare };
+  // ── Bulletproof data fetch ──
+  useEffect(() => {
+    let alive = true;
+    async function fetchDashboardData() {
+      try {
+        const { data: rows, error } = await supabase.from('join_requests').select('status, created_at');
+        if (error) throw error;
+        if (!alive) return;
+        if (!Array.isArray(rows) || rows.length === 0) {
+          setStatus('empty');
+          return;
+        }
+        const counts = { total: rows.length, approved: 0, pending: 0, rejected: 0 };
+        const monthly = Array(12).fill(0);
+        const year = new Date().getFullYear();
+        rows.forEach((r) => {
+          if (r.status === 'approved') counts.approved++;
+          else if (r.status === 'pending') counts.pending++;
+          else if (r.status === 'rejected') counts.rejected++;
+          if (r.created_at) {
+            const d = new Date(r.created_at);
+            if (d.getFullYear() === year) monthly[d.getMonth()]++;
+          }
+        });
+        setData({ ...counts, monthly: MONTHS_AR.map((label, i) => ({ label, value: monthly[i] })) });
+        setStatus('ready');
+      } catch {
+        if (alive) setStatus('empty');
+      }
+    }
+    fetchDashboardData();
+    return () => { alive = false; };
   }, []);
 
-  const pickNav = (k) => { setActiveNav(k); setSidebarOpen(false); };
+  async function logout() {
+    await supabase.auth.signOut();
+    router.replace('/auth/signin');
+  }
 
-  const NAV = [
-    { k: 'dashboard', label: 'لوحة التحكم', icon: (<><rect x="3" y="3" width="7" height="7" /><rect x="14" y="3" width="7" height="7" /><rect x="3" y="14" width="7" height="7" /><rect x="14" y="14" width="7" height="7" /></>) },
-    { k: 'merchants', label: 'المراكز', icon: (<><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" /></>) },
-    { k: 'settings', label: 'الإعدادات', icon: (<><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" /></>) },
+  const ready = status === 'ready' && data;
+
+  const insight = useMemo(() => {
+    if (!ready) return null;
+    const { total, approved, pending, rejected, monthly } = data;
+    const last = monthly[monthly.length - 1]?.value || 0;
+    const prev = monthly[monthly.length - 2]?.value || 0;
+    const momDelta = prev ? Math.round(((last - prev) / prev) * 100) : last > 0 ? 100 : 0;
+    const pct = (n) => (total ? Math.round((n / total) * 100) : 0);
+    return { total, approved, pending, rejected, momDelta, approvalRate: pct(approved), rejectRate: pct(rejected), pendingRate: pct(pending), thisMonth: last };
+  }, [ready, data]);
+
+  const cards = [
+    { key: 'total', label: 'إجمالي الطلبات', tone: 'indigo', Icon: IconGrid, value: ready ? data.total : null, trend: insight?.momDelta, dir: (insight?.momDelta ?? 0) >= 0 ? 'up' : 'down' },
+    { key: 'approved', label: 'المراكز المفعّلة', tone: 'emerald', Icon: IconStore, value: ready ? data.approved : null, trend: insight?.approvalRate, dir: 'up' },
+    { key: 'pending', label: 'الطلبات المعلّقة', tone: 'amber', Icon: IconClock, value: ready ? data.pending : null, trend: insight?.pendingRate, dir: (data?.pending ?? 0) > 0 ? 'down' : 'up' },
+    { key: 'rejected', label: 'الطلبات المرفوضة', tone: 'rose', Icon: IconXCircle, value: ready ? data.rejected : null, trend: insight?.rejectRate, dir: 'down' },
   ];
 
   return (
-    <div dir="rtl">
-      <style dangerouslySetInnerHTML={{ __html: CSS }} />
+    <div dir="rtl" className="min-h-screen bg-zinc-50 font-sans text-zinc-900">
+      {/* Mobile overlay */}
+      {sidebarOpen && <div className="fixed inset-0 z-30 bg-black/40 lg:hidden" onClick={() => setSidebarOpen(false)} />}
 
-      {/* Sidebar overlay (mobile) */}
-      <div className={`sidebar-overlay${sidebarOpen ? ' open' : ''}`} onClick={() => setSidebarOpen(false)} />
-
-      <div className="yt-layout">
-        {/* ══ SIDEBAR ══ */}
-        <aside className={`yt-sidebar${sidebarOpen ? ' open' : ''}`}>
-          <div className="yt-sidebar-logo">
-            <svg width="28" height="28" viewBox="0 0 48 48" fill="none" aria-hidden="true">
-              <path d="M6 10 L24 42 L42 10" stroke="url(#dpg)" strokeWidth="4.8" strokeLinecap="round" strokeLinejoin="round" />
-              <defs>
-                <linearGradient id="dpg" x1="6" y1="10" x2="42" y2="42" gradientUnits="userSpaceOnUse">
-                  <stop stopColor="#FAFAFA" />
-                  <stop offset=".55" stopColor="#3b82f6" />
-                  <stop offset="1" stopColor="#2563eb" />
-                </linearGradient>
-              </defs>
-            </svg>
-            <div className="yt-logo-text">
-              <span className="yt-logo-name">VOLD <span>MOTOR</span></span>
-              <span className="yt-logo-sub">Dashboard Pro</span>
-            </div>
+      {/* ══ SIDEBAR (fixed, right, dark) ══ */}
+      <aside
+        className={`fixed top-0 right-0 bottom-0 z-40 flex w-[260px] flex-col bg-[#0B0B0B] text-white transition-transform duration-200 ${
+          sidebarOpen ? 'translate-x-0' : 'translate-x-full'
+        } lg:translate-x-0`}
+      >
+        <div className="flex items-center gap-3 border-b border-white/10 px-5 py-5" dir="ltr">
+          <svg width="28" height="28" viewBox="0 0 48 48" fill="none" aria-hidden="true">
+            <path d="M6 10 L24 42 L42 10" stroke="url(#xg)" strokeWidth="4.8" strokeLinecap="round" strokeLinejoin="round" />
+            <defs>
+              <linearGradient id="xg" x1="6" y1="10" x2="42" y2="42" gradientUnits="userSpaceOnUse">
+                <stop stopColor="#FAFAFA" /><stop offset=".55" stopColor="#6366f1" /><stop offset="1" stopColor="#4f46e5" />
+              </linearGradient>
+            </defs>
+          </svg>
+          <div className="flex flex-col leading-tight">
+            <span className="text-base font-extrabold tracking-wide">VOLD <span className="text-indigo-400">MOTOR</span></span>
+            <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-white/40">Executive</span>
           </div>
+        </div>
 
-          <nav className="yt-sidebar-nav">
-            <div className="yt-nav-section">
-              <div className="yt-nav-label">الرئيسية</div>
-              {NAV.map((n) => (
-                <button key={n.k} className={`yt-nav-item${activeNav === n.k ? ' active' : ''}`} onClick={() => pickNav(n.k)}>
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">{n.icon}</svg>
-                  <span>{n.label}</span>
-                </button>
-              ))}
-            </div>
-          </nav>
-
-          <div className="yt-sidebar-user">
-            <div className="yt-su-avatar">V</div>
-            <div className="yt-su-info">
-              <div className="yt-su-name">المدير</div>
-              <div className="yt-su-role">Pro</div>
-            </div>
-          </div>
-        </aside>
-
-        {/* ══ MAIN ══ */}
-        <div className="yt-main">
-          {/* Topbar */}
-          <header className="yt-topbar">
-            <div className="yt-topbar-left">
-              <button className="burger-btn" onClick={() => setSidebarOpen(true)} aria-label="القائمة">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round">
-                  <path d="M3 6h18M3 12h18M3 18h18" />
-                </svg>
+        <nav className="flex-1 px-3 py-4">
+          <div className="px-2 pb-2 text-[10px] font-bold uppercase tracking-[0.14em] text-white/35">القائمة</div>
+          {NAV.map(({ k, label, Icon }) => {
+            const on = activeNav === k;
+            return (
+              <button
+                key={k}
+                onClick={() => { setActiveNav(k); setSidebarOpen(false); }}
+                className={`relative flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-right text-sm font-bold transition-colors duration-[180ms] ${
+                  on ? 'bg-indigo-600/20 text-white' : 'text-white/65 hover:bg-white/[0.07] hover:text-white'
+                }`}
+              >
+                {on && <span className="absolute right-0 top-1.5 bottom-1.5 w-[3px] rounded-l bg-indigo-500" />}
+                <Icon width="17" height="17" />
+                <span>{label}</span>
               </button>
-              <div>
-                <div className="yt-page-title">لوحة التحكم</div>
-                <div className="yt-page-sub">{today}</div>
+            );
+          })}
+        </nav>
+
+        <div className="flex items-center gap-3 border-t border-white/10 px-5 py-4">
+          <div className="grid h-9 w-9 place-items-center rounded-full bg-indigo-600 text-sm font-black">V</div>
+          <div className="min-w-0 flex-1">
+            <div className="truncate text-sm font-bold">المدير</div>
+            <div className="text-xs text-white/45">Super Admin</div>
+          </div>
+          <button onClick={logout} title="خروج" className="grid h-8 w-8 place-items-center rounded-lg border border-white/15 text-white/50 transition-colors hover:border-indigo-400 hover:text-indigo-400">
+            <IconLogout width="15" height="15" />
+          </button>
+        </div>
+      </aside>
+
+      {/* ══ MAIN ══ */}
+      <div className="flex min-h-screen flex-col lg:mr-[260px]">
+        {/* Topbar */}
+        <header className="sticky top-0 z-20 flex h-16 items-center justify-between border-b border-[#e4e4e7] bg-white/90 px-5 backdrop-blur lg:px-8">
+          <div className="flex items-center gap-3">
+            <button onClick={() => setSidebarOpen(true)} className="grid h-9 w-9 place-items-center rounded-lg border border-[#e4e4e7] text-zinc-500 lg:hidden" aria-label="القائمة">
+              <IconMenu width="18" height="18" />
+            </button>
+            <div>
+              <div className="text-[15px] font-extrabold leading-tight">نظرة عامة</div>
+              <div className="text-xs font-medium text-zinc-500">{today}</div>
+            </div>
+          </div>
+          <button className="rounded-lg border border-[#e4e4e7] bg-white px-4 py-2 text-sm font-semibold text-zinc-700 transition-colors hover:bg-zinc-50">
+            تصدير التقرير
+          </button>
+        </header>
+
+        {/* Content grid */}
+        <main className="flex-1 space-y-5 p-5 lg:p-8">
+          {/* ── Row 1: 4 stat cards ── */}
+          <section className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4">
+            {cards.map((c) => (
+              <div key={c.key} className="flex flex-col gap-4 rounded-2xl border border-[#e4e4e7] bg-white p-6">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-semibold text-zinc-500">{c.label}</span>
+                  <span className={`grid h-9 w-9 place-items-center rounded-lg ${TONES[c.tone]}`}><c.Icon width="18" height="18" /></span>
+                </div>
+                <div className="flex items-end justify-between gap-2">
+                  {c.value === null ? (
+                    status === 'loading'
+                      ? <span className="h-7 w-16 animate-pulse rounded bg-zinc-100" />
+                      : <span className="font-inter text-2xl font-bold text-zinc-300" dir="ltr">—</span>
+                  ) : (
+                    <span className="font-inter text-3xl font-bold tabular-nums tracking-tight text-zinc-900" dir="ltr">
+                      {c.value.toLocaleString('en-US')}
+                    </span>
+                  )}
+                  {ready && Number.isFinite(c.trend) && (
+                    <span dir="ltr" className={`inline-flex items-center gap-0.5 rounded-md px-1.5 py-0.5 text-xs font-bold tabular-nums ${
+                      c.dir === 'up' ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'
+                    }`}>
+                      {c.dir === 'up' ? <IconUp /> : <IconDown />}
+                      {Math.abs(c.trend)}%
+                    </span>
+                  )}
+                </div>
               </div>
-            </div>
-            <div className="yt-topbar-right">
-              <button className="yt-btn">إجراء جديد</button>
-            </div>
-          </header>
+            ))}
+          </section>
 
-          {/* Content */}
-          <main className="yt-content">
-            {/* Page heading — airy, minimalist */}
-            <div className="page-head">
-              <h1>نظرة عامة</h1>
-              <p>ملخّص أداء المنصة · {today}</p>
-            </div>
-
-            {/* Stats grid — 4 top-level metric cards */}
-            <div className="sa-stats">{/* flat, no animation */}
-              {METRICS.map((m) => (
-                <div className="sa-stat" key={m.key}>
-                  <div className="sa-stat-head">
-                    <div className="sa-stat-label">{m.label}</div>
-                    <div className={`sa-stat-icon icon-${m.key}`}>
-                      <Icon name={m.icon} />
-                    </div>
-                  </div>
-                  <div className="sa-stat-val">
-                    {live ? (live[m.liveKey] ?? 0).toLocaleString('en-US') : m.mock}
-                  </div>
-                  <div className={`sa-stat-footer ${m.footClass}`}>{m.foot}</div>
+          {/* ── Row 2: Hero chart (2/3) + Master Insights (1/3) ── */}
+          <section className="grid grid-cols-1 gap-5 lg:grid-cols-3">
+            {/* Hero growth chart */}
+            <div className="rounded-2xl border border-[#e4e4e7] bg-white p-6 lg:col-span-2">
+              <div className="mb-5 flex flex-wrap items-start justify-between gap-3">
+                <div>
+                  <h3 className="text-base font-extrabold tracking-tight">اتجاه النمو</h3>
+                  <p className="mt-1 text-xs font-medium text-zinc-500">طلبات الانضمام الجديدة على مدار العام</p>
                 </div>
-              ))}
-            </div>
-
-            {/* ══ Master Analysis ══ */}
-            <section className="ma">
-              {/* Primary growth chart */}
-              <div className="ma-main">
-                <div className="ma-head">
-                  <div>
-                    <h3>التحليل الرئيسي · نمو العمليات</h3>
-                    <p>تتبّع حجم العمليات على مدار العام</p>
-                  </div>
-                  <div className="chart-period">
-                    <button className={`cp-btn${growthPeriod === 'month' ? ' active' : ''}`} onClick={() => setGrowthPeriod('month')}>شهري</button>
-                    <button className={`cp-btn${growthPeriod === 'year' ? ' active' : ''}`} onClick={() => setGrowthPeriod('year')}>سنوي</button>
-                  </div>
+                <div className="flex gap-1 rounded-lg border border-[#e4e4e7] bg-zinc-50 p-1">
+                  {[['month', 'شهري'], ['year', 'سنوي']].map(([k, lbl]) => (
+                    <button key={k} onClick={() => setPeriod(k)} className={`rounded-md px-3 py-1.5 text-xs font-semibold transition-colors duration-[180ms] ${
+                      period === k ? 'bg-white text-zinc-900 shadow-sm' : 'text-zinc-500'
+                    }`}>{lbl}</button>
+                  ))}
                 </div>
-                <div style={{ height: 280, position: 'relative' }}>
+              </div>
+              {ready ? (
+                <div className="h-[280px]" dir="ltr">
                   <ResponsiveContainer width="100%" height="100%">
-                    <AreaChart data={growthData} margin={{ top: 8, right: 6, left: -20, bottom: 0 }}>
-                      <defs>
-                        <linearGradient id="maFill" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="0%" stopColor="#4f46e5" stopOpacity={0.14} />
-                          <stop offset="100%" stopColor="#4f46e5" stopOpacity={0} />
-                        </linearGradient>
-                      </defs>
+                    <BarChart data={data.monthly} margin={{ top: 8, right: 4, left: -20, bottom: 0 }}>
                       <CartesianGrid vertical={false} stroke="#f4f4f5" />
-                      <XAxis dataKey="label" tickLine={false} axisLine={false} tick={{ fontSize: 11, fill: '#a1a1aa' }} interval={0} tickMargin={10} />
+                      <XAxis dataKey="label" tickLine={false} axisLine={false} tick={{ fontSize: 11, fill: '#a1a1aa' }} interval={0} tickMargin={8} />
                       <YAxis allowDecimals={false} tickLine={false} axisLine={false} tick={{ fontSize: 11, fill: '#a1a1aa' }} width={30} />
-                      <Tooltip
-                        cursor={{ stroke: '#e4e4e7', strokeWidth: 1 }}
-                        contentStyle={{ borderRadius: 12, border: '1px solid #e4e4e7', fontSize: 12, fontFamily: 'inherit', boxShadow: 'none' }}
-                        labelStyle={{ fontWeight: 700, color: '#09090b' }}
-                        formatter={(v) => [v, 'عملية']}
-                      />
-                      <Area type="monotone" dataKey="value" stroke="#4f46e5" strokeWidth={2.5} fill="url(#maFill)" dot={false} activeDot={{ r: 4, fill: '#4f46e5', stroke: '#fff', strokeWidth: 2 }} />
-                    </AreaChart>
+                      <Tooltip cursor={{ fill: 'rgba(79,70,229,.06)' }} contentStyle={{ borderRadius: 12, border: '1px solid #e4e4e7', fontSize: 12 }} labelStyle={{ fontWeight: 700 }} formatter={(v) => [v, 'طلب']} />
+                      <Bar dataKey="value" fill="#4f46e5" radius={[6, 6, 0, 0]} maxBarSize={34} />
+                    </BarChart>
                   </ResponsiveContainer>
                 </div>
-              </div>
+              ) : (
+                <EmptyState loading={status === 'loading'} />
+              )}
+            </div>
 
-              {/* Deep Insight panel */}
-              <aside className="ma-side">
-                <div className="ma-side-title">نظرة عميقة</div>
-
-                <div className="ins">
-                  <div className="ins-label">نمو هذا الشهر</div>
-                  <div className={`ins-delta ${insight.momDelta >= 0 ? 'up' : 'down'}`}>
-                    <span>{insight.momDelta >= 0 ? '▲' : '▼'}</span>
-                    <span className="ins-num">{Math.abs(insight.momDelta)}%</span>
-                  </div>
+            {/* Master Insights */}
+            <div className="rounded-2xl border border-[#e4e4e7] bg-white p-6 lg:col-span-1">
+              <div className="mb-2 text-[11px] font-bold uppercase tracking-[0.12em] text-zinc-400">نظرة عميقة</div>
+              {ready ? (
+                <div className="divide-y divide-[#e4e4e7]">
+                  <Insight label="نمو هذا الشهر">
+                    <span dir="ltr" className={`inline-flex items-center gap-1 font-inter text-xl font-bold tabular-nums ${insight.momDelta >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+                      {insight.momDelta >= 0 ? <IconUp /> : <IconDown />}{Math.abs(insight.momDelta)}%
+                    </span>
+                  </Insight>
+                  <Insight label="معدل القبول">
+                    <span dir="ltr" className="font-inter text-xl font-bold tabular-nums text-zinc-900">{insight.approvalRate}%</span>
+                  </Insight>
+                  <Insight label="نسبة الرفض">
+                    <span dir="ltr" className="font-inter text-xl font-bold tabular-nums text-zinc-900">{insight.rejectRate}%</span>
+                  </Insight>
+                  {/* Status alert */}
+                  {insight.pending > 0 ? (
+                    <div className="flex items-start gap-2 pt-4 text-rose-600">
+                      <IconAlert width="16" height="16" />
+                      <span className="text-sm font-semibold leading-snug">{insight.pending.toLocaleString('en-US')} طلبات بانتظار المراجعة</span>
+                    </div>
+                  ) : (
+                    <div className="flex items-start gap-2 pt-4 text-emerald-600">
+                      <IconUp /><span className="text-sm font-semibold leading-snug">لا توجد طلبات معلّقة — كل شيء محدّث</span>
+                    </div>
+                  )}
                 </div>
+              ) : (
+                <EmptyState loading={status === 'loading'} compact />
+              )}
+            </div>
+          </section>
 
-                <div className="ins">
-                  <div className="ins-label">إجمالي العام</div>
-                  <div className="ins-num">{insight.total.toLocaleString('en-US')}</div>
-                </div>
-
-                <div className="ins">
-                  <div className="ins-label">المتوسط الشهري</div>
-                  <div className="ins-num">{insight.avg.toLocaleString('en-US')}</div>
-                </div>
-
-                <div className="ins">
-                  <div className="ins-label">أعلى شهر</div>
-                  <div className="ins-num">{insight.peak.toLocaleString('en-US')}<span className="ins-sub"> · {insight.peakShare}% من العام</span></div>
-                </div>
-              </aside>
-            </section>
-          </main>
-        </div>
+          {/* ── Row 3 (footer): minor metric cards ── */}
+          <section className="grid grid-cols-1 gap-5 sm:grid-cols-3">
+            <MiniCard label="طلبات هذا الشهر" value={ready ? insight.thisMonth : null} loading={status === 'loading'} suffix="طلب" />
+            <MiniCard label="معدل القبول" value={ready ? insight.approvalRate : null} loading={status === 'loading'} suffix="%" tone="emerald" />
+            <MiniCard label="نسبة الرفض" value={ready ? insight.rejectRate : null} loading={status === 'loading'} suffix="%" tone="rose" />
+          </section>
+        </main>
       </div>
     </div>
   );
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
-// Inline CSS — Premium Bento shell. yt- namespaced, scoped via --vm-* vars.
-// No table / modal / toast — this is a clean presentational dashboard.
-// ═══════════════════════════════════════════════════════════════════════════
-const CSS = `
-.yt-layout, .yt-layout *, .yt-layout *::before, .yt-layout *::after { box-sizing:border-box; }
-:root{
-  --vm-blue:#2563eb; --vm-ink:#09090b; --vm-muted:#6b7280; --vm-paper:#fff;
-  --vm-bg:#ffffff; --vm-line:#e4e4e7; --vm-sidebar-w:230px;
-  --vm-indigo:#4f46e5; --vm-emerald:#10b981;
+function Insight({ label, children }) {
+  return (
+    <div className="flex flex-col gap-2 py-4 first:pt-3">
+      <span className="text-sm font-medium text-zinc-500">{label}</span>
+      {children}
+    </div>
+  );
 }
-.yt-layout{ display:flex; min-height:100vh; background:var(--vm-bg);
-  color:var(--vm-ink); font-family:'Almarai',system-ui,sans-serif; line-height:1.6; }
-.yt-layout a{ text-decoration:none; color:inherit; }
-.yt-layout button{ font-family:inherit; cursor:pointer; }
 
-/* Sidebar */
-.yt-sidebar{ width:var(--vm-sidebar-w); background:#0B0B0B; color:#fff;
-  display:flex; flex-direction:column; position:fixed; top:0; right:0; bottom:0;
-  z-index:100; overflow-y:auto; transition:transform .25s ease;
-  border-left:1px solid rgba(255,255,255,.06); }
-@media(max-width:960px){ .yt-sidebar{ transform:translateX(100%); } .yt-sidebar.open{ transform:translateX(0); } }
-.yt-sidebar-logo{ display:flex; align-items:center; gap:10px; padding:20px 18px 16px;
-  border-bottom:1px solid rgba(255,255,255,.08); direction:ltr; justify-content:flex-start; }
-.yt-sidebar-logo svg{ flex:none; }
-.yt-logo-text{ display:flex; flex-direction:column; }
-.yt-logo-name{ font-weight:800; font-size:1rem; letter-spacing:.04em; color:#fff; line-height:1.1; }
-.yt-logo-name span{ color:#3b82f6; }
-.yt-logo-sub{ font-size:.6rem; font-weight:700; color:rgba(255,255,255,.4);
-  letter-spacing:.14em; margin-top:1px; text-transform:uppercase; }
-.yt-sidebar-nav{ flex:1; padding:12px 0; }
-.yt-nav-section{ margin-bottom:4px; }
-.yt-nav-label{ font-size:.62rem; font-weight:700; color:rgba(255,255,255,.35);
-  letter-spacing:.12em; text-transform:uppercase; padding:12px 18px 5px; }
-.yt-nav-item{ display:flex; align-items:center; gap:11px; padding:10px 18px;
-  font-size:.88rem; font-weight:700; color:rgba(255,255,255,.65);
-  transition:background .18s ease, color .18s ease;
-  cursor:pointer; border:0; background:none; width:100%; text-align:right; position:relative; }
-.yt-nav-item:hover{ background:rgba(255,255,255,.07); color:#fff; }
-.yt-nav-item.active{ background:rgba(37,99,235,.22); color:#fff; }
-.yt-nav-item.active::before{ content:''; position:absolute; right:0; top:4px; bottom:4px;
-  width:3px; border-radius:0 3px 3px 0; background:#3b82f6; }
-.yt-sidebar-user{ padding:16px 18px; border-top:1px solid rgba(255,255,255,.08);
-  display:flex; align-items:center; gap:10px; }
-.yt-su-avatar{ width:34px; height:34px; border-radius:50%; background:#2563eb; color:#fff;
-  display:grid; place-items:center; font-size:.9rem; font-weight:900; flex:none; }
-.yt-su-info{ flex:1; min-width:0; }
-.yt-su-name{ font-size:.88rem; font-weight:800; color:#fff; }
-.yt-su-role{ font-size:.7rem; color:rgba(255,255,255,.45); }
+function MiniCard({ label, value, loading, suffix, tone }) {
+  const color = tone === 'emerald' ? 'text-emerald-600' : tone === 'rose' ? 'text-rose-600' : 'text-zinc-900';
+  return (
+    <div className="flex items-center justify-between rounded-2xl border border-[#e4e4e7] bg-white p-5">
+      <span className="text-sm font-semibold text-zinc-500">{label}</span>
+      {value === null ? (
+        loading
+          ? <span className="h-6 w-12 animate-pulse rounded bg-zinc-100" />
+          : <span className="font-inter text-lg font-bold text-zinc-300" dir="ltr">—</span>
+      ) : (
+        <span dir="ltr" className={`font-inter text-2xl font-bold tabular-nums ${color}`}>
+          {value.toLocaleString('en-US')}<span className="mr-1 text-sm font-semibold text-zinc-400">{suffix}</span>
+        </span>
+      )}
+    </div>
+  );
+}
 
-/* Main */
-.yt-main{ flex:1; margin-right:var(--vm-sidebar-w); display:flex; flex-direction:column; min-height:100vh; }
-@media(max-width:960px){ .yt-main{ margin-right:0; } }
-.yt-topbar{ background:var(--vm-paper); border-bottom:1px solid var(--vm-line); height:64px; padding:0 24px;
-  display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:50; backdrop-filter:blur(8px); }
-.yt-topbar-left{ display:flex; align-items:center; gap:14px; }
-.yt-topbar-right{ display:flex; align-items:center; gap:10px; }
-.burger-btn{ width:38px; height:38px; border-radius:9px; border:1.5px solid var(--vm-line);
-  background:none; display:none; place-items:center; cursor:pointer; color:var(--vm-muted); transition:.15s; }
-@media(max-width:960px){ .burger-btn{ display:grid; } }
-.burger-btn:hover{ border-color:var(--vm-blue); color:var(--vm-blue); }
-.yt-page-title{ font-size:1.08rem; font-weight:900; color:var(--vm-ink); line-height:1.1; }
-.yt-page-sub{ font-size:.74rem; color:var(--vm-muted); font-weight:600; }
-.yt-btn{ display:inline-flex; align-items:center; gap:6px; padding:8px 16px; border-radius:10px;
-  font-family:inherit; font-size:.85rem; font-weight:600; cursor:pointer; transition:.18s;
-  border:1px solid var(--vm-line); background:var(--vm-paper); color:var(--vm-ink); }
-.yt-btn:hover{ border-color:#a1a1aa; background:#fafafa; }
-.yt-content{ flex:1; padding:32px; }
-@media(max-width:960px){ .yt-content{ padding:18px; } }
-
-/* Page heading — airy */
-.page-head{ margin-bottom:28px; }
-.page-head h1{ font-size:1.5rem; font-weight:800; color:var(--vm-ink); margin:0; letter-spacing:-.02em; }
-.page-head p{ font-size:.85rem; color:var(--vm-muted); margin:6px 0 0; font-weight:500; }
-
-/* Stats — flat, airy metric cards (no shadow, no hover lift) */
-.sa-stats{ display:grid; grid-template-columns:repeat(4,1fr); gap:20px; margin-bottom:28px; }
-@media(max-width:900px){ .sa-stats{ grid-template-columns:repeat(2,1fr); } }
-@media(max-width:480px){ .sa-stats{ grid-template-columns:1fr; } }
-.sa-stat{ background:var(--vm-paper); border:1px solid var(--vm-line); border-radius:16px; padding:24px;
-  display:flex; flex-direction:column; gap:16px; }
-.sa-stat-head{ display:flex; align-items:center; justify-content:space-between; }
-.sa-stat-icon{ width:36px; height:36px; border-radius:10px; display:grid; place-items:center; flex:none; }
-.icon-total{ background:rgba(79,70,229,.10); color:#4f46e5; }
-.icon-active{ background:rgba(16,185,129,.12); color:#059669; }
-.icon-pending{ background:#fef9c3; color:#a16207; }
-.icon-rejected{ background:#fee2e2; color:#e11d48; }
-.sa-stat-label{ font-size:.8rem; font-weight:600; color:var(--vm-muted); }
-.sa-stat-val{ font-size:2rem; font-weight:700; color:var(--vm-ink); line-height:1; letter-spacing:-.03em;
-  font-family:'Inter',ui-sans-serif,sans-serif; font-variant-numeric:tabular-nums lining-nums;
-  font-feature-settings:'tnum' 1,'lnum' 1; align-self:flex-start; direction:ltr; }
-.sa-stat-footer{ font-size:.78rem; font-weight:500; color:var(--vm-muted); margin-top:-4px; }
-.sa-stat-footer.up{ color:#059669; }
-.sa-stat-footer.warn{ color:#d97706; }
-
-/* ── Master Analysis ── */
-.ma{ display:grid; grid-template-columns:1fr 280px; background:var(--vm-paper);
-  border:1px solid var(--vm-line); border-radius:16px; overflow:hidden; }
-@media(max-width:860px){ .ma{ grid-template-columns:1fr; } }
-.ma-main{ padding:24px 26px; min-width:0; }
-.ma-head{ display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:20px; gap:12px; flex-wrap:wrap; }
-.ma-head h3{ font-size:1rem; font-weight:800; color:var(--vm-ink); margin:0; letter-spacing:-.01em; }
-.ma-head p{ font-size:.8rem; color:var(--vm-muted); margin:4px 0 0; font-weight:500; }
-.chart-period{ display:flex; gap:4px; background:#f4f4f5; border:1px solid var(--vm-line); border-radius:9px; padding:3px; }
-.cp-btn{ padding:5px 12px; border-radius:6px; font-family:inherit; font-size:.78rem; font-weight:600; border:0; background:none; color:var(--vm-muted); cursor:pointer; transition:color .18s ease, background .18s ease; }
-.cp-btn.active{ background:var(--vm-paper); color:var(--vm-ink); }
-
-/* Deep Insight panel */
-.ma-side{ border-right:1px solid var(--vm-line); padding:24px; display:flex; flex-direction:column; background:#fcfcfd; }
-@media(max-width:860px){ .ma-side{ border-right:0; border-top:1px solid var(--vm-line); } }
-.ma-side-title{ font-size:.7rem; font-weight:700; color:var(--vm-muted); letter-spacing:.12em; text-transform:uppercase; margin-bottom:8px; }
-.ins{ padding:15px 0; border-bottom:1px solid var(--vm-line); display:flex; flex-direction:column; gap:8px; }
-.ins:last-child{ border-bottom:0; }
-.ins-label{ font-size:.8rem; color:var(--vm-muted); font-weight:500; }
-.ins-num{ font-size:1.35rem; font-weight:700; color:var(--vm-ink); line-height:1; letter-spacing:-.02em;
-  font-family:'Inter',ui-sans-serif,sans-serif; font-variant-numeric:tabular-nums lining-nums; direction:ltr; align-self:flex-start; }
-.ins-sub{ font-size:.74rem; font-weight:500; color:var(--vm-muted); letter-spacing:0; }
-.ins-delta{ display:inline-flex; align-items:center; gap:6px; direction:ltr; align-self:flex-start; }
-.ins-delta.up{ color:#059669; }
-.ins-delta.down{ color:#e11d48; }
-.ins-delta.up .ins-num, .ins-delta.down .ins-num{ color:inherit; }
-.ins-delta span:first-child{ font-size:.85rem; }
-
-/* Mobile sidebar overlay */
-.sidebar-overlay{ display:none; position:fixed; inset:0; background:rgba(0,0,0,.4); z-index:90; }
-@media(max-width:960px){ .sidebar-overlay.open{ display:block; } }
-
-.fade-in{ animation:fadeUp .4s ease both; }
-@keyframes fadeUp{ from{ opacity:0; transform:translateY(14px); } to{ opacity:1; transform:none; } }
-`;
+// Integrated "No Data Available" state (never bare 0s).
+function EmptyState({ loading, compact }) {
+  if (loading) {
+    return <div className={`flex items-center justify-center rounded-xl bg-zinc-50 ${compact ? 'h-40' : 'h-[280px]'}`}>
+      <div className="h-8 w-8 animate-spin rounded-full border-2 border-zinc-200 border-t-indigo-500" />
+    </div>;
+  }
+  return (
+    <div className={`flex flex-col items-center justify-center gap-3 rounded-xl border border-dashed border-[#e4e4e7] bg-zinc-50/60 text-center ${compact ? 'h-40 p-4' : 'h-[280px] p-6'}`}>
+      <span className="grid h-12 w-12 place-items-center rounded-full bg-white text-zinc-300 ring-1 ring-[#e4e4e7]"><IconInbox width="22" height="22" /></span>
+      <div>
+        <div className="text-sm font-bold text-zinc-700">لا توجد بيانات متاحة</div>
+        <div className="mt-1 text-xs text-zinc-400">لم نتمكّن من جلب البيانات أو لا توجد سجلات بعد</div>
+      </div>
+    </div>
+  );
+}

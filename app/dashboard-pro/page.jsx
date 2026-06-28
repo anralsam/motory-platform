@@ -35,9 +35,9 @@ const METRICS = [
   { key: 'rejected', liveKey: 'rejected', label: 'الطلبات المرفوضة', mock: '12', icon: 'x', foot: 'من إجمالي الطلبات', footClass: '' },
 ];
 const DONUT = [
-  { name: 'مكتملة', value: 62, color: '#16a34a' },
-  { name: 'جارية', value: 28, color: '#2563eb' },
-  { name: 'متأخرة', value: 10, color: '#dc2626' },
+  { name: 'مكتملة', value: 62, color: '#10b981' },
+  { name: 'جارية', value: 28, color: '#4f46e5' },
+  { name: 'متأخرة', value: 10, color: '#f43f5e' },
 ];
 
 function Icon({ name }) {
@@ -245,12 +245,12 @@ export default function DashboardPro() {
                       <XAxis dataKey="label" tickLine={false} axisLine={false} tick={{ fontSize: 10, fill: '#6b7280' }} interval={0} />
                       <YAxis allowDecimals={false} tickLine={false} axisLine={false} tick={{ fontSize: 10, fill: '#6b7280' }} width={28} />
                       <Tooltip
-                        cursor={{ fill: 'rgba(37,99,235,.06)' }}
-                        contentStyle={{ borderRadius: 10, border: '1px solid #e5e7eb', fontSize: 12, fontFamily: 'inherit' }}
+                        cursor={{ fill: 'rgba(79,70,229,.06)' }}
+                        contentStyle={{ borderRadius: 10, border: '1px solid #e4e4e7', fontSize: 12, fontFamily: 'inherit' }}
                         labelStyle={{ fontWeight: 700 }}
                         formatter={(v) => [v, 'عملية']}
                       />
-                      <Bar dataKey="value" fill="rgba(37,99,235,.15)" stroke="#2563eb" strokeWidth={2} radius={[6, 6, 0, 0]} />
+                      <Bar dataKey="value" fill="rgba(79,70,229,.14)" stroke="#4f46e5" strokeWidth={2} radius={[6, 6, 0, 0]} />
                     </BarChart>
                   </ResponsiveContainer>
                 </div>
@@ -304,8 +304,9 @@ const CSS = `
 .yt-layout, .yt-layout *, .yt-layout *::before, .yt-layout *::after { box-sizing:border-box; }
 :root{
   --vm-blue:#2563eb; --vm-ink:#09090b; --vm-muted:#6b7280; --vm-paper:#fff;
-  --vm-bg:#fafafa; --vm-line:#e5e7eb; --vm-sidebar-w:230px;
-  --vm-shadow-card:0 1px 3px rgba(0,0,0,.06),0 1px 2px rgba(0,0,0,.04);
+  --vm-bg:#f4f4f5; --vm-line:#e4e4e7; --vm-sidebar-w:230px;
+  --vm-indigo:#4f46e5; --vm-emerald:#10b981;
+  --vm-shadow-card:0 1px 2px rgba(24,24,27,.04),0 2px 8px rgba(24,24,27,.06);
 }
 .yt-layout{ display:flex; min-height:100vh; background:var(--vm-bg);
   color:var(--vm-ink); font-family:'Almarai',system-ui,sans-serif; line-height:1.6; }
@@ -384,17 +385,19 @@ const CSS = `
 @media(max-width:900px){ .sa-stats{ grid-template-columns:repeat(2,1fr); } }
 @media(max-width:480px){ .sa-stats{ grid-template-columns:1fr; } }
 .sa-stat{ background:var(--vm-paper); border:1px solid var(--vm-line); border-radius:16px; padding:20px;
-  box-shadow:var(--vm-shadow-card); display:flex; flex-direction:column; gap:14px; transition:border-color .2s, box-shadow .2s; }
-.sa-stat:hover{ border-color:rgba(37,99,235,.25); box-shadow:0 4px 18px rgba(37,99,235,.06); }
+  box-shadow:var(--vm-shadow-card); display:flex; flex-direction:column; gap:14px;
+  transition:border-color .2s, box-shadow .2s, transform .2s; }
+.sa-stat:hover{ border-color:rgba(79,70,229,.28); box-shadow:0 8px 24px rgba(79,70,229,.10); transform:translateY(-2px); }
 .sa-stat-head{ display:flex; align-items:center; justify-content:space-between; }
 .sa-stat-icon{ width:38px; height:38px; border-radius:11px; display:grid; place-items:center; flex:none; }
-.icon-total{ background:rgba(37,99,235,.1); color:#2563eb; }
-.icon-active{ background:#dcfce7; color:#15803d; }
+.icon-total{ background:rgba(79,70,229,.12); color:#4f46e5; }
+.icon-active{ background:rgba(16,185,129,.14); color:#059669; }
 .icon-pending{ background:#fef9c3; color:#a16207; }
-.icon-rejected{ background:#fee2e2; color:#b91c1c; }
+.icon-rejected{ background:#fee2e2; color:#e11d48; }
 .sa-stat-label{ font-size:.78rem; font-weight:600; color:var(--vm-muted); }
-.sa-stat-val{ font-size:2.2rem; font-weight:900; color:var(--vm-ink); line-height:1; letter-spacing:-.04em;
-  font-family:'Inter',sans-serif; font-variant-numeric:tabular-nums; align-self:flex-start; }
+.sa-stat-val{ font-size:2.35rem; font-weight:900; color:var(--vm-ink); line-height:1; letter-spacing:-.045em;
+  font-family:'Inter',ui-sans-serif,sans-serif; font-variant-numeric:tabular-nums lining-nums;
+  font-feature-settings:'tnum' 1,'lnum' 1; align-self:flex-start; direction:ltr; }
 .sa-stat-footer{ font-size:.76rem; font-weight:600; color:var(--vm-muted); margin-top:-8px; }
 .sa-stat-footer.up{ color:#16a34a; }
 .sa-stat-footer.warn{ color:#d97706; }

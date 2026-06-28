@@ -85,7 +85,7 @@ export default function DashboardProLoading() {
 
 const CSS = `
 .sk-layout, .sk-layout *, .sk-layout *::before, .sk-layout *::after { box-sizing:border-box; }
-.sk-layout{ display:flex; min-height:100vh; background:#fafafa; font-family:'Almarai',system-ui,sans-serif; }
+.sk-layout{ display:flex; min-height:100vh; background:#f4f4f5; font-family:'Almarai',system-ui,sans-serif; }
 
 /* shimmer primitives */
 .sk-box, .sk-line{ display:inline-block; background:#e9eaec; border-radius:6px; position:relative; overflow:hidden; }
@@ -114,7 +114,7 @@ const CSS = `
 .sk-hero{ height:118px; border-radius:20px; margin-bottom:24px; background:#e9eaec; }
 
 /* Cards */
-.sk-card{ background:#fff; border:1px solid #e4e4e7; border-radius:16px; box-shadow:0 1px 3px rgba(0,0,0,.06),0 1px 2px rgba(0,0,0,.04); }
+.sk-card{ background:#fff; border:1px solid #e4e4e7; border-radius:16px; box-shadow:0 1px 2px rgba(24,24,27,.04),0 2px 8px rgba(24,24,27,.06); }
 .sk-stats{ display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-bottom:24px; }
 @media(max-width:900px){ .sk-stats{ grid-template-columns:repeat(2,1fr); } }
 @media(max-width:480px){ .sk-stats{ grid-template-columns:1fr; } }

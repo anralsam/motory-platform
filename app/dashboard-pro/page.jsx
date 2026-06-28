@@ -19,17 +19,20 @@ import {
   Pie,
   Cell,
 } from 'recharts';
+import { supabase } from '@/lib/supabaseClient';
 
 const MONTH_LABELS = ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'];
 const DAY_NAMES = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
 
 // ── Demo data (static — no backend) ──
 const GROWTH = [4, 6, 5, 9, 8, 12, 11, 14, 13, 17, 16, 21];
+// liveKey maps each card to a computed count from join_requests.status.
+// `mock` is the fallback shown when the live fetch fails (UI never crashes).
 const METRICS = [
-  { key: 'total', label: 'إجمالي العمليات', value: '1,284', icon: 'grid', foot: 'منذ الإطلاق', footClass: 'up' },
-  { key: 'active', label: 'نشطة الآن', value: '342', icon: 'pulse', foot: '⬆ +12% هذا الشهر', footClass: 'up' },
-  { key: 'pending', label: 'قيد المراجعة', value: '27', icon: 'clock', foot: '⚠ تحتاج متابعة', footClass: 'warn' },
-  { key: 'revenue', label: 'الإيراد الشهري', value: '٤٨٬٢٠٠ ﷼', icon: 'chart', foot: 'صافي بعد العمولة', footClass: '' },
+  { key: 'total', liveKey: 'total', label: 'إجمالي الطلبات', mock: '1,284', icon: 'grid', foot: 'منذ الإطلاق', footClass: 'up' },
+  { key: 'active', liveKey: 'approved', label: 'المراكز المفعّلة', mock: '342', icon: 'store', foot: 'حسابات نشطة', footClass: 'up' },
+  { key: 'pending', liveKey: 'pending', label: 'الطلبات المعلّقة', mock: '27', icon: 'clock', foot: '⚠ تحتاج مراجعة', footClass: 'warn' },
+  { key: 'rejected', liveKey: 'rejected', label: 'الطلبات المرفوضة', mock: '12', icon: 'x', foot: 'من إجمالي الطلبات', footClass: '' },
 ];
 const DONUT = [
   { name: 'مكتملة', value: 62, color: '#16a34a' },
@@ -48,6 +51,10 @@ function Icon({ name }) {
       return (<svg {...common}><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg>);
     case 'chart':
       return (<svg {...common}><path d="M3 3v18h18" /><path d="m19 9-5 5-4-4-3 3" /></svg>);
+    case 'store':
+      return (<svg {...common}><path d="M3 9l1.5-5h15L21 9" /><path d="M4 9v10a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1V9" /><path d="M9 20v-6h6v6" /></svg>);
+    case 'x':
+      return (<svg {...common}><circle cx="12" cy="12" r="10" /><line x1="15" y1="9" x2="9" y2="15" /><line x1="9" y1="9" x2="15" y2="15" /></svg>);
     default:
       return null;
   }
@@ -58,10 +65,39 @@ export default function DashboardPro() {
   const [activeNav, setActiveNav] = useState('dashboard');
   const [growthPeriod, setGrowthPeriod] = useState('month');
   const [today, setToday] = useState('VOLD MOTOR Platform');
+  // Live metric counts from join_requests, or null while loading / on failure.
+  const [live, setLive] = useState(null);
 
   useEffect(() => {
     const now = new Date();
     setToday(`${DAY_NAMES[now.getDay()]}، ${now.toLocaleDateString('ar-SA', { year: 'numeric', month: 'long', day: 'numeric' })}`);
+  }, []);
+
+  // ── Fetch real metric counts. On ANY failure (RLS, network, no session)
+  //    we leave `live` as null so the cards fall back to the mock values and
+  //    the dashboard never crashes. ──
+  useEffect(() => {
+    let active = true;
+    (async () => {
+      try {
+        const { data, error } = await supabase.from('join_requests').select('status');
+        if (error) throw error;
+        if (!active || !Array.isArray(data)) return;
+        const counts = { total: data.length, pending: 0, approved: 0, rejected: 0 };
+        data.forEach((r) => {
+          if (r.status === 'pending') counts.pending++;
+          else if (r.status === 'approved') counts.approved++;
+          else if (r.status === 'rejected') counts.rejected++;
+        });
+        setLive(counts);
+      } catch {
+        // Keep mock UI visible — do not surface an error or blank the cards.
+        if (active) setLive(null);
+      }
+    })();
+    return () => {
+      active = false;
+    };
   }, []);
 
   // Esc closes the mobile sidebar
@@ -180,7 +216,9 @@ export default function DashboardPro() {
                       <Icon name={m.icon} />
                     </div>
                   </div>
-                  <div className="sa-stat-val">{m.value}</div>
+                  <div className="sa-stat-val">
+                    {live ? (live[m.liveKey] ?? 0).toLocaleString('en-US') : m.mock}
+                  </div>
                   <div className={`sa-stat-footer ${m.footClass}`}>{m.foot}</div>
                 </div>
               ))}
@@ -353,7 +391,7 @@ const CSS = `
 .icon-total{ background:rgba(37,99,235,.1); color:#2563eb; }
 .icon-active{ background:#dcfce7; color:#15803d; }
 .icon-pending{ background:#fef9c3; color:#a16207; }
-.icon-revenue{ background:#ede9fe; color:#6d28d9; }
+.icon-rejected{ background:#fee2e2; color:#b91c1c; }
 .sa-stat-label{ font-size:.78rem; font-weight:600; color:var(--vm-muted); }
 .sa-stat-val{ font-size:2.2rem; font-weight:900; color:var(--vm-ink); line-height:1; letter-spacing:-.04em;
   font-family:'Inter',sans-serif; font-variant-numeric:tabular-nums; align-self:flex-start; }

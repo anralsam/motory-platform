@@ -7,9 +7,36 @@
  * on click; if the server write fails we restore the previous snapshot (revert).
  * (useState-based optimism — useOptimistic isn't available in React 18.3.)
  */
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { updateOrderStatus } from '@/app/dashboard-pro/actions';
 import NoData from './NoData';
+
+// Live elapsed-time counter. Initialised after mount (now=null on first render)
+// to avoid a server/client hydration mismatch, then ticks every 30s.
+function fmtElapsed(ms) {
+  const m = Math.floor(ms / 60000);
+  if (m < 1) return 'الآن';
+  if (m < 60) return `منذ ${m} د`;
+  const h = Math.floor(m / 60);
+  if (h < 24) return `منذ ${h} س ${m % 60} د`;
+  const d = Math.floor(h / 24);
+  return `منذ ${d} ي ${h % 24} س`;
+}
+function Elapsed({ since }) {
+  const [now, setNow] = useState(null);
+  useEffect(() => {
+    setNow(Date.now());
+    const t = setInterval(() => setNow(Date.now()), 30000);
+    return () => clearInterval(t);
+  }, []);
+  if (!since || now === null) return null;
+  return (
+    <span className="inline-flex items-center gap-1 rounded-md bg-slate-100 px-1.5 py-0.5 text-[11px] font-bold text-slate-500 tabular-nums" dir="rtl">
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round"><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></svg>
+      {fmtElapsed(now - new Date(since).getTime())}
+    </span>
+  );
+}
 
 const STAGES = [
   { k: 'pending', label: 'انتظار', active: 'border-amber-500 bg-amber-500 text-white', dot: 'bg-amber-500' },
@@ -59,10 +86,11 @@ export default function OrdersFlow({ orders = [] }) {
                 <span className="truncate font-bold text-slate-900">{o.customer_name || 'عميل'}</span>
                 <span className="rounded-md bg-slate-100 px-1.5 py-0.5 text-[11px] font-bold text-slate-500">{LABEL[o.status] || o.status}</span>
               </div>
-              <div className="mt-1 text-xs text-slate-500">
-                {[o.car_make, o.car_model].filter(Boolean).join(' ') || '—'}
-                {o.plate ? <span dir="ltr"> · {o.plate}</span> : null}
-                {o.service_type ? <span> · {o.service_type}</span> : null}
+              <div className="mt-1 flex flex-wrap items-center gap-x-1.5 gap-y-1 text-xs text-slate-500">
+                <span>{[o.car_make, o.car_model].filter(Boolean).join(' ') || '—'}</span>
+                {o.plate ? <span dir="ltr">· {o.plate}</span> : null}
+                {o.service_type ? <span>· {o.service_type}</span> : null}
+                <Elapsed since={o.started_at || o.created_at} />
               </div>
             </div>
             <div className="grid grid-cols-3 gap-1.5">

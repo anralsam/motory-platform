@@ -49,15 +49,15 @@ function StatCard({ label, value, accent = 'blue' }) {
   );
 }
 
-// ── Recent workshop orders (service-role) for the live flow ──
-async function fetchOrders() {
+// ── A merchant's own workshop orders (service-role, scoped by merchant_id) ──
+async function fetchMerchantOrders(merchantId) {
   const admin = getSupabaseAdmin();
-  if (!admin) return [];
+  if (!admin || !merchantId) return [];
   const { data, error } = await admin
     .from('orders')
-    .select('id, customer_name, car_make, car_model, plate, service_type, status, created_at')
-    .order('created_at', { ascending: false })
-    .limit(12);
+    .select('id, customer_name, car_make, car_model, plate, service_type, status, price, created_at, started_at')
+    .eq('merchant_id', merchantId)
+    .order('created_at', { ascending: false });
   return !error && Array.isArray(data) ? data : [];
 }
 
@@ -85,7 +85,6 @@ async function renderAdminModule() {
 
   // Pending first, then the rest — the acceptance queue.
   const ordered = [...rows].sort((a, b) => (a.status === 'pending' ? -1 : 0) - (b.status === 'pending' ? -1 : 0));
-  const orders = await fetchOrders();
 
   return (
     <>
@@ -99,28 +98,33 @@ async function renderAdminModule() {
         <h3 className="mb-3 text-base font-extrabold text-slate-900">طلبات الانضمام</h3>
         <AcceptanceTable initialRows={ordered} />
       </section>
-      <section>
-        <h3 className="mb-3 text-base font-extrabold text-slate-900">تدفّق طلبات الورشة</h3>
-        <OrdersFlow orders={orders} />
-      </section>
     </>
   );
 }
 
-// ── Shop module (performance cards) ──
-function renderShopModule() {
-  // No client-side data source confirmed yet → styled No-Data, never fake numbers.
+// ── Shop module (merchant) — real performance + live order flow ──
+async function renderShopModule(merchantId) {
+  const orders = await fetchMerchantOrders(merchantId);
+  if (!orders.length) {
+    return <NoData title="لا توجد طلبات" hint="لا توجد طلبات ورشة على حسابك بعد." />;
+  }
+  const total = orders.length;
+  const active = orders.filter((o) => o.status === 'in_progress' || o.status === 'ready').length;
+  const completed = orders.filter((o) => o.status === 'completed').length;
+  const revenue = orders.filter((o) => o.status === 'completed').reduce((s, o) => s + (Number(o.price) || 0), 0);
+  const utilization = total ? Math.round((active / total) * 100) : 0;
+
   return (
     <>
       <section className="grid grid-cols-1 gap-5 sm:grid-cols-3">
-        {['الأرباح', 'الحجوزات', 'استغلال الفنيين'].map((label) => (
-          <div key={label} className="rounded-xl border border-slate-200 bg-white p-6">
-            <span className="text-sm font-semibold text-slate-500">{label}</span>
-            <div className="mt-4 font-inter text-3xl font-bold text-slate-300" dir="ltr">—</div>
-          </div>
-        ))}
+        <StatCard label="الأرباح (مكتملة)" value={`${revenue.toLocaleString('en-US')} ﷼`} accent="emerald" />
+        <StatCard label="الحجوزات" value={total.toLocaleString('en-US')} accent="blue" />
+        <StatCard label="استغلال الفنيين" value={`${utilization}%`} accent="amber" />
       </section>
-      <NoData title="بيانات الأداء غير متاحة بعد" hint="سنربط الأرباح والحجوزات واستغلال الفنيين بمصادرها الحقيقية في الخطوة التالية." />
+      <section>
+        <h3 className="mb-3 text-base font-extrabold text-slate-900">تدفّق طلبات الورشة</h3>
+        <OrdersFlow orders={orders.slice(0, 15)} />
+      </section>
     </>
   );
 }
@@ -133,8 +137,8 @@ export default async function DashboardProPage() {
 
   let moduleNode;
   if (role === 'admin') moduleNode = await renderAdminModule();
-  else if (role === 'worker') moduleNode = <WorkerModule orders={await fetchOrders()} />;
-  else moduleNode = renderShopModule();
+  else if (role === 'worker') moduleNode = <WorkerModule orders={await fetchMerchantOrders(user?.id)} />;
+  else moduleNode = await renderShopModule(user?.id);
 
   return (
     <DashboardShell role={role} userName={userName}>

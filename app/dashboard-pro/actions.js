@@ -40,11 +40,18 @@ export async function updateOrderStatus(orderId, newStatus) {
     const { data: urow } = await supabase.from('users').select('role').eq('id', user.id).maybeSingle();
     isAdmin = urow?.role === 'admin';
   }
-  if (!isAdmin) return { ok: false, error: 'هذا الإجراء للمشرفين فقط' };
 
-  // 3) Service-role write (after the gate)
   const admin = getSupabaseAdmin();
   if (!admin) return { ok: false, error: 'مفتاح الخدمة غير مهيّأ' };
+
+  // 3) Ownership check: admins may update any order; a merchant may only update
+  //    their OWN orders (orders.merchant_id === their user id).
+  if (!isAdmin) {
+    const { data: ord } = await admin.from('orders').select('merchant_id').eq('id', orderId).maybeSingle();
+    if (!ord || ord.merchant_id !== user.id) {
+      return { ok: false, error: 'هذا الطلب لا يخصّ حسابك' };
+    }
+  }
 
   const now = new Date().toISOString();
   const patch = { status: newStatus, updated_at: now };

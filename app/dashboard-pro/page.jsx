@@ -8,13 +8,14 @@
 import { Gauge, Activity, AlertTriangle, PackageCheck } from 'lucide-react';
 import { createServerSupabase } from '@/lib/supabase/server';
 import { getSupabaseAdmin } from '@/lib/supabase/admin';
-import { getAdminData, getMerchantData, getWorkerData, getIntelligenceData } from '@/lib/dashboard-pro/queries';
+import { getAdminData, getMerchantData, getWorkerData, getIntelligenceData, getOperationsData } from '@/lib/dashboard-pro/queries';
 import DashboardShell from '@/components/dashboard-pro/DashboardShell';
 import AcceptanceTable from '@/components/dashboard-pro/AcceptanceTable';
 import AssignControl from '@/components/dashboard-pro/AssignControl';
 import WorkerModule from '@/components/dashboard-pro/WorkerModule';
 import IntelligenceModule from '@/components/dashboard-pro/IntelligenceModule';
 import MetricHero from '@/components/dashboard-pro/MetricHero';
+import OperationsGrid from '@/components/dashboard-pro/OperationsGrid';
 import StatTile from '@/components/dashboard-pro/StatTile';
 import StatusPill from '@/components/dashboard-pro/StatusPill';
 import NoData from '@/components/dashboard-pro/NoData';
@@ -47,6 +48,7 @@ async function renderAdminModule() {
     return <NoData hint="فعّل SUPABASE_SERVICE_ROLE_KEY في Vercel لعرض البيانات الحقيقية، أو لا توجد بيانات بعد." />;
   }
   const intel = (await getIntelligenceData()) || { orders: [], workers: [], branches: [] };
+  const ops = await getOperationsData(20);
 
   return (
     <div className="space-y-6">
@@ -55,6 +57,12 @@ async function renderAdminModule() {
 
       {/* Intelligence Module — predictive analytics */}
       <IntelligenceModule orders={intel.orders} workers={intel.workers} branches={intel.branches} />
+
+      {/* Operations data grid */}
+      <div>
+        <div className="mb-3 text-sm font-semibold text-slate-900">سجلّ العمليات</div>
+        <OperationsGrid orders={ops} />
+      </div>
 
       <div>
         <div className="mb-3 text-sm font-semibold text-slate-900">طلبات الانضمام · {d.joinStats.pending} بانتظار المراجعة</div>

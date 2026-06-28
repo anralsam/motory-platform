@@ -16,7 +16,7 @@ const TONES = {
 
 export default function StatTile({ icon: Icon, label, value, sub, tone = 'slate' }) {
   return (
-    <div className="group rounded-2xl border border-slate-200 bg-white p-7 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md">
+    <div className="group rounded-xl border border-slate-200 bg-white p-7 shadow-sm transition-all duration-300 ease-in-out hover:-translate-y-1 hover:shadow-md">
       <div className="flex items-center justify-between">
         <span className="text-xs font-medium uppercase tracking-wider text-slate-500">{label}</span>
         {Icon ? (

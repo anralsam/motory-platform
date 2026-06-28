@@ -5,7 +5,7 @@
  * handed to the client <DashboardShell> (sidebar + mobile bottom-nav + i18n).
  * Design system: bg-white · border-slate-100 · rounded-2xl · shadow-sm · Inter.
  */
-import { Wallet, Wrench, Gauge, Activity, AlertTriangle, PackageCheck } from 'lucide-react';
+import { Gauge, Activity, AlertTriangle, PackageCheck } from 'lucide-react';
 import { createServerSupabase } from '@/lib/supabase/server';
 import { getSupabaseAdmin } from '@/lib/supabase/admin';
 import { getAdminData, getMerchantData, getWorkerData, getIntelligenceData } from '@/lib/dashboard-pro/queries';
@@ -14,6 +14,7 @@ import AcceptanceTable from '@/components/dashboard-pro/AcceptanceTable';
 import AssignControl from '@/components/dashboard-pro/AssignControl';
 import WorkerModule from '@/components/dashboard-pro/WorkerModule';
 import IntelligenceModule from '@/components/dashboard-pro/IntelligenceModule';
+import MetricHero from '@/components/dashboard-pro/MetricHero';
 import StatTile from '@/components/dashboard-pro/StatTile';
 import StatusPill from '@/components/dashboard-pro/StatusPill';
 import NoData from '@/components/dashboard-pro/NoData';
@@ -49,11 +50,8 @@ async function renderAdminModule() {
 
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-1 gap-5 sm:grid-cols-3">
-        <StatTile icon={Wallet} tone="emerald" label="إجمالي الإيراد" value={sar(d.fleet.revenue)} sub="من الطلبات المكتملة" />
-        <StatTile icon={Wrench} tone="indigo" label="الفنّيون النشطون" value={d.fleet.activeMechanics.toLocaleString('en-US')} sub="عبر كل المراكز" />
-        <StatTile icon={Gauge} tone="amber" label="الكفاءة" value={`${d.fleet.efficiencyPct}%`} sub={`${d.fleet.activeOrders} طلب قيد التنفيذ`} />
-      </div>
+      {/* Metric Hero — 4-card hero section */}
+      <MetricHero />
 
       {/* Intelligence Module — predictive analytics */}
       <IntelligenceModule orders={intel.orders} workers={intel.workers} branches={intel.branches} />

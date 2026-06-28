@@ -10,7 +10,10 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { startOrderWithParts } from '@/app/dashboard-pro/actions';
 
+const SERVICES = ['تغيير زيت', 'غسيل وتلميع', 'فحص بطارية', 'تظليل', 'تبديل إطارات', 'فرامل', 'صيانة دورية', 'تكييف', 'كهرباء', 'ميكانيكا'];
+
 export default function StartTaskModal({ order, inventory = [], onClose, onStarted }) {
+  const serviceOptions = [...new Set([order?.service_type, ...SERVICES].filter(Boolean))];
   const [plate, setPlate] = useState(order?.plate || '');
   const [serviceType, setServiceType] = useState(order?.service_type || '');
   const [rows, setRows] = useState([]); // { itemId, qty }
@@ -65,12 +68,15 @@ export default function StartTaskModal({ order, inventory = [], onClose, onStart
             <div>
               <label className="mb-1.5 block text-xs font-medium text-slate-500">رقم اللوحة *</label>
               <input value={plate} onChange={(e) => setPlate(e.target.value)} dir="ltr" placeholder="ABC-1234"
-                className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-blue-600" />
+                className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-center font-mono text-sm tracking-widest outline-none focus:border-blue-600" />
             </div>
             <div>
               <label className="mb-1.5 block text-xs font-medium text-slate-500">نوع الخدمة *</label>
-              <input value={serviceType} onChange={(e) => setServiceType(e.target.value)} placeholder="تغيير زيت"
-                className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-blue-600" />
+              <select value={serviceType} onChange={(e) => setServiceType(e.target.value)}
+                className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm outline-none transition-colors duration-300 focus:border-blue-600">
+                <option value="">اختر الخدمة…</option>
+                {serviceOptions.map((s) => <option key={s} value={s}>{s}</option>)}
+              </select>
             </div>
           </div>
 

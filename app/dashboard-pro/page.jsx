@@ -15,6 +15,7 @@ import { getSupabaseAdmin } from '@/lib/supabase/admin';
 import DashboardShell from '@/components/dashboard-pro/DashboardShell';
 import AcceptanceTable from '@/components/dashboard-pro/AcceptanceTable';
 import WorkerModule from '@/components/dashboard-pro/WorkerModule';
+import OrdersFlow from '@/components/dashboard-pro/OrdersFlow';
 import NoData from '@/components/dashboard-pro/NoData';
 
 export const dynamic = 'force-dynamic';
@@ -48,6 +49,18 @@ function StatCard({ label, value, accent = 'blue' }) {
   );
 }
 
+// ── Recent workshop orders (service-role) for the live flow ──
+async function fetchOrders() {
+  const admin = getSupabaseAdmin();
+  if (!admin) return [];
+  const { data, error } = await admin
+    .from('orders')
+    .select('id, customer_name, car_make, car_model, plate, service_type, status, created_at')
+    .order('created_at', { ascending: false })
+    .limit(12);
+  return !error && Array.isArray(data) ? data : [];
+}
+
 // ── Admin module (real data via service-role) ──
 async function renderAdminModule() {
   const admin = getSupabaseAdmin();
@@ -72,6 +85,7 @@ async function renderAdminModule() {
 
   // Pending first, then the rest — the acceptance queue.
   const ordered = [...rows].sort((a, b) => (a.status === 'pending' ? -1 : 0) - (b.status === 'pending' ? -1 : 0));
+  const orders = await fetchOrders();
 
   return (
     <>
@@ -84,6 +98,10 @@ async function renderAdminModule() {
       <section>
         <h3 className="mb-3 text-base font-extrabold text-slate-900">طلبات الانضمام</h3>
         <AcceptanceTable initialRows={ordered} />
+      </section>
+      <section>
+        <h3 className="mb-3 text-base font-extrabold text-slate-900">تدفّق طلبات الورشة</h3>
+        <OrdersFlow orders={orders} />
       </section>
     </>
   );
@@ -115,7 +133,7 @@ export default async function DashboardProPage() {
 
   let moduleNode;
   if (role === 'admin') moduleNode = await renderAdminModule();
-  else if (role === 'worker') moduleNode = <WorkerModule />;
+  else if (role === 'worker') moduleNode = <WorkerModule orders={await fetchOrders()} />;
   else moduleNode = renderShopModule();
 
   return (

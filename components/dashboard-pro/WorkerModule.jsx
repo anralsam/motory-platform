@@ -2,48 +2,11 @@
 
 /**
  * WorkerModule — technician view.
- * - A 3-stage job toggle (Wait → Process → Done).
- * - An inventory-deduction form.
- * These are interactive client UI components with local state. Persistence to the
- * orders / inventory tables is wired through the worker endpoints (next step);
- * the UI is fully functional and YouTube-Studio-Light styled.
+ * - Live order flow (3-stage toggle wired to the updateOrderStatus Server Action).
+ * - An inventory-deduction form (local UI; persistence wired next).
  */
 import { useState } from 'react';
-
-const STAGES = [
-  { k: 'wait', label: 'بانتظار', dot: 'bg-amber-500' },
-  { k: 'process', label: 'قيد التنفيذ', dot: 'bg-blue-600' },
-  { k: 'done', label: 'مكتمل', dot: 'bg-emerald-600' },
-];
-
-function StageToggle() {
-  const [stage, setStage] = useState('wait');
-  return (
-    <div className="rounded-xl border border-slate-200 bg-white p-5">
-      <div className="mb-4 flex items-center justify-between">
-        <div>
-          <div className="font-bold text-slate-900">مهمة #1042 — تغيير زيت</div>
-          <div className="text-xs text-slate-500">تويوتا كامري · لوحة ABC-1234</div>
-        </div>
-        <span className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-600">
-          <span className={`h-2 w-2 rounded-full ${STAGES.find((s) => s.k === stage).dot}`} />
-          {STAGES.find((s) => s.k === stage).label}
-        </span>
-      </div>
-      <div className="grid grid-cols-3 gap-2">
-        {STAGES.map((s) => {
-          const on = stage === s.k;
-          return (
-            <button key={s.k} onClick={() => setStage(s.k)}
-              className={`rounded-lg border px-3 py-2.5 text-sm font-bold transition-colors ${on ? 'border-blue-600 bg-blue-600 text-white' : 'border-slate-200 bg-white text-slate-600 hover:border-blue-300'}`}>
-              {s.label}
-            </button>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
+import OrdersFlow from './OrdersFlow';
 
 function InventoryDeductionForm() {
   const [item, setItem] = useState('');
@@ -80,10 +43,13 @@ function InventoryDeductionForm() {
   );
 }
 
-export default function WorkerModule() {
+export default function WorkerModule({ orders = [] }) {
   return (
-    <div className="grid gap-5 lg:grid-cols-2">
-      <StageToggle />
+    <div className="space-y-5">
+      <section>
+        <h3 className="mb-3 text-base font-extrabold text-slate-900">طلبات الورشة</h3>
+        <OrdersFlow orders={orders} />
+      </section>
       <InventoryDeductionForm />
     </div>
   );

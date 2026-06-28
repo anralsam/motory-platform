@@ -8,12 +8,12 @@
 import { Wallet, Wrench, Gauge, Activity, AlertTriangle, PackageCheck } from 'lucide-react';
 import { createServerSupabase } from '@/lib/supabase/server';
 import { getSupabaseAdmin } from '@/lib/supabase/admin';
-import { getAdminData, getMerchantData, getWorkerData } from '@/lib/dashboard-pro/queries';
+import { getAdminData, getMerchantData, getWorkerData, getIntelligenceData } from '@/lib/dashboard-pro/queries';
 import DashboardShell from '@/components/dashboard-pro/DashboardShell';
 import AcceptanceTable from '@/components/dashboard-pro/AcceptanceTable';
 import AssignControl from '@/components/dashboard-pro/AssignControl';
 import WorkerModule from '@/components/dashboard-pro/WorkerModule';
-import FleetChart from '@/components/dashboard-pro/FleetChart';
+import IntelligenceModule from '@/components/dashboard-pro/IntelligenceModule';
 import StatTile from '@/components/dashboard-pro/StatTile';
 import NoData from '@/components/dashboard-pro/NoData';
 
@@ -44,22 +44,22 @@ async function renderAdminModule() {
   if (!d) {
     return <NoData hint="فعّل SUPABASE_SERVICE_ROLE_KEY في Vercel لعرض البيانات الحقيقية، أو لا توجد بيانات بعد." />;
   }
+  const intel = (await getIntelligenceData()) || { orders: [], workers: [], branches: [] };
+
   return (
-    <div className="space-y-5">
+    <div className="space-y-6">
       <div className="grid grid-cols-1 gap-5 sm:grid-cols-3">
         <StatTile icon={Wallet} tone="emerald" label="إجمالي الإيراد" value={sar(d.fleet.revenue)} sub="من الطلبات المكتملة" />
         <StatTile icon={Wrench} tone="indigo" label="الفنّيون النشطون" value={d.fleet.activeMechanics.toLocaleString('en-US')} sub="عبر كل المراكز" />
         <StatTile icon={Gauge} tone="amber" label="الكفاءة" value={`${d.fleet.efficiencyPct}%`} sub={`${d.fleet.activeOrders} طلب قيد التنفيذ`} />
       </div>
 
-      <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
-        <div className="lg:col-span-1">
-          <FleetChart data={d.statusDist} />
-        </div>
-        <div className="lg:col-span-2">
-          <div className="mb-3 text-sm font-semibold text-slate-900">طلبات الانضمام · {d.joinStats.pending} بانتظار المراجعة</div>
-          <AcceptanceTable initialRows={d.acceptanceRows} />
-        </div>
+      {/* Intelligence Module — predictive analytics */}
+      <IntelligenceModule orders={intel.orders} workers={intel.workers} branches={intel.branches} />
+
+      <div>
+        <div className="mb-3 text-sm font-semibold text-slate-900">طلبات الانضمام · {d.joinStats.pending} بانتظار المراجعة</div>
+        <AcceptanceTable initialRows={d.acceptanceRows} />
       </div>
     </div>
   );

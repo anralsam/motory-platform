@@ -15,7 +15,7 @@ import { getSupabaseAdmin } from '@/lib/supabase/admin';
 import DashboardShell from '@/components/dashboard-pro/DashboardShell';
 import AcceptanceTable from '@/components/dashboard-pro/AcceptanceTable';
 import WorkerModule from '@/components/dashboard-pro/WorkerModule';
-import OrdersFlow from '@/components/dashboard-pro/OrdersFlow';
+import AssignControl from '@/components/dashboard-pro/AssignControl';
 import NoData from '@/components/dashboard-pro/NoData';
 
 export const dynamic = 'force-dynamic';
@@ -29,9 +29,14 @@ async function detectRole(supabase, user) {
     user.app_metadata?.role === 'admin' ||
     user.user_metadata?.role === 'admin'
   ) return 'admin';
+  // Technicians live in the `workers` table (auth bridge), not `users`.
+  const admin = getSupabaseAdmin();
+  if (admin) {
+    const { data: w } = await admin.from('workers').select('id').eq('user_id', user.id).eq('status', 'active').maybeSingle();
+    if (w) return 'worker';
+  }
   const { data: urow } = await supabase.from('users').select('role').eq('id', user.id).maybeSingle();
   if (urow?.role === 'admin') return 'admin';
-  if (urow?.role === 'worker') return 'worker';
   return 'merchant';
 }
 
@@ -55,10 +60,34 @@ async function fetchMerchantOrders(merchantId) {
   if (!admin || !merchantId) return [];
   const { data, error } = await admin
     .from('orders')
-    .select('id, customer_name, car_make, car_model, plate, service_type, status, price, created_at, started_at')
+    .select('id, customer_name, car_make, car_model, plate, service_type, status, price, assigned_to, created_at, started_at')
     .eq('merchant_id', merchantId)
     .order('created_at', { ascending: false });
   return !error && Array.isArray(data) ? data : [];
+}
+
+// ── Active technicians of a merchant's center ──
+async function fetchMerchantWorkers(merchantId) {
+  const admin = getSupabaseAdmin();
+  if (!admin || !merchantId) return [];
+  const { data } = await admin
+    .from('workers')
+    .select('user_id, full_name, status')
+    .eq('center_id', merchantId)
+    .eq('status', 'active');
+  return Array.isArray(data) ? data.filter((w) => w.user_id) : [];
+}
+
+// ── Orders assigned to a specific technician (their tasks) ──
+async function fetchAssignedOrders(workerUserId) {
+  const admin = getSupabaseAdmin();
+  if (!admin || !workerUserId) return [];
+  const { data } = await admin
+    .from('orders')
+    .select('id, customer_name, car_make, car_model, plate, service_type, status, created_at, started_at')
+    .eq('assigned_to', workerUserId)
+    .order('created_at', { ascending: false });
+  return Array.isArray(data) ? data : [];
 }
 
 // ── Admin module (real data via service-role) ──
@@ -102,17 +131,21 @@ async function renderAdminModule() {
   );
 }
 
-// ── Shop module (merchant) — real performance + live order flow ──
+// ── Shop module (merchant) — Performance + Finance + task ASSIGNMENT ──
+//    Status execution belongs to the technician, not the shop owner.
 async function renderShopModule(merchantId) {
-  const orders = await fetchMerchantOrders(merchantId);
+  const [orders, workers] = await Promise.all([
+    fetchMerchantOrders(merchantId),
+    fetchMerchantWorkers(merchantId),
+  ]);
   if (!orders.length) {
     return <NoData title="لا توجد طلبات" hint="لا توجد طلبات ورشة على حسابك بعد." />;
   }
   const total = orders.length;
   const active = orders.filter((o) => o.status === 'in_progress' || o.status === 'ready').length;
-  const completed = orders.filter((o) => o.status === 'completed').length;
   const revenue = orders.filter((o) => o.status === 'completed').reduce((s, o) => s + (Number(o.price) || 0), 0);
   const utilization = total ? Math.round((active / total) * 100) : 0;
+  const nameByUser = Object.fromEntries(workers.map((w) => [w.user_id, w.full_name]));
 
   return (
     <>
@@ -122,8 +155,29 @@ async function renderShopModule(merchantId) {
         <StatCard label="استغلال الفنيين" value={`${utilization}%`} accent="amber" />
       </section>
       <section>
-        <h3 className="mb-3 text-base font-extrabold text-slate-900">تدفّق طلبات الورشة</h3>
-        <OrdersFlow orders={orders.slice(0, 15)} />
+        <h3 className="mb-3 text-base font-extrabold text-slate-900">تكليف المهام</h3>
+        <div className="divide-y divide-slate-200 overflow-hidden rounded-xl border border-slate-200 bg-white">
+          {orders.slice(0, 15).map((o) => (
+            <div key={o.id} className="flex flex-wrap items-center justify-between gap-3 p-4">
+              <div className="min-w-0">
+                <div className="font-bold text-slate-900">{o.customer_name || 'عميل'}</div>
+                <div className="text-xs text-slate-500">
+                  {[o.car_make, o.car_model].filter(Boolean).join(' ') || '—'}
+                  {o.plate ? <span dir="ltr"> · {o.plate}</span> : null}
+                  {o.service_type ? <span> · {o.service_type}</span> : null}
+                </div>
+              </div>
+              {o.assigned_to ? (
+                <span className="inline-flex items-center gap-1.5 rounded-md bg-slate-100 px-2.5 py-1 text-xs font-bold text-slate-600">
+                  <span className="h-1.5 w-1.5 rounded-full bg-blue-600" />
+                  مكلّف: {nameByUser[o.assigned_to] || 'فنّي'}
+                </span>
+              ) : (
+                <AssignControl orderId={o.id} workers={workers} />
+              )}
+            </div>
+          ))}
+        </div>
       </section>
     </>
   );
@@ -137,7 +191,7 @@ export default async function DashboardProPage() {
 
   let moduleNode;
   if (role === 'admin') moduleNode = await renderAdminModule();
-  else if (role === 'worker') moduleNode = <WorkerModule orders={await fetchMerchantOrders(user?.id)} />;
+  else if (role === 'worker') moduleNode = <WorkerModule orders={await fetchAssignedOrders(user?.id)} />;
   else moduleNode = await renderShopModule(user?.id);
 
   return (

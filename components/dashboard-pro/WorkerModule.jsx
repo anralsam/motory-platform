@@ -47,7 +47,7 @@ export default function WorkerModule({ orders = [] }) {
   return (
     <div className="space-y-5">
       <section>
-        <h3 className="mb-3 text-base font-extrabold text-slate-900">طلبات الورشة</h3>
+        <h3 className="mb-3 text-base font-extrabold text-slate-900">مهامي النشطة</h3>
         <OrdersFlow orders={orders} />
       </section>
       <InventoryDeductionForm />

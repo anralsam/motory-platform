@@ -69,7 +69,7 @@ export default function DashboardShell({ role = 'admin', userName = 'المست�
   }
 
   return (
-    <div className="min-h-screen bg-[#f9f9f9] font-sans text-slate-900">
+    <div className="min-h-screen bg-slate-50 font-sans text-slate-900">
       {/* ══ Desktop sidebar (hidden on mobile) ══ */}
       <aside className="fixed inset-y-0 end-0 z-40 hidden w-64 flex-col bg-[#0B0B0B] text-white lg:flex">
         <div className="flex items-center gap-3 border-b border-white/10 px-5 py-5" dir="ltr">
@@ -111,7 +111,7 @@ export default function DashboardShell({ role = 'admin', userName = 'المست�
 
       {/* ══ Main ══ */}
       <div className="flex min-h-screen flex-col lg:me-64">
-        <header className="sticky top-0 z-20 flex h-16 items-center justify-between border-b border-slate-200 bg-white/90 px-5 backdrop-blur lg:px-8">
+        <header className="sticky top-0 z-20 flex h-16 items-center justify-between border-b border-slate-200/70 bg-white/70 px-5 backdrop-blur-md lg:px-8">
           <div className="text-[15px] font-extrabold">{(nav.find((n) => n.k === active) || nav[0]).label}</div>
           <div className="flex items-center gap-2">
             <button onClick={toggleDir} title="تبديل اللغة / الاتجاه" className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-600 transition-colors hover:border-blue-600 hover:text-blue-600">

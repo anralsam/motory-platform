@@ -15,6 +15,7 @@ import AssignControl from '@/components/dashboard-pro/AssignControl';
 import WorkerModule from '@/components/dashboard-pro/WorkerModule';
 import IntelligenceModule from '@/components/dashboard-pro/IntelligenceModule';
 import StatTile from '@/components/dashboard-pro/StatTile';
+import StatusPill from '@/components/dashboard-pro/StatusPill';
 import NoData from '@/components/dashboard-pro/NoData';
 
 export const dynamic = 'force-dynamic';
@@ -103,22 +104,24 @@ async function renderShopModule(merchantId) {
           )}
         </div>
 
-        {/* Task assignment */}
-        <div className="rounded-2xl border border-slate-100 bg-white shadow-sm lg:col-span-2">
-          <div className="border-b border-slate-100 px-6 py-4 text-sm font-semibold text-slate-900">تكليف المهام</div>
-          <div className="divide-y divide-slate-100">
+        {/* Task assignment — card-grid of order mini-dashboards */}
+        <div className="lg:col-span-2">
+          <div className="mb-4 text-sm font-semibold text-slate-900">تكليف المهام</div>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             {d.orders.slice(0, 12).map((o) => (
-              <div key={o.id} className="flex flex-wrap items-center justify-between gap-3 px-6 py-4">
-                <div className="min-w-0">
-                  <div className="text-sm font-semibold text-slate-900">{o.customer_name || 'عميل'}</div>
-                  <div className="text-xs font-normal text-slate-400">
-                    {[o.car_make, o.car_model].filter(Boolean).join(' ') || '—'}
-                    {o.plate ? <span dir="ltr"> · {o.plate}</span> : null}
-                  </div>
+              <div key={o.id} className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md">
+                <div className="mb-2 flex items-center justify-between gap-2">
+                  <span className="font-sans text-[11px] font-semibold uppercase tracking-wider text-slate-400" dir="ltr">#{String(o.id).slice(0, 8)}</span>
+                  <StatusPill status={o.status} />
+                </div>
+                <div className="text-sm font-semibold text-slate-900">{o.customer_name || 'عميل'}</div>
+                <div className="mb-4 text-xs font-normal text-slate-400">
+                  {[o.car_make, o.car_model].filter(Boolean).join(' ') || '—'}
+                  {o.plate ? <span dir="ltr"> · {o.plate}</span> : null}
                 </div>
                 {o.assigned_to ? (
-                  <span className="inline-flex items-center gap-1.5 rounded-lg bg-slate-50 px-2.5 py-1 text-xs font-medium text-slate-600">
-                    <span className="h-1.5 w-1.5 rounded-full bg-indigo-600" /> {nameByUser[o.assigned_to] || 'فنّي'}
+                  <span className="inline-flex items-center gap-1.5 rounded-lg bg-blue-50 px-2.5 py-1 text-xs font-semibold text-blue-600">
+                    <span className="h-1.5 w-1.5 rounded-full bg-blue-600" /> {nameByUser[o.assigned_to] || 'فنّي'}
                   </span>
                 ) : (
                   <AssignControl orderId={o.id} workers={d.workers} />

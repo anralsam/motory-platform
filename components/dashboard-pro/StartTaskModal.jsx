@@ -47,11 +47,11 @@ export default function StartTaskModal({ order, inventory = [], onClose, onStart
 
   return (
     <motion.div
-      className="fixed inset-0 z-[60] flex items-end justify-center bg-black/40 p-0 sm:items-center sm:p-4"
+      className="fixed inset-0 z-[60] flex items-end justify-center bg-slate-900/40 p-0 backdrop-blur-md sm:items-center sm:p-6"
       initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose}
     >
       <motion.div
-        className="w-full max-w-lg rounded-t-2xl border border-slate-100 bg-white p-5 shadow-sm sm:rounded-2xl"
+        className="w-full max-w-lg rounded-t-2xl border border-slate-200 bg-white p-7 shadow-xl sm:rounded-2xl"
         initial={{ opacity: 0, y: 24, scale: 0.98 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 24, scale: 0.98 }}
         transition={{ type: 'spring', stiffness: 360, damping: 30 }} onClick={(e) => e.stopPropagation()}
       >
@@ -65,12 +65,12 @@ export default function StartTaskModal({ order, inventory = [], onClose, onStart
             <div>
               <label className="mb-1.5 block text-xs font-medium text-slate-500">رقم اللوحة *</label>
               <input value={plate} onChange={(e) => setPlate(e.target.value)} dir="ltr" placeholder="ABC-1234"
-                className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-indigo-600" />
+                className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-blue-600" />
             </div>
             <div>
               <label className="mb-1.5 block text-xs font-medium text-slate-500">نوع الخدمة *</label>
               <input value={serviceType} onChange={(e) => setServiceType(e.target.value)} placeholder="تغيير زيت"
-                className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-indigo-600" />
+                className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-blue-600" />
             </div>
           </div>
 
@@ -79,7 +79,7 @@ export default function StartTaskModal({ order, inventory = [], onClose, onStart
             <label className="mb-1.5 block text-xs font-medium text-slate-500">القطع المستخدمة (تُخصم من المخزون)</label>
             <div className="relative">
               <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="ابحث عن قطعة… مثل: فلتر"
-                className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-indigo-600" />
+                className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-blue-600" />
               {suggestions.length > 0 && (
                 <div className="absolute z-10 mt-1 w-full overflow-hidden rounded-xl border border-slate-100 bg-white shadow-lg">
                   {suggestions.map((it) => (
@@ -102,7 +102,7 @@ export default function StartTaskModal({ order, inventory = [], onClose, onStart
                       <span className="flex-1 text-sm font-medium text-slate-700">{it?.name || 'قطعة'}</span>
                       <span className="text-[11px] tabular-nums text-slate-400" dir="ltr">متاح {it?.quantity ?? '—'}</span>
                       <input type="number" min="1" value={row.qty} onChange={(e) => setQty(i, e.target.value)} dir="ltr"
-                        className="w-16 rounded-lg border border-slate-200 px-2 py-1.5 text-sm tabular-nums outline-none focus:border-indigo-600" />
+                        className="w-16 rounded-lg border border-slate-200 px-2 py-1.5 text-sm tabular-nums outline-none focus:border-blue-600" />
                       <button type="button" onClick={() => removeRow(i)} className="grid h-7 w-7 place-items-center rounded-lg text-rose-500 hover:bg-rose-50">✕</button>
                     </div>
                   );
@@ -115,7 +115,7 @@ export default function StartTaskModal({ order, inventory = [], onClose, onStart
 
           <div className="flex gap-2 pt-1">
             <button type="button" onClick={onClose} className="flex-1 rounded-xl border border-slate-200 py-2.5 text-sm font-semibold text-slate-600 hover:bg-slate-50">إلغاء</button>
-            <button type="submit" disabled={busy} className="flex-1 rounded-xl bg-indigo-600 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-50">
+            <button type="submit" disabled={busy} className="flex-1 rounded-xl bg-blue-600 py-2.5 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-50">
               {busy ? 'جارٍ البدء…' : 'بدء المهمة'}
             </button>
           </div>

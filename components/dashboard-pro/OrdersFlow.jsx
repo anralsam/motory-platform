@@ -13,6 +13,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { updateOrderStatus } from '@/app/dashboard-pro/actions';
 import NoData from './NoData';
 import StartTaskModal from './StartTaskModal';
+import StatusPill from './StatusPill';
 
 function fmtElapsed(ms) {
   const m = Math.floor(ms / 60000);
@@ -40,7 +41,7 @@ function SlaTimer({ since }) {
   if (!since || now === null) return null;
   const sec = Math.max(0, Math.floor((now - new Date(since).getTime()) / 1000));
   const mm = Math.floor(sec / 60), ss = sec % 60;
-  const cls = mm >= 60 ? 'bg-rose-50 text-rose-600' : mm >= 45 ? 'bg-amber-50 text-amber-600' : 'bg-indigo-50 text-indigo-600';
+  const cls = mm >= 60 ? 'bg-rose-50 text-rose-600' : mm >= 45 ? 'bg-amber-50 text-amber-600' : 'bg-blue-50 text-blue-600';
   return (
     <span className={`inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-xs font-bold tabular-nums ${cls}`} dir="ltr">
       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round"><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></svg>
@@ -51,7 +52,7 @@ function SlaTimer({ since }) {
 
 const STAGES = [
   { k: 'pending', label: 'انتظار', active: 'border-amber-500 bg-amber-500 text-white' },
-  { k: 'in_progress', label: 'جاري العمل', active: 'border-indigo-600 bg-indigo-600 text-white' },
+  { k: 'in_progress', label: 'جاري العمل', active: 'border-blue-600 bg-blue-600 text-white' },
   { k: 'completed', label: 'تم', active: 'border-emerald-600 bg-emerald-600 text-white' },
 ];
 const FILTERS = [
@@ -61,7 +62,7 @@ const FILTERS = [
   { k: 'ready', label: 'جاهز' },
 ];
 const LABEL = { pending: 'انتظار', in_progress: 'جاري العمل', ready: 'جاهز', completed: 'تم' };
-const DOT = { pending: 'bg-amber-500', in_progress: 'bg-indigo-600', ready: 'bg-violet-600', completed: 'bg-emerald-600' };
+const DOT = { pending: 'bg-amber-500', in_progress: 'bg-blue-600', ready: 'bg-violet-600', completed: 'bg-emerald-600' };
 
 export default function OrdersFlow({ orders = [], inventory = [] }) {
   const [items, setItems] = useState(orders);
@@ -137,15 +138,17 @@ export default function OrdersFlow({ orders = [], inventory = [] }) {
             <motion.div
               drag="x" dragConstraints={{ left: 0, right: 0 }} dragElastic={0.5}
               onDragEnd={(e, info) => { if (Math.abs(info.offset.x) > 120) complete(o); }}
-              className="relative cursor-grab rounded-2xl border border-slate-100 bg-white p-4 shadow-sm active:cursor-grabbing sm:p-5"
+              className="relative cursor-grab rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md active:cursor-grabbing sm:p-6"
             >
+              <div className="mb-2 flex items-center justify-between gap-2">
+                <span className="font-sans text-[11px] font-semibold uppercase tracking-wider text-slate-400" dir="ltr">#{String(o.id).slice(0, 8)}</span>
+                {o.status === 'in_progress' ? <SlaTimer since={o.started_at || o.created_at} /> : <StatusPill status={o.status} />}
+              </div>
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <button onClick={() => setModalOrder(o)} className="min-w-0 flex-1 text-start" title="فتح إجراءات المهمة">
                   <div className="flex flex-wrap items-center gap-2">
                     <span className={`h-2 w-2 flex-none rounded-full ${DOT[o.status] || 'bg-slate-400'}`} />
                     <span className="truncate text-sm font-semibold text-slate-900">{o.customer_name || 'عميل'}</span>
-                    <span className="rounded-md bg-slate-100 px-1.5 py-0.5 text-[11px] font-medium text-slate-500">{LABEL[o.status] || o.status}</span>
-                    {o.status === 'in_progress' ? <SlaTimer since={o.started_at || o.created_at} /> : null}
                   </div>
                   <div className="mt-1 flex flex-wrap items-center gap-x-1.5 gap-y-1 text-xs font-normal text-slate-400">
                     <span>{[o.car_make, o.car_model].filter(Boolean).join(' ') || '—'}</span>
@@ -159,7 +162,7 @@ export default function OrdersFlow({ orders = [], inventory = [] }) {
                     const on = o.status === s.k;
                     return (
                       <button key={s.k} onClick={() => setStage(o, s.k)} disabled={busyId === o.id}
-                        className={`min-h-[44px] rounded-xl border px-3 text-sm font-semibold transition-colors disabled:opacity-50 ${on ? s.active : 'border-slate-200 bg-white text-slate-700 hover:border-indigo-300 active:bg-slate-50'}`}>
+                        className={`min-h-[44px] rounded-xl border px-3 text-sm font-semibold transition-colors disabled:opacity-50 ${on ? s.active : 'border-slate-200 bg-white text-slate-700 hover:border-blue-300 active:bg-slate-50'}`}>
                         {s.label}
                       </button>
                     );

@@ -9,15 +9,16 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@marsidev/react-turnstile": "1.1.0",
+    "@supabase/ssr": "0.5.1",
+    "@supabase/supabase-js": "2.45.0",
+    "framer-motion": "11.3.19",
+    "lucide-react": "^1.22.0",
     "next": "14.2.5",
     "react": "18.3.1",
     "react-dom": "18.3.1",
-    "zustand": "4.5.4",
     "recharts": "2.12.7",
-    "framer-motion": "11.3.19",
-    "@marsidev/react-turnstile": "1.1.0",
-    "@supabase/supabase-js": "2.45.0",
-    "@supabase/ssr": "0.5.1"
+    "zustand": "4.5.4"
   },
   "devDependencies": {
     "autoprefixer": "10.4.19",

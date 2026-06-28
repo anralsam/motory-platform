@@ -9,15 +9,12 @@
 import { useEffect, useMemo, useState } from 'react';
 import {
   ResponsiveContainer,
-  BarChart,
-  Bar,
+  AreaChart,
+  Area,
   XAxis,
   YAxis,
   CartesianGrid,
   Tooltip,
-  PieChart,
-  Pie,
-  Cell,
 } from 'recharts';
 import { supabase } from '@/lib/supabaseClient';
 
@@ -34,12 +31,6 @@ const METRICS = [
   { key: 'pending', liveKey: 'pending', label: 'الطلبات المعلّقة', mock: '27', icon: 'clock', foot: '⚠ تحتاج مراجعة', footClass: 'warn' },
   { key: 'rejected', liveKey: 'rejected', label: 'الطلبات المرفوضة', mock: '12', icon: 'x', foot: 'من إجمالي الطلبات', footClass: '' },
 ];
-const DONUT = [
-  { name: 'مكتملة', value: 62, color: '#10b981' },
-  { name: 'جارية', value: 28, color: '#4f46e5' },
-  { name: 'متأخرة', value: 10, color: '#f43f5e' },
-];
-
 function Icon({ name }) {
   const common = { width: 17, height: 17, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 2.2, strokeLinecap: 'round' };
   switch (name) {
@@ -108,7 +99,17 @@ export default function DashboardPro() {
   }, []);
 
   const growthData = useMemo(() => MONTH_LABELS.map((label, i) => ({ label, value: GROWTH[i] })), []);
-  const donutTotal = useMemo(() => DONUT.reduce((s, d) => s + d.value, 0), []);
+  // Deep-Insight: trend deltas derived from the growth series.
+  const insight = useMemo(() => {
+    const total = GROWTH.reduce((s, v) => s + v, 0);
+    const last = GROWTH[GROWTH.length - 1];
+    const prev = GROWTH[GROWTH.length - 2] || 0;
+    const momDelta = prev ? Math.round(((last - prev) / prev) * 100) : 0;
+    const avg = Math.round(total / GROWTH.length);
+    const peak = Math.max(...GROWTH);
+    const peakShare = total ? Math.round((peak / total) * 100) : 0;
+    return { total, last, momDelta, avg, peak, peakShare };
+  }, []);
 
   const pickNav = (k) => { setActiveNav(k); setSidebarOpen(false); };
 
@@ -188,26 +189,14 @@ export default function DashboardPro() {
 
           {/* Content */}
           <main className="yt-content">
-            {/* Hero */}
-            <div className="rev-hero fade-in">
-              <div style={{ position: 'relative', zIndex: 1 }}>
-                <div className="rh-label">نظرة سريعة · الأداء العام</div>
-                <div className="rh-val">٩٤٪</div>
-                <div className="rh-change">
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                    <polyline points="23 6 13.5 15.5 8.5 10.5 1 18" />
-                  </svg>
-                  <span>معدل إنجاز ممتاز هذا الشهر</span>
-                </div>
-              </div>
-              <div className="rh-actions">
-                <button className="rh-btn rh-btn-primary">عرض التقرير</button>
-                <button className="rh-btn rh-btn-ghost">تصدير</button>
-              </div>
+            {/* Page heading — airy, minimalist */}
+            <div className="page-head">
+              <h1>نظرة عامة</h1>
+              <p>ملخّص أداء المنصة · {today}</p>
             </div>
 
             {/* Stats grid — 4 top-level metric cards */}
-            <div className="sa-stats fade-in" style={{ animationDelay: '.06s' }}>
+            <div className="sa-stats">{/* flat, no animation */}
               {METRICS.map((m) => (
                 <div className="sa-stat" key={m.key}>
                   <div className="sa-stat-head">
@@ -224,71 +213,72 @@ export default function DashboardPro() {
               ))}
             </div>
 
-            {/* Charts row */}
-            <div className="charts-row fade-in" style={{ animationDelay: '.12s' }}>
-              {/* Growth bar chart */}
-              <div className="chart-card">
-                <div className="chart-card-head">
+            {/* ══ Master Analysis ══ */}
+            <section className="ma">
+              {/* Primary growth chart */}
+              <div className="ma-main">
+                <div className="ma-head">
                   <div>
-                    <h3>نمو العمليات</h3>
-                    <p>إجمالي العمليات الجديدة خلال العام</p>
+                    <h3>التحليل الرئيسي · نمو العمليات</h3>
+                    <p>تتبّع حجم العمليات على مدار العام</p>
                   </div>
                   <div className="chart-period">
                     <button className={`cp-btn${growthPeriod === 'month' ? ' active' : ''}`} onClick={() => setGrowthPeriod('month')}>شهري</button>
                     <button className={`cp-btn${growthPeriod === 'year' ? ' active' : ''}`} onClick={() => setGrowthPeriod('year')}>سنوي</button>
                   </div>
                 </div>
-                <div style={{ height: 180, position: 'relative' }}>
+                <div style={{ height: 280, position: 'relative' }}>
                   <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={growthData} margin={{ top: 4, right: 4, left: -22, bottom: 0 }}>
-                      <CartesianGrid vertical={false} stroke="#f0f0f0" />
-                      <XAxis dataKey="label" tickLine={false} axisLine={false} tick={{ fontSize: 10, fill: '#6b7280' }} interval={0} />
-                      <YAxis allowDecimals={false} tickLine={false} axisLine={false} tick={{ fontSize: 10, fill: '#6b7280' }} width={28} />
+                    <AreaChart data={growthData} margin={{ top: 8, right: 6, left: -20, bottom: 0 }}>
+                      <defs>
+                        <linearGradient id="maFill" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="0%" stopColor="#4f46e5" stopOpacity={0.14} />
+                          <stop offset="100%" stopColor="#4f46e5" stopOpacity={0} />
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid vertical={false} stroke="#f4f4f5" />
+                      <XAxis dataKey="label" tickLine={false} axisLine={false} tick={{ fontSize: 11, fill: '#a1a1aa' }} interval={0} tickMargin={10} />
+                      <YAxis allowDecimals={false} tickLine={false} axisLine={false} tick={{ fontSize: 11, fill: '#a1a1aa' }} width={30} />
                       <Tooltip
-                        cursor={{ fill: 'rgba(79,70,229,.06)' }}
-                        contentStyle={{ borderRadius: 10, border: '1px solid #e4e4e7', fontSize: 12, fontFamily: 'inherit' }}
-                        labelStyle={{ fontWeight: 700 }}
+                        cursor={{ stroke: '#e4e4e7', strokeWidth: 1 }}
+                        contentStyle={{ borderRadius: 12, border: '1px solid #e4e4e7', fontSize: 12, fontFamily: 'inherit', boxShadow: 'none' }}
+                        labelStyle={{ fontWeight: 700, color: '#09090b' }}
                         formatter={(v) => [v, 'عملية']}
                       />
-                      <Bar dataKey="value" fill="rgba(79,70,229,.14)" stroke="#4f46e5" strokeWidth={2} radius={[6, 6, 0, 0]} />
-                    </BarChart>
+                      <Area type="monotone" dataKey="value" stroke="#4f46e5" strokeWidth={2.5} fill="url(#maFill)" dot={false} activeDot={{ r: 4, fill: '#4f46e5', stroke: '#fff', strokeWidth: 2 }} />
+                    </AreaChart>
                   </ResponsiveContainer>
                 </div>
               </div>
 
-              {/* Status donut chart */}
-              <div className="chart-card">
-                <div className="chart-card-head">
-                  <div>
-                    <h3>توزيع الحالات</h3>
-                    <p>نسبة المكتمل والجاري والمتأخر</p>
+              {/* Deep Insight panel */}
+              <aside className="ma-side">
+                <div className="ma-side-title">نظرة عميقة</div>
+
+                <div className="ins">
+                  <div className="ins-label">نمو هذا الشهر</div>
+                  <div className={`ins-delta ${insight.momDelta >= 0 ? 'up' : 'down'}`}>
+                    <span>{insight.momDelta >= 0 ? '▲' : '▼'}</span>
+                    <span className="ins-num">{Math.abs(insight.momDelta)}%</span>
                   </div>
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 24 }}>
-                  <div style={{ width: 140, height: 140, flex: 'none', position: 'relative' }}>
-                    <ResponsiveContainer width="100%" height="100%">
-                      <PieChart>
-                        <Pie data={DONUT} dataKey="value" nameKey="name" innerRadius="70%" outerRadius="100%" paddingAngle={2} stroke="#fff" strokeWidth={3}>
-                          {DONUT.map((d) => (<Cell key={d.name} fill={d.color} />))}
-                        </Pie>
-                        <Tooltip contentStyle={{ borderRadius: 10, border: '1px solid #e5e7eb', fontSize: 12, fontFamily: 'inherit' }} formatter={(v, n) => [`${v}%`, n]} />
-                      </PieChart>
-                    </ResponsiveContainer>
-                  </div>
-                  <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 12 }}>
-                    {DONUT.map((d) => (
-                      <div key={d.name} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                        <span style={{ width: 11, height: 11, borderRadius: '50%', background: d.color, flex: 'none' }} />
-                        <span style={{ fontSize: '.85rem', color: 'var(--vm-muted)' }}>{d.name}</span>
-                        <span style={{ fontSize: '.9rem', fontWeight: 800, color: 'var(--vm-ink)', marginRight: 'auto' }}>
-                          {Math.round((d.value / donutTotal) * 100)}%
-                        </span>
-                      </div>
-                    ))}
-                  </div>
+
+                <div className="ins">
+                  <div className="ins-label">إجمالي العام</div>
+                  <div className="ins-num">{insight.total.toLocaleString('en-US')}</div>
                 </div>
-              </div>
-            </div>
+
+                <div className="ins">
+                  <div className="ins-label">المتوسط الشهري</div>
+                  <div className="ins-num">{insight.avg.toLocaleString('en-US')}</div>
+                </div>
+
+                <div className="ins">
+                  <div className="ins-label">أعلى شهر</div>
+                  <div className="ins-num">{insight.peak.toLocaleString('en-US')}<span className="ins-sub"> · {insight.peakShare}% من العام</span></div>
+                </div>
+              </aside>
+            </section>
           </main>
         </div>
       </div>
@@ -304,9 +294,8 @@ const CSS = `
 .yt-layout, .yt-layout *, .yt-layout *::before, .yt-layout *::after { box-sizing:border-box; }
 :root{
   --vm-blue:#2563eb; --vm-ink:#09090b; --vm-muted:#6b7280; --vm-paper:#fff;
-  --vm-bg:#f4f4f5; --vm-line:#e4e4e7; --vm-sidebar-w:230px;
+  --vm-bg:#ffffff; --vm-line:#e4e4e7; --vm-sidebar-w:230px;
   --vm-indigo:#4f46e5; --vm-emerald:#10b981;
-  --vm-shadow-card:0 1px 2px rgba(24,24,27,.04),0 2px 8px rgba(24,24,27,.06);
 }
 .yt-layout{ display:flex; min-height:100vh; background:var(--vm-bg);
   color:var(--vm-ink); font-family:'Almarai',system-ui,sans-serif; line-height:1.6; }
@@ -361,57 +350,64 @@ const CSS = `
 .yt-page-title{ font-size:1.08rem; font-weight:900; color:var(--vm-ink); line-height:1.1; }
 .yt-page-sub{ font-size:.74rem; color:var(--vm-muted); font-weight:600; }
 .yt-btn{ display:inline-flex; align-items:center; gap:6px; padding:8px 16px; border-radius:10px;
-  font-family:inherit; font-size:.85rem; font-weight:700; cursor:pointer; transition:.15s; border:0; background:var(--vm-blue); color:#fff; }
-.yt-btn:hover{ background:#1d4ed8; }
-.yt-content{ flex:1; padding:28px; }
-@media(max-width:960px){ .yt-content{ padding:16px; } }
+  font-family:inherit; font-size:.85rem; font-weight:600; cursor:pointer; transition:.18s;
+  border:1px solid var(--vm-line); background:var(--vm-paper); color:var(--vm-ink); }
+.yt-btn:hover{ border-color:#a1a1aa; background:#fafafa; }
+.yt-content{ flex:1; padding:32px; }
+@media(max-width:960px){ .yt-content{ padding:18px; } }
 
-/* Hero */
-.rev-hero{ background:linear-gradient(135deg,#1e3a5f 0%,#2563eb 60%,#3b82f6 100%); border-radius:20px; padding:28px 32px;
-  display:flex; align-items:center; justify-content:space-between; margin-bottom:24px; color:#fff; position:relative; overflow:hidden; flex-wrap:wrap; gap:16px; }
-.rev-hero::before{ content:''; position:absolute; top:-40px; left:-40px; width:220px; height:220px; border-radius:50%; background:rgba(255,255,255,.06); pointer-events:none; }
-.rh-label{ font-size:.82rem; font-weight:700; opacity:.75; letter-spacing:.06em; margin-bottom:8px; }
-.rh-val{ font-size:2.6rem; font-weight:900; line-height:1; font-family:'Inter',sans-serif; letter-spacing:-.03em; }
-.rh-change{ display:inline-flex; align-items:center; gap:5px; background:rgba(255,255,255,.15); border-radius:8px; padding:5px 11px; font-size:.8rem; font-weight:700; margin-top:10px; }
-.rh-actions{ display:flex; gap:10px; position:relative; z-index:1; }
-.rh-btn{ padding:10px 20px; border-radius:11px; font-family:inherit; font-size:.88rem; font-weight:700; cursor:pointer; transition:.15s; border:0; }
-.rh-btn-primary{ background:#fff; color:#2563eb; }
-.rh-btn-primary:hover{ background:#f0f6ff; }
-.rh-btn-ghost{ background:rgba(255,255,255,.15); color:#fff; border:1.5px solid rgba(255,255,255,.3); }
-.rh-btn-ghost:hover{ background:rgba(255,255,255,.25); }
+/* Page heading — airy */
+.page-head{ margin-bottom:28px; }
+.page-head h1{ font-size:1.5rem; font-weight:800; color:var(--vm-ink); margin:0; letter-spacing:-.02em; }
+.page-head p{ font-size:.85rem; color:var(--vm-muted); margin:6px 0 0; font-weight:500; }
 
-/* Stats — Bento metric cards */
-.sa-stats{ display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-bottom:24px; }
+/* Stats — flat, airy metric cards (no shadow, no hover lift) */
+.sa-stats{ display:grid; grid-template-columns:repeat(4,1fr); gap:20px; margin-bottom:28px; }
 @media(max-width:900px){ .sa-stats{ grid-template-columns:repeat(2,1fr); } }
 @media(max-width:480px){ .sa-stats{ grid-template-columns:1fr; } }
-.sa-stat{ background:var(--vm-paper); border:1px solid var(--vm-line); border-radius:16px; padding:20px;
-  box-shadow:var(--vm-shadow-card); display:flex; flex-direction:column; gap:14px;
-  transition:border-color .2s, box-shadow .2s, transform .2s; }
-.sa-stat:hover{ border-color:rgba(79,70,229,.28); box-shadow:0 8px 24px rgba(79,70,229,.10); transform:translateY(-2px); }
+.sa-stat{ background:var(--vm-paper); border:1px solid var(--vm-line); border-radius:16px; padding:24px;
+  display:flex; flex-direction:column; gap:16px; }
 .sa-stat-head{ display:flex; align-items:center; justify-content:space-between; }
-.sa-stat-icon{ width:38px; height:38px; border-radius:11px; display:grid; place-items:center; flex:none; }
-.icon-total{ background:rgba(79,70,229,.12); color:#4f46e5; }
-.icon-active{ background:rgba(16,185,129,.14); color:#059669; }
+.sa-stat-icon{ width:36px; height:36px; border-radius:10px; display:grid; place-items:center; flex:none; }
+.icon-total{ background:rgba(79,70,229,.10); color:#4f46e5; }
+.icon-active{ background:rgba(16,185,129,.12); color:#059669; }
 .icon-pending{ background:#fef9c3; color:#a16207; }
 .icon-rejected{ background:#fee2e2; color:#e11d48; }
-.sa-stat-label{ font-size:.78rem; font-weight:600; color:var(--vm-muted); }
-.sa-stat-val{ font-size:2.35rem; font-weight:900; color:var(--vm-ink); line-height:1; letter-spacing:-.045em;
+.sa-stat-label{ font-size:.8rem; font-weight:600; color:var(--vm-muted); }
+.sa-stat-val{ font-size:2rem; font-weight:700; color:var(--vm-ink); line-height:1; letter-spacing:-.03em;
   font-family:'Inter',ui-sans-serif,sans-serif; font-variant-numeric:tabular-nums lining-nums;
   font-feature-settings:'tnum' 1,'lnum' 1; align-self:flex-start; direction:ltr; }
-.sa-stat-footer{ font-size:.76rem; font-weight:600; color:var(--vm-muted); margin-top:-8px; }
-.sa-stat-footer.up{ color:#16a34a; }
+.sa-stat-footer{ font-size:.78rem; font-weight:500; color:var(--vm-muted); margin-top:-4px; }
+.sa-stat-footer.up{ color:#059669; }
 .sa-stat-footer.warn{ color:#d97706; }
 
-/* Charts */
-.charts-row{ display:grid; grid-template-columns:1fr 1fr; gap:20px; margin-bottom:24px; }
-@media(max-width:860px){ .charts-row{ grid-template-columns:1fr; } }
-.chart-card{ background:var(--vm-paper); border:1px solid var(--vm-line); border-radius:16px; padding:22px; box-shadow:var(--vm-shadow-card); }
-.chart-card-head{ display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:18px; }
-.chart-card-head h3{ font-size:.97rem; font-weight:900; color:var(--vm-ink); margin:0; }
-.chart-card-head p{ font-size:.78rem; color:var(--vm-muted); margin:3px 0 0; }
-.chart-period{ display:flex; gap:4px; background:var(--vm-bg); border:1px solid var(--vm-line); border-radius:9px; padding:3px; }
-.cp-btn{ padding:4px 10px; border-radius:6px; font-family:inherit; font-size:.75rem; font-weight:700; border:0; background:none; color:var(--vm-muted); cursor:pointer; transition:.15s; }
-.cp-btn.active{ background:var(--vm-paper); color:var(--vm-ink); box-shadow:0 1px 3px rgba(0,0,0,.08); }
+/* ── Master Analysis ── */
+.ma{ display:grid; grid-template-columns:1fr 280px; background:var(--vm-paper);
+  border:1px solid var(--vm-line); border-radius:16px; overflow:hidden; }
+@media(max-width:860px){ .ma{ grid-template-columns:1fr; } }
+.ma-main{ padding:24px 26px; min-width:0; }
+.ma-head{ display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:20px; gap:12px; flex-wrap:wrap; }
+.ma-head h3{ font-size:1rem; font-weight:800; color:var(--vm-ink); margin:0; letter-spacing:-.01em; }
+.ma-head p{ font-size:.8rem; color:var(--vm-muted); margin:4px 0 0; font-weight:500; }
+.chart-period{ display:flex; gap:4px; background:#f4f4f5; border:1px solid var(--vm-line); border-radius:9px; padding:3px; }
+.cp-btn{ padding:5px 12px; border-radius:6px; font-family:inherit; font-size:.78rem; font-weight:600; border:0; background:none; color:var(--vm-muted); cursor:pointer; transition:color .18s ease, background .18s ease; }
+.cp-btn.active{ background:var(--vm-paper); color:var(--vm-ink); }
+
+/* Deep Insight panel */
+.ma-side{ border-right:1px solid var(--vm-line); padding:24px; display:flex; flex-direction:column; background:#fcfcfd; }
+@media(max-width:860px){ .ma-side{ border-right:0; border-top:1px solid var(--vm-line); } }
+.ma-side-title{ font-size:.7rem; font-weight:700; color:var(--vm-muted); letter-spacing:.12em; text-transform:uppercase; margin-bottom:8px; }
+.ins{ padding:15px 0; border-bottom:1px solid var(--vm-line); display:flex; flex-direction:column; gap:8px; }
+.ins:last-child{ border-bottom:0; }
+.ins-label{ font-size:.8rem; color:var(--vm-muted); font-weight:500; }
+.ins-num{ font-size:1.35rem; font-weight:700; color:var(--vm-ink); line-height:1; letter-spacing:-.02em;
+  font-family:'Inter',ui-sans-serif,sans-serif; font-variant-numeric:tabular-nums lining-nums; direction:ltr; align-self:flex-start; }
+.ins-sub{ font-size:.74rem; font-weight:500; color:var(--vm-muted); letter-spacing:0; }
+.ins-delta{ display:inline-flex; align-items:center; gap:6px; direction:ltr; align-self:flex-start; }
+.ins-delta.up{ color:#059669; }
+.ins-delta.down{ color:#e11d48; }
+.ins-delta.up .ins-num, .ins-delta.down .ins-num{ color:inherit; }
+.ins-delta span:first-child{ font-size:.85rem; }
 
 /* Mobile sidebar overlay */
 .sidebar-overlay{ display:none; position:fixed; inset:0; background:rgba(0,0,0,.4); z-index:90; }

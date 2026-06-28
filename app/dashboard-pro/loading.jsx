@@ -44,8 +44,11 @@ export default function DashboardProLoading() {
 
           {/* Content */}
           <main className="sk-content">
-            {/* Hero */}
-            <div className="sk-hero shimmer" />
+            {/* Page heading */}
+            <div className="sk-pagehead">
+              <span className="sk-line" style={{ width: 140, height: 20 }} />
+              <span className="sk-line" style={{ width: 220, height: 10, marginTop: 12 }} />
+            </div>
 
             {/* 4 stat cards */}
             <div className="sk-stats">
@@ -53,28 +56,34 @@ export default function DashboardProLoading() {
                 <div className="sk-card sk-stat" key={i}>
                   <div className="sk-stat-head">
                     <span className="sk-line" style={{ width: 88, height: 10 }} />
-                    <span className="sk-box" style={{ width: 38, height: 38, borderRadius: 11 }} />
+                    <span className="sk-box" style={{ width: 36, height: 36, borderRadius: 10 }} />
                   </div>
-                  <span className="sk-line" style={{ width: 70, height: 26, marginTop: 6 }} />
-                  <span className="sk-line" style={{ width: 100, height: 9, marginTop: 10 }} />
+                  <span className="sk-line" style={{ width: 70, height: 24, marginTop: 8 }} />
+                  <span className="sk-line" style={{ width: 100, height: 9, marginTop: 12 }} />
                 </div>
               ))}
             </div>
 
-            {/* 2 chart cards */}
-            <div className="sk-charts">
-              {[0, 1].map((i) => (
-                <div className="sk-card sk-chart" key={i}>
-                  <div className="sk-stat-head" style={{ marginBottom: 18 }}>
-                    <div>
-                      <span className="sk-line" style={{ width: 120, height: 12 }} />
-                      <span className="sk-line" style={{ width: 160, height: 9, marginTop: 8 }} />
-                    </div>
-                    <span className="sk-box" style={{ width: 90, height: 28, borderRadius: 9 }} />
+            {/* Master Analysis */}
+            <div className="sk-card sk-ma">
+              <div className="sk-ma-main">
+                <div className="sk-stat-head" style={{ marginBottom: 20 }}>
+                  <div>
+                    <span className="sk-line" style={{ width: 180, height: 13 }} />
+                    <span className="sk-line" style={{ width: 220, height: 9, marginTop: 10 }} />
                   </div>
-                  <div className="sk-chart-body shimmer" />
+                  <span className="sk-box" style={{ width: 96, height: 28, borderRadius: 9 }} />
                 </div>
-              ))}
+                <div className="sk-chart-body shimmer" />
+              </div>
+              <div className="sk-ma-side">
+                {[0, 1, 2, 3].map((i) => (
+                  <div className="sk-ins" key={i}>
+                    <span className="sk-line" style={{ width: 80, height: 9 }} />
+                    <span className="sk-line" style={{ width: 56, height: 18, marginTop: 10 }} />
+                  </div>
+                ))}
+              </div>
             </div>
           </main>
         </div>
@@ -85,7 +94,7 @@ export default function DashboardProLoading() {
 
 const CSS = `
 .sk-layout, .sk-layout *, .sk-layout *::before, .sk-layout *::after { box-sizing:border-box; }
-.sk-layout{ display:flex; min-height:100vh; background:#f4f4f5; font-family:'Almarai',system-ui,sans-serif; }
+.sk-layout{ display:flex; min-height:100vh; background:#ffffff; font-family:'Almarai',system-ui,sans-serif; }
 
 /* shimmer primitives */
 .sk-box, .sk-line{ display:inline-block; background:#e9eaec; border-radius:6px; position:relative; overflow:hidden; }
@@ -107,22 +116,27 @@ const CSS = `
 .sk-main{ flex:1; margin-right:230px; display:flex; flex-direction:column; min-height:100vh; }
 @media(max-width:960px){ .sk-main{ margin-right:0; } }
 .sk-topbar{ background:#fff; border-bottom:1px solid #e5e7eb; height:64px; padding:0 24px; display:flex; align-items:center; justify-content:space-between; }
-.sk-content{ flex:1; padding:28px; }
-@media(max-width:960px){ .sk-content{ padding:16px; } }
+.sk-content{ flex:1; padding:32px; }
+@media(max-width:960px){ .sk-content{ padding:18px; } }
 
-/* Hero */
-.sk-hero{ height:118px; border-radius:20px; margin-bottom:24px; background:#e9eaec; }
+/* Page heading */
+.sk-pagehead{ display:flex; flex-direction:column; margin-bottom:28px; }
 
-/* Cards */
-.sk-card{ background:#fff; border:1px solid #e4e4e7; border-radius:16px; box-shadow:0 1px 2px rgba(24,24,27,.04),0 2px 8px rgba(24,24,27,.06); }
-.sk-stats{ display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-bottom:24px; }
+/* Cards — flat, no shadow */
+.sk-card{ background:#fff; border:1px solid #e4e4e7; border-radius:16px; }
+.sk-stats{ display:grid; grid-template-columns:repeat(4,1fr); gap:20px; margin-bottom:28px; }
 @media(max-width:900px){ .sk-stats{ grid-template-columns:repeat(2,1fr); } }
 @media(max-width:480px){ .sk-stats{ grid-template-columns:1fr; } }
-.sk-stat{ padding:20px; display:flex; flex-direction:column; }
+.sk-stat{ padding:24px; display:flex; flex-direction:column; }
 .sk-stat-head{ display:flex; align-items:flex-start; justify-content:space-between; }
 
-.sk-charts{ display:grid; grid-template-columns:1fr 1fr; gap:20px; }
-@media(max-width:860px){ .sk-charts{ grid-template-columns:1fr; } }
-.sk-chart{ padding:22px; }
-.sk-chart-body{ height:180px; border-radius:12px; background:#eef0f2; }
+/* Master Analysis skeleton */
+.sk-ma{ display:grid; grid-template-columns:1fr 280px; overflow:hidden; }
+@media(max-width:860px){ .sk-ma{ grid-template-columns:1fr; } }
+.sk-ma-main{ padding:24px 26px; }
+.sk-ma-side{ border-right:1px solid #e4e4e7; padding:24px; background:#fcfcfd; display:flex; flex-direction:column; }
+@media(max-width:860px){ .sk-ma-side{ border-right:0; border-top:1px solid #e4e4e7; } }
+.sk-ins{ padding:15px 0; border-bottom:1px solid #e4e4e7; display:flex; flex-direction:column; }
+.sk-ins:last-child{ border-bottom:0; }
+.sk-chart-body{ height:280px; border-radius:12px; background:#f4f4f5; }
 `;

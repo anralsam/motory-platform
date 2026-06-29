@@ -10,8 +10,7 @@ import { createServerSupabase } from '@/lib/supabase/server';
 import { getSupabaseAdmin } from '@/lib/supabase/admin';
 import { getAdminData, getMerchantData, getWorkerData, getIntelligenceData, getOperationsData } from '@/lib/dashboard-pro/queries';
 import DashboardLayout from '@/components/dashboard-pro/DashboardLayout';
-import MetricHero from '@/components/dashboard-pro/MetricHero';
-import IntelligenceModule from '@/components/dashboard-pro/IntelligenceModule';
+import AdminDashboard from '@/components/dashboard-pro/AdminDashboard';
 import OperationsGrid from '@/components/dashboard-pro/OperationsGrid';
 import FinancePanel from '@/components/dashboard-pro/FinancePanel';
 import GovernancePanel from '@/components/dashboard-pro/GovernancePanel';
@@ -41,6 +40,8 @@ async function detectRole(supabase, user) {
   return urow?.role === 'admin' ? 'admin' : 'merchant';
 }
 
+const MONTHS = ['ينا', 'فبر', 'مار', 'أبر', 'ماي', 'يون', 'يول', 'أغس', 'سبت', 'أكت', 'نوف', 'ديس'];
+
 function computeFinance(orders) {
   const completed = orders.filter((o) => o.status === 'completed');
   const revenue = completed.reduce((s, o) => s + (Number(o.price) || 0), 0);
@@ -48,21 +49,31 @@ function computeFinance(orders) {
   return { revenue, ordersValue, completed: completed.length, avgOrder: completed.length ? Math.round(revenue / completed.length) : 0 };
 }
 
+function revenueByMonth(orders) {
+  const arr = Array(12).fill(0);
+  orders.forEach((o) => {
+    if (o.status === 'completed' && o.created_at) arr[new Date(o.created_at).getMonth()] += Number(o.price) || 0;
+  });
+  return MONTHS.map((label, i) => ({ label, value: arr[i] }));
+}
+
 // ── Admin content map ──
 async function adminContent() {
   const [adminData, intelRaw, ops] = await Promise.all([getAdminData(), getIntelligenceData(), getOperationsData(20)]);
   const intel = intelRaw || { orders: [], workers: [], branches: [] };
   const fin = computeFinance(intel.orders);
+  const metrics = {
+    revenue: fin.revenue,
+    active: intel.orders.filter((o) => o.status === 'in_progress' || o.status === 'ready').length,
+    workshops: adminData?.joinStats?.approved || 0,
+    pending: adminData?.joinStats?.pending || 0,
+  };
+  const approvals = adminData?.acceptanceRows || [];
   return {
-    dashboard: (
-      <div className="space-y-6">
-        <MetricHero />
-        <IntelligenceModule orders={intel.orders} workers={intel.workers} branches={intel.branches} />
-      </div>
-    ),
+    dashboard: <AdminDashboard metrics={metrics} revenue={revenueByMonth(intel.orders)} approvals={approvals} />,
     operations: <OperationsGrid orders={ops} />,
     finance: <FinancePanel {...fin} />,
-    governance: <GovernancePanel rows={adminData?.acceptanceRows || []} pending={adminData?.joinStats?.pending || 0} />,
+    governance: <GovernancePanel rows={approvals} pending={metrics.pending} />,
   };
 }
 

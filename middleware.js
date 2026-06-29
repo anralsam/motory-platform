@@ -28,8 +28,10 @@ export async function middleware(request) {
   const path = request.nextUrl.pathname;
   const isAuthRoute = path.startsWith('/auth');
   // '/' is the public landing page now. Only the app areas are protected.
+  // '/vm-control-center' is retired (next.config redirects it to /dashboard-pro,
+  // which is itself protected via the '/dashboard' prefix below).
   const isProtected =
-    path.startsWith('/dashboard') || path.startsWith('/worker-tasks') || path.startsWith('/vm-control-center');
+    path.startsWith('/dashboard') || path.startsWith('/worker-tasks');
 
   // Not signed in → bounce protected routes to the login page.
   if (!user && isProtected) {

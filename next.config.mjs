@@ -24,9 +24,11 @@ const nextConfig = {
       ['/appointments.html', '/dashboard/orders'],
       ['/orders.html', '/dashboard/orders'],
       ['/expenses.html', '/dashboard'],
-      ['/admin-vold.html', '/vm-control-center'],
-      ['/vm-control-center.html', '/vm-control-center'],
-      ['/vm-secure-panel.html', '/vm-control-center'],
+      // The control room is retired → unified into /dashboard-pro (Governance tab).
+      ['/vm-control-center', '/dashboard-pro'],
+      ['/admin-vold.html', '/dashboard-pro'],
+      ['/vm-control-center.html', '/dashboard-pro'],
+      ['/vm-secure-panel.html', '/dashboard-pro'],
     ];
     return map.map(([source, destination]) => ({
       source,

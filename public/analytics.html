@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>VOLD MOTOR · محرك التحليلات</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    * { font-family: 'Cairo', sans-serif; }
+    .scrollbar-none::-webkit-scrollbar { display: none; }
+    .scrollbar-none { -ms-overflow-style: none; scrollbar-width: none; }
+    .fade { animation: f .35s ease both; } @keyframes f { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; } }
+  </style>
+</head>
+<body class="bg-[#f9f9f9] text-[#0f172a] antialiased">
+  <div class="mx-auto w-full max-w-7xl p-3 md:p-6">
+    <!-- top bar -->
+    <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
+      <div>
+        <h1 class="text-xl font-extrabold md:text-2xl">محرك التحليلات</h1>
+        <p class="text-xs text-slate-500" id="subtitle">أداء المنصة عبر كل القطاعات</p>
+      </div>
+      <div class="inline-flex rounded-lg border border-slate-200 bg-white p-1 text-sm font-semibold">
+        <button data-role="admin" class="role-btn rounded-md px-3 py-1.5">الإدارة العليا</button>
+        <button data-role="shop" class="role-btn rounded-md px-3 py-1.5">صاحب المركز</button>
+      </div>
+    </div>
+
+    <!-- sector filter (admin only) -->
+    <div id="sectorBar" class="mb-3 flex gap-2 overflow-x-auto whitespace-nowrap scrollbar-none"></div>
+    <!-- time filter -->
+    <div id="timeBar" class="mb-5 flex gap-2 overflow-x-auto whitespace-nowrap scrollbar-none"></div>
+
+    <!-- metric cards -->
+    <div id="cards" class="mb-5 grid w-full grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4"></div>
+
+    <!-- chart -->
+    <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm md:p-6">
+      <div class="mb-3 flex items-center justify-between">
+        <div>
+          <div class="text-sm font-bold" id="chartTitle">إجمالي الدخل</div>
+          <div class="text-xs text-slate-500" id="chartSub">آخر شهر</div>
+        </div>
+        <div class="flex items-center gap-3 text-xs font-semibold">
+          <span class="inline-flex items-center gap-1.5"><span class="h-2.5 w-2.5 rounded-full bg-[#2563eb]"></span>دخل الورش</span>
+          <span id="legendCommission" class="inline-flex items-center gap-1.5"><span class="h-2.5 w-2.5 rounded-full bg-[#7c3aed]"></span>عمولة المنصة</span>
+        </div>
+      </div>
+      <div class="relative h-[300px] w-full md:h-[400px]"><canvas id="chart"></canvas></div>
+    </div>
+  </div>
+
+  <script>
+  // ───────── Data matrix: sector × period → { labels, income[], commission[], ops[] } ─────────
+  const SECTORS = [['all','الكل'],['wash','مغاسل السيارات'],['oil','غيار الزيت'],['mech','الميكانيكا']];
+  const PERIODS = [['1h','آخر ساعة'],['24h','آخر يوم'],['1w','آخر أسبوع'],['1m','آخر شهر'],['1y','آخر سنة'],['all','طول المدة']];
+  const SECTOR_MULT = { all: 1, wash: 0.45, oil: 0.3, mech: 0.55 };
+  const PERIOD_CFG = {
+    '1h': { n: 12, scale: 0.4, lbl: (i) => `${i * 5}د` },
+    '24h': { n: 12, scale: 1, lbl: (i) => `${i * 2}:00` },
+    '1w': { n: 7, scale: 5, lbl: (i) => ['السبت','الأحد','الإثنين','الثلاثاء','الأربعاء','الخميس','الجمعة'][i] },
+    '1m': { n: 10, scale: 18, lbl: (i) => `${i * 3 + 1}` },
+    '1y': { n: 12, scale: 120, lbl: (i) => ['ينا','فبر','مار','أبر','ماي','يون','يول','أغس','سبت','أكت','نوف','ديس'][i] },
+    'all': { n: 8, scale: 400, lbl: (i) => `${2019 + i}` },
+  };
+  function gen(sector, period) {
+    const cfg = PERIOD_CFG[period], m = SECTOR_MULT[sector] || 1;
+    const labels = [], income = [], commission = [], ops = [];
+    for (let i = 0; i < cfg.n; i++) {
+      const wave = 1 + 0.45 * Math.sin(i * 0.7) + 0.22 * Math.cos(i * 0.4);
+      const v = Math.round(420 * (1 + i * 0.18) * wave * m * cfg.scale);
+      labels.push(cfg.lbl(i)); income.push(v); commission.push(Math.round(v * 0.05)); ops.push(Math.max(1, Math.round(v / 95)));
+    }
+    return { labels, income, commission, ops };
+  }
+  const DATA = {};
+  SECTORS.forEach(([s]) => { DATA[s] = {}; PERIODS.forEach(([p]) => { DATA[s][p] = gen(s, p); }); });
+
+  // ───────── State ─────────
+  const ST = { role: 'admin', sector: 'all', period: '1m', metric: 'income' };
+  const sum = (a) => a.reduce((x, y) => x + y, 0);
+  const fmt = (n) => n.toLocaleString('en-US');
+  const growth = (a) => { const h = Math.floor(a.length / 2); const x = sum(a.slice(0, h)) || 1, y = sum(a.slice(h)); return Math.round(((y - x) / x) * 100); };
+
+  // ───────── Filter bars ─────────
+  function chip(active, label) {
+    return `class="filter rounded-full border px-4 py-1.5 text-sm font-semibold transition ${active ? 'border-blue-600 bg-blue-600 text-white' : 'border-slate-200 bg-white text-slate-600 hover:border-blue-300'}"`;
+  }
+  function renderBars() {
+    document.getElementById('sectorBar').style.display = ST.role === 'admin' ? 'flex' : 'none';
+    document.getElementById('legendCommission').style.display = ST.role === 'admin' ? 'inline-flex' : 'none';
+    document.getElementById('sectorBar').innerHTML = SECTORS.map(([k, l]) => `<button ${chip(ST.sector === k, l)} onclick="setSector('${k}')">${l}</button>`).join('');
+    document.getElementById('timeBar').innerHTML = PERIODS.map(([k, l]) => `<button ${chip(ST.period === k, l)} onclick="setPeriod('${k}')">${l}</button>`).join('');
+    document.querySelectorAll('.role-btn').forEach((b) => {
+      const on = b.dataset.role === ST.role;
+      b.className = `role-btn rounded-md px-3 py-1.5 ${on ? 'bg-blue-600 text-white' : 'text-slate-600'}`;
+    });
+    document.getElementById('subtitle').textContent = ST.role === 'admin' ? 'أداء المنصة عبر كل القطاعات' : 'صافي دخل مركزك (معزول)';
+  }
+
+  // ───────── Metric cards ─────────
+  const METRICS = [
+    { k: 'income', label: 'إجمالي الدخل', pick: (d) => sum(d.income), money: true },
+    { k: 'profit', label: 'صافي الأرباح', pick: (d) => (ST.role === 'admin' ? sum(d.commission) : sum(d.income)), money: true },
+    { k: 'ops', label: 'عدد العمليات', pick: (d) => sum(d.ops), money: false },
+    { k: 'growth', label: 'معدل النمو', pick: (d) => growth(d.income), money: false, pct: true },
+  ];
+  function curData() { return DATA[ST.role === 'admin' ? ST.sector : 'wash'][ST.period]; }
+  function renderCards() {
+    const d = curData(); const g = growth(d.income);
+    document.getElementById('cards').innerHTML = METRICS.map((mt) => {
+      const raw = mt.pick(d);
+      const val = mt.pct ? `${raw >= 0 ? '+' : ''}${raw}%` : mt.money ? `${fmt(raw)} ﷼` : fmt(raw);
+      const on = ST.metric === mt.k;
+      const arrow = `<span class="inline-flex items-center gap-0.5 text-xs font-bold ${g >= 0 ? 'text-emerald-600' : 'text-rose-600'}" dir="ltr">${g >= 0 ? '▲' : '▼'} ${Math.abs(g)}%</span>`;
+      return `<button onclick="setMetric('${mt.k}')" class="fade rounded-xl border bg-white p-5 text-start shadow-sm transition ${on ? 'border-blue-600 ring-1 ring-blue-600/20' : 'border-slate-200 hover:border-slate-300'}">
+        <div class="flex items-center justify-between"><span class="text-xs font-semibold uppercase tracking-wide text-slate-500">${mt.label}</span>${arrow}</div>
+        <div class="mt-3 text-2xl font-extrabold tabular-nums md:text-3xl" dir="ltr">${val}</div>
+      </button>`;
+    }).join('');
+  }
+
+  // ───────── Chart ─────────
+  let chart;
+  const isMobile = () => window.innerWidth < 768;
+  function grad(ctx, area, color) {
+    if (!area) return color;
+    const g = ctx.createLinearGradient(0, area.top, 0, area.bottom);
+    g.addColorStop(0, color + '4d'); g.addColorStop(1, color + '00');
+    return g;
+  }
+  function datasets() {
+    const d = curData();
+    const blue = '#2563eb', purple = '#7c3aed';
+    const area = (label, arr, color) => ({
+      label, data: arr, borderColor: color, borderWidth: 3, tension: 0.4, fill: true, pointRadius: 0, pointHoverRadius: 5,
+      pointHoverBackgroundColor: color, pointHoverBorderColor: '#fff', pointHoverBorderWidth: 2,
+      backgroundColor: (c) => grad(c.chart.ctx, c.chart.chartArea, color),
+    });
+    if (ST.metric === 'ops') return [area('عدد العمليات', d.ops, blue)];
+    if (ST.metric === 'profit') return ST.role === 'admin' ? [area('عمولة المنصة', d.commission, purple)] : [area('صافي الدخل', d.income, blue)];
+    // income / growth → income (+ commission for admin)
+    const ds = [area('دخل الورش', d.income, blue)];
+    if (ST.role === 'admin') ds.push(area('عمولة المنصة', d.commission, purple));
+    return ds;
+  }
+  function renderChart() {
+    const d = curData();
+    const cfg = {
+      type: 'line',
+      data: { labels: d.labels, datasets: datasets() },
+      options: {
+        responsive: true, maintainAspectRatio: false, interaction: { mode: 'index', intersect: false },
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: 'rgba(255,255,255,.92)', titleColor: '#0f172a', bodyColor: '#334155',
+            borderColor: '#e2e8f0', borderWidth: 1, padding: 12, cornerRadius: 12, displayColors: true,
+            titleFont: { family: 'Cairo', weight: '800' }, bodyFont: { family: 'Cairo' },
+            callbacks: { label: (c) => `${c.dataset.label}: ${fmt(c.parsed.y)} ${ST.metric === 'ops' ? 'عملية' : '﷼'}` },
+          },
+        },
+        scales: {
+          x: { grid: { display: false }, ticks: { font: { family: 'Cairo', size: isMobile() ? 10 : 12 }, color: '#64748b' } },
+          y: { grid: { color: '#eef2f7' }, ticks: { font: { family: 'Cairo', size: isMobile() ? 10 : 12 }, color: '#64748b', callback: (v) => (v >= 1000 ? (v / 1000).toFixed(0) + 'k' : v) } },
+        },
+        elements: { line: { borderJoinStyle: 'round' } },
+        animation: { duration: 650, easing: 'easeInOutCubic' },
+      },
+    };
+    if (chart) { chart.data = cfg.data; chart.options = cfg.options; chart.update(); }
+    else chart = new Chart(document.getElementById('chart'), cfg);
+    document.getElementById('chartTitle').textContent = METRICS.find((m) => m.k === ST.metric).label;
+    document.getElementById('chartSub').textContent = PERIODS.find((p) => p[0] === ST.period)[1] + (ST.role === 'admin' ? ' · ' + SECTORS.find((s) => s[0] === ST.sector)[1] : '');
+  }
+
+  // ───────── Actions ─────────
+  function refresh() { renderBars(); renderCards(); renderChart(); }
+  window.setSector = (s) => { ST.sector = s; refresh(); };
+  window.setPeriod = (p) => { ST.period = p; refresh(); };
+  window.setMetric = (m) => { ST.metric = m; refresh(); };
+  document.querySelectorAll('.role-btn').forEach((b) => b.addEventListener('click', () => { ST.role = b.dataset.role; if (ST.role === 'shop') ST.sector = 'all'; refresh(); }));
+  window.addEventListener('resize', () => { if (chart) { chart.options.scales.x.ticks.font.size = isMobile() ? 10 : 12; chart.options.scales.y.ticks.font.size = isMobile() ? 10 : 12; chart.update(); } });
+
+  refresh();
+  </script>
+</body>
+</html>

@@ -131,7 +131,7 @@ export default function LandingPage() {
   const registerHref = authed ? '/dashboard' : '/auth/signup';
   const loginLabel = authed ? 'العودة للوحة التحكم' : 'تسجيل الدخول';
   const heroCtaLabel = authed ? 'فتح لوحة التحكم' : 'سجّل مركزك مجاناً';
-  const finalCtaLabel = authed ? 'فتح لوحة التحكم' : 'سجّل مركزك مجاناً';
+  const finalCtaLabel = 'سجّل مركزك';
   const navStartLabel = authed ? 'لوحة التحكم' : 'ابدأ الآن';
 
   return (
@@ -355,9 +355,6 @@ export default function LandingPage() {
               <h3 className="text-3xl font-medium tracking-tight text-white sm:text-4xl">
                 مركزك يستاهل نظام أفضل
               </h3>
-              <p className="mx-auto mt-3 max-w-md text-sm font-light leading-relaxed text-zinc-400">
-                بدون اشتراكات شهرية · عمولة رمزية فقط على الطلبات المنجزة.
-              </p>
               <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
                 <Link href={registerHref} className="w-full rounded-xl bg-white px-7 py-3 text-sm font-medium text-[#0a0a0a] transition hover:bg-zinc-100 sm:w-auto">
                   {finalCtaLabel}
@@ -379,9 +376,6 @@ export default function LandingPage() {
               {/* brand */}
               <div className="col-span-2 md:col-span-1">
                 <Logo className="h-7 w-auto text-white" />
-                <p className="mt-4 max-w-xs text-sm font-light leading-relaxed text-zinc-500">
-                  نظام إدارة مراكز العناية بالمركبات — صُمّم في السعودية 🇸🇦
-                </p>
                 <div className="mt-5 flex items-center gap-2.5">
                   {[
                     ['Instagram', 'M12 2.2c3.2 0 3.6 0 4.9.07 1.2.05 1.8.25 2.2.42.6.2 1 .5 1.4 1 .5.4.8.8 1 1.4.17.4.37 1 .42 2.2.07 1.3.07 1.7.07 4.9s0 3.6-.07 4.9c-.05 1.2-.25 1.8-.42 2.2-.2.6-.5 1-1 1.4-.4.5-.8.8-1.4 1-.4.17-1 .37-2.2.42-1.3.07-1.7.07-4.9.07s-3.6 0-4.9-.07c-1.2-.05-1.8-.25-2.2-.42-.6-.2-1-.5-1.4-1-.5-.4-.8-.8-1-1.4-.17-.4-.37-1-.42-2.2C2.2 15.6 2.2 15.2 2.2 12s0-3.6.07-4.9c.05-1.2.25-1.8.42-2.2.2-.6.5-1 1-1.4.4-.5.8-.8 1.4-1 .4-.17 1-.37 2.2-.42C8.4 2.2 8.8 2.2 12 2.2zm0 3.5a6.3 6.3 0 100 12.6 6.3 6.3 0 000-12.6zm0 10.4a4.1 4.1 0 110-8.2 4.1 4.1 0 010 8.2zm6.5-10.6a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z'],

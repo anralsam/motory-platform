@@ -16,25 +16,25 @@
  *   <DashboardLayout content={{ dashboard: <Admin/>, operations: <Ops/> }} />
  */
 import { useState } from 'react';
-import { LayoutDashboard, Activity, Inbox, BarChart3, Store, Settings, ClipboardList, ArrowLeft } from 'lucide-react';
+import { LayoutDashboard, Activity, Inbox, BarChart3, Store, Settings, ClipboardList, ArrowLeft, Globe } from 'lucide-react';
 
 // Pages (with their lucide icons) live in this CLIENT module — never passed from
 // the server (functions can't cross the RSC boundary). The server passes only the
 // `role` and a serializable `content` map keyed by page key.
 const PAGES_BY_ROLE = {
   admin: [
-    { key: 'home', label: 'الرئيسية', Icon: LayoutDashboard },
-    { key: 'requests', label: 'طلبات الانضمام', Icon: Inbox },
-    { key: 'stats', label: 'إحصائيات المنصة', Icon: BarChart3 },
-    { key: 'shops', label: 'المحلات المشتركة', Icon: Store },
-    { key: 'settings', label: 'الإعدادات', Icon: Settings },
+    { key: 'home', label: 'الرئيسية', en: 'Home', Icon: LayoutDashboard },
+    { key: 'requests', label: 'طلبات الانضمام', en: 'Requests', Icon: Inbox },
+    { key: 'stats', label: 'إحصائيات المنصة', en: 'Analytics', Icon: BarChart3 },
+    { key: 'shops', label: 'المحلات المشتركة', en: 'Shops', Icon: Store },
+    { key: 'settings', label: 'الإعدادات', en: 'Settings', Icon: Settings },
   ],
   merchant: [
-    { key: 'dashboard', label: 'لوحة التحكم', Icon: LayoutDashboard },
-    { key: 'operations', label: 'العمليات', Icon: Activity },
+    { key: 'dashboard', label: 'لوحة التحكم', en: 'Dashboard', Icon: LayoutDashboard },
+    { key: 'operations', label: 'العمليات', en: 'Operations', Icon: Activity },
   ],
   worker: [
-    { key: 'tasks', label: 'مهامي', Icon: ClipboardList },
+    { key: 'tasks', label: 'مهامي', en: 'My Tasks', Icon: ClipboardList },
   ],
 };
 
@@ -62,8 +62,20 @@ function Placeholder({ label }) {
 export default function DashboardLayout({ role = 'admin', content = {}, userName = 'المستخدم' }) {
   const pages = PAGES_BY_ROLE[role] || PAGES_BY_ROLE.admin;
   const [active, setActive] = useState(pages[0].key);
+  const [dir, setDir] = useState('rtl');
   const isRoot = active === pages[0].key;
+  const isAr = dir === 'rtl';
   const activePage = pages.find((p) => p.key === active) || pages[0];
+  const labelOf = (p) => (isAr ? p.label : p.en);
+
+  function toggleDir() {
+    const next = dir === 'rtl' ? 'ltr' : 'rtl';
+    setDir(next);
+    if (typeof document !== 'undefined') {
+      document.documentElement.setAttribute('dir', next);
+      document.documentElement.setAttribute('lang', next === 'rtl' ? 'ar' : 'en');
+    }
+  }
 
   const NavItem = ({ p, mobile }) => {
     const on = active === p.key;
@@ -71,20 +83,20 @@ export default function DashboardLayout({ role = 'admin', content = {}, userName
       return (
         <button onClick={() => setActive(p.key)}
           className={`flex flex-1 flex-col items-center gap-1 py-2.5 text-[11px] font-semibold transition-all duration-300 ease-in-out ${on ? 'text-blue-600' : 'text-slate-500'}`}>
-          <p.Icon size={22} strokeWidth={2} /><span>{p.label}</span>
+          <p.Icon size={22} strokeWidth={2} /><span>{labelOf(p)}</span>
         </button>
       );
     }
     return (
       <button onClick={() => setActive(p.key)}
-        className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold transition-all duration-300 ease-in-out ${on ? 'bg-blue-600 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-100'}`}>
-        <p.Icon size={19} strokeWidth={2} className="flex-none" /><span>{p.label}</span>
+        className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-start text-sm font-semibold transition-all duration-300 ease-in-out ${on ? 'bg-blue-600 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-100'}`}>
+        <p.Icon size={19} strokeWidth={2} className="flex-none" /><span>{labelOf(p)}</span>
       </button>
     );
   };
 
   return (
-    <div dir="rtl" className="min-h-screen bg-[#f9f9f9] font-sans text-slate-900">
+    <div dir={dir} className={`min-h-screen bg-[#f9f9f9] text-slate-900 ${isAr ? 'font-sans' : 'font-inter'}`}>
       {/* ══ Sidebar — desktop only (hidden md:flex) ══ */}
       <aside className="fixed inset-y-0 end-0 z-40 hidden w-60 flex-col border-s border-slate-200 bg-[#f9f9f9] md:flex">
         <div className="flex h-16 items-center gap-2.5 border-b border-slate-200 px-5" dir="ltr">
@@ -108,19 +120,30 @@ export default function DashboardLayout({ role = 'admin', content = {}, userName
         {/* Header — glass, 64px, sticky */}
         <header className="sticky top-0 z-20 flex h-16 items-center justify-between border-b border-slate-200/70 bg-white/70 px-4 backdrop-blur-md md:px-8">
           <div className="flex items-center gap-3">
-            {!isRoot && (
+            {/* Back: on a sub-page → root tab · on root → site home */}
+            {isRoot ? (
+              <a href="/"
+                className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-600 transition-all duration-300 ease-in-out hover:border-blue-600 hover:text-blue-600">
+                <ArrowLeft size={16} className={isAr ? 'rotate-180' : ''} /><span>{isAr ? 'العودة للموقع' : 'Back to site'}</span>
+              </a>
+            ) : (
               <button onClick={() => setActive(pages[0].key)}
                 className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-600 transition-all duration-300 ease-in-out hover:border-blue-600 hover:text-blue-600">
-                <ArrowLeft size={16} className="rotate-180" /><span>العودة</span>
+                <ArrowLeft size={16} className={isAr ? 'rotate-180' : ''} /><span>{isAr ? 'العودة' : 'Back'}</span>
               </button>
             )}
-            <h1 className="text-[15px] font-bold text-slate-900">{activePage.label}</h1>
+            <h1 className="text-[15px] font-bold text-slate-900">{labelOf(activePage)}</h1>
           </div>
+          {/* Language toggle */}
+          <button onClick={toggleDir} title="AR / EN"
+            className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-600 transition-all duration-300 ease-in-out hover:border-blue-600 hover:text-blue-600">
+            <Globe size={16} /><span className="tabular-nums">{isAr ? 'EN' : 'AR'}</span>
+          </button>
         </header>
 
         {/* MainContent — swaps by active page, no reload */}
         <main className="flex-1 p-4 pb-24 md:p-8 md:pb-8">
-          {content[active] ?? <Placeholder label={activePage.label} />}
+          {content[active] ?? <Placeholder label={labelOf(activePage)} />}
         </main>
       </div>
 

@@ -69,10 +69,11 @@ async function adminContent() {
   };
   const approvals = adminData?.acceptanceRows || [];
   return {
-    dashboard: <AdminDashboard metrics={metrics} revenue={revenueByMonth(intel.orders)} approvals={approvals} />,
-    operations: <OperationsGrid orders={ops} />,
-    finance: <FinancePanel {...fin} />,
-    governance: <GovernancePanel rows={approvals} pending={metrics.pending} />,
+    home: <AdminDashboard metrics={metrics} revenue={revenueByMonth(intel.orders)} />,
+    requests: <GovernancePanel rows={approvals} pending={metrics.pending} />,
+    stats: <IntelligenceModule orders={intel.orders} workers={intel.workers} branches={intel.branches} />,
+    shops: <OperationsGrid orders={ops} />,
+    settings: <NoData title="الإعدادات" hint="إعدادات المنصة — قريباً." />,
   };
 }
 
@@ -91,8 +92,15 @@ async function merchantContent(merchantId) {
     health: d.orders.length ? Math.round((completed / d.orders.length) * 100) : 0,
   };
   const liveOrders = d.orders.filter((o) => o.status !== 'completed').slice(0, 12);
+  // Peak times by weekday + last-hour snapshot
+  const DAYS_AR = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
+  const wd = Array(7).fill(0);
+  d.orders.forEach((o) => { if (o.created_at) wd[new Date(o.created_at).getDay()]++; });
+  const peak = DAYS_AR.map((label, i) => ({ label, value: wd[i] }));
+  const daysWithData = wd.filter((n) => n > 0).length || 1;
+  const lastHour = { inHall: d.perf.live, dailyAvg: Math.round(d.orders.length / daysWithData) };
   return {
-    dashboard: <MerchantDashboard metrics={mMetrics} orders={liveOrders} inventory={d.inventory} workers={d.workers} />,
+    dashboard: <MerchantDashboard metrics={mMetrics} orders={liveOrders} inventory={d.inventory} workers={d.workers} peak={peak} lastHour={lastHour} />,
     operations: (
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         {d.orders.slice(0, 12).map((o) => (

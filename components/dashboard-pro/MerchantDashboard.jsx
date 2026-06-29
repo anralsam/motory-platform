@@ -10,7 +10,8 @@
  */
 import { useState } from 'react';
 import { AnimatePresence } from 'framer-motion';
-import { Wallet, Activity, Users, HeartPulse } from 'lucide-react';
+import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts';
+import { Wallet, Activity, Users, HeartPulse, Clock } from 'lucide-react';
 import StatTile from './StatTile';
 import StatusPill from './StatusPill';
 import StartTaskModal from './StartTaskModal';
@@ -18,7 +19,7 @@ import NoData from './NoData';
 
 const sar = (n) => `${(Number(n) || 0).toLocaleString('en-US')} ﷼`;
 
-export default function MerchantDashboard({ metrics = {}, orders = [], inventory = [], workers = [] }) {
+export default function MerchantDashboard({ metrics = {}, orders = [], inventory = [], workers = [], peak = [], lastHour = {} }) {
   const [items, setItems] = useState(orders);
   const [modalOrder, setModalOrder] = useState(null);
   const nameByUser = Object.fromEntries(workers.map((w) => [w.user_id, w.full_name]));
@@ -35,6 +36,31 @@ export default function MerchantDashboard({ metrics = {}, orders = [], inventory
         <StatTile icon={Activity} tone="blue" label="الطلبات النشطة" value={(metrics.active || 0).toLocaleString('en-US')} sub="جارية الآن" />
         <StatTile icon={Users} tone="blue" label="حمل الفنّيين" value={`${metrics.techLoad || 0}%`} sub="نسبة الانشغال" />
         <StatTile icon={HeartPulse} tone="blue" label="صحة المركز" value={`${metrics.health || 0}%`} sub="معدّل الإنجاز" />
+      </div>
+
+      {/* Last-hour performance + peak times */}
+      <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
+        <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm lg:col-span-1">
+          <div className="mb-1 flex items-center gap-2 text-sm font-semibold text-slate-900"><Clock size={16} className="text-blue-600" /> أداء آخر ساعة</div>
+          <div className="mb-5 text-xs font-normal text-slate-400">السيارات داخل الصالة الآن</div>
+          <div className="font-inter text-4xl font-bold tabular-nums tracking-tight text-slate-900" dir="ltr">{lastHour.inHall ?? 0}</div>
+          <div className="mt-2 text-xs text-slate-500">مقابل متوسط يومي <span className="font-semibold tabular-nums text-slate-700" dir="ltr">{lastHour.dailyAvg ?? 0}</span></div>
+        </div>
+        <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm lg:col-span-2">
+          <div className="mb-1 text-sm font-semibold text-slate-900">أوقات الذروة</div>
+          <div className="mb-4 text-xs font-normal text-slate-400">إقبال السيارات حسب أيام الأسبوع</div>
+          <div className="h-40" dir="ltr">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={peak} margin={{ top: 6, right: 6, left: -18, bottom: 0 }}>
+                <CartesianGrid vertical={false} stroke="#f1f5f9" />
+                <XAxis dataKey="label" tickLine={false} axisLine={false} tick={{ fontSize: 10, fill: '#94a3b8' }} interval={0} />
+                <YAxis allowDecimals={false} tickLine={false} axisLine={false} tick={{ fontSize: 11, fill: '#94a3b8' }} width={26} />
+                <Tooltip cursor={{ fill: 'rgba(37,99,235,.06)' }} contentStyle={{ borderRadius: 12, border: '1px solid #e2e8f0', fontSize: 12, boxShadow: 'none' }} formatter={(v) => [v, 'سيارة']} />
+                <Bar dataKey="value" fill="#2563eb" radius={[6, 6, 0, 0]} maxBarSize={28} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
       </div>
 
       {/* Live Operations grid */}

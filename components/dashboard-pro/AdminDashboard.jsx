@@ -11,7 +11,6 @@
 import { motion } from 'framer-motion';
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts';
 import { Wallet, Activity, Store, ShieldCheck } from 'lucide-react';
-import AcceptanceTable from './AcceptanceTable';
 
 const sar = (n) => `${(Number(n) || 0).toLocaleString('en-US')} ﷼`;
 
@@ -35,7 +34,7 @@ function MetricCard({ icon: Icon, label, value, sub, i }) {
   );
 }
 
-export default function AdminDashboard({ metrics = {}, revenue = [], approvals = [] }) {
+export default function AdminDashboard({ metrics = {}, revenue = [] }) {
   const m = metrics;
   const cards = [
     { icon: Wallet, label: 'إجمالي الإيراد', value: sar(m.revenue), sub: 'من الطلبات المكتملة' },
@@ -66,12 +65,6 @@ export default function AdminDashboard({ metrics = {}, revenue = [], approvals =
             </LineChart>
           </ResponsiveContainer>
         </div>
-      </div>
-
-      {/* Shop approvals — high-density data table */}
-      <div>
-        <div className="mb-3 text-sm font-semibold text-slate-900">اعتماد المراكز</div>
-        <AcceptanceTable initialRows={approvals} />
       </div>
     </div>
   );

@@ -16,17 +16,18 @@
  *   <DashboardLayout content={{ dashboard: <Admin/>, operations: <Ops/> }} />
  */
 import { useState } from 'react';
-import { LayoutDashboard, Activity, Wallet, ShieldCheck, ClipboardList, ArrowLeft } from 'lucide-react';
+import { LayoutDashboard, Activity, Inbox, BarChart3, Store, Settings, ClipboardList, ArrowLeft } from 'lucide-react';
 
 // Pages (with their lucide icons) live in this CLIENT module — never passed from
 // the server (functions can't cross the RSC boundary). The server passes only the
 // `role` and a serializable `content` map keyed by page key.
 const PAGES_BY_ROLE = {
   admin: [
-    { key: 'dashboard', label: 'لوحة التحكم', Icon: LayoutDashboard },
-    { key: 'operations', label: 'العمليات', Icon: Activity },
-    { key: 'finance', label: 'المالية', Icon: Wallet },
-    { key: 'governance', label: 'الحوكمة', Icon: ShieldCheck },
+    { key: 'home', label: 'الرئيسية', Icon: LayoutDashboard },
+    { key: 'requests', label: 'طلبات الانضمام', Icon: Inbox },
+    { key: 'stats', label: 'إحصائيات المنصة', Icon: BarChart3 },
+    { key: 'shops', label: 'المحلات المشتركة', Icon: Store },
+    { key: 'settings', label: 'الإعدادات', Icon: Settings },
   ],
   merchant: [
     { key: 'dashboard', label: 'لوحة التحكم', Icon: LayoutDashboard },

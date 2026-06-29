@@ -7,7 +7,7 @@
  */
 import { createServerSupabase } from '@/lib/supabase/server';
 import { getSupabaseAdmin } from '@/lib/supabase/admin';
-import { getAdminData, getMerchantData, getWorkerData, getIntelligenceData, getOperationsData } from '@/lib/dashboard-pro/queries';
+import { getAdminData, getMerchantData, getWorkerData, getIntelligenceData, getOperationsData, getMerchantServices } from '@/lib/dashboard-pro/queries';
 import DashboardLayout from '@/components/dashboard-pro/DashboardLayout';
 import AdminConsole from '@/components/dashboard-pro/AdminConsole';
 import AdminDashboard from '@/components/dashboard-pro/AdminDashboard';
@@ -18,6 +18,7 @@ import GovernancePanel from '@/components/dashboard-pro/GovernancePanel';
 import AssignControl from '@/components/dashboard-pro/AssignControl';
 import StatusPill from '@/components/dashboard-pro/StatusPill';
 import WorkerModule from '@/components/dashboard-pro/WorkerModule';
+import ServicesManager from '@/components/dashboard-pro/ServicesManager';
 import NoData from '@/components/dashboard-pro/NoData';
 
 export const dynamic = 'force-dynamic';
@@ -59,9 +60,10 @@ function revenueByMonth(orders) {
 
 // ── Merchant content map ──
 async function merchantContent(merchantId) {
-  const d = await getMerchantData(merchantId);
+  const [d, services] = await Promise.all([getMerchantData(merchantId), getMerchantServices(merchantId)]);
+  const servicesView = <ServicesManager initial={services} />;
   if (!d || d.empty) {
-    return { dashboard: <NoData title="لا توجد طلبات" hint="لا توجد طلبات ورشة على حسابك بعد." />, operations: <NoData title="لا توجد طلبات" /> };
+    return { dashboard: <NoData title="لا توجد طلبات" hint="لا توجد طلبات ورشة على حسابك بعد." />, operations: <NoData title="لا توجد طلبات" />, services: servicesView };
   }
   const nameByUser = Object.fromEntries(d.workers.map((w) => [w.user_id, w.full_name]));
   const completed = d.orders.filter((o) => o.status === 'completed').length;
@@ -100,6 +102,7 @@ async function merchantContent(merchantId) {
         ))}
       </div>
     ),
+    services: servicesView,
   };
 }
 

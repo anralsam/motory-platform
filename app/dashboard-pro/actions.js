@@ -166,3 +166,65 @@ export async function startOrderWithParts(orderId, payload) {
   revalidatePath('/dashboard-pro');
   return { ok: true, deducted: toDeduct.length };
 }
+
+// ── Service CRUD (pricing engine) — merchant manages their own service_menu ──
+async function ownsServiceOrAdmin(supabase, admin, user, serviceId) {
+  if (await isAdmin(supabase, user)) return true;
+  const { data: s } = await admin.from('service_menu').select('merchant_id').eq('id', serviceId).maybeSingle();
+  return s && s.merchant_id === user.id;
+}
+
+export async function addService(name, price, category) {
+  if (!name?.trim()) return { ok: false, error: 'اسم الخدمة مطلوب' };
+  const supabase = createServerSupabase();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { ok: false, error: 'غير مصرّح' };
+  const admin = getSupabaseAdmin();
+  if (!admin) return { ok: false, error: 'مفتاح الخدمة غير مهيّأ' };
+  const { data, error } = await admin.from('service_menu')
+    .insert({ merchant_id: user.id, name: name.trim(), price: Number(price) || 0, category: category?.trim() || 'عام', active: true })
+    .select('id, name, price, category, active').maybeSingle();
+  if (error) return { ok: false, error: error.message };
+  revalidatePath('/dashboard-pro');
+  return { ok: true, service: data };
+}
+
+export async function updateServicePrice(id, price) {
+  if (!id) return { ok: false, error: 'مدخلات ناقصة' };
+  const supabase = createServerSupabase();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { ok: false, error: 'غير مصرّح' };
+  const admin = getSupabaseAdmin();
+  if (!admin) return { ok: false, error: 'مفتاح الخدمة غير مهيّأ' };
+  if (!(await ownsServiceOrAdmin(supabase, admin, user, id))) return { ok: false, error: 'هذه الخدمة لا تخصّ مركزك' };
+  const { error } = await admin.from('service_menu').update({ price: Number(price) || 0 }).eq('id', id);
+  if (error) return { ok: false, error: error.message };
+  revalidatePath('/dashboard-pro');
+  return { ok: true };
+}
+
+export async function toggleService(id, active) {
+  const supabase = createServerSupabase();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { ok: false, error: 'غير مصرّح' };
+  const admin = getSupabaseAdmin();
+  if (!admin) return { ok: false, error: 'مفتاح الخدمة غير مهيّأ' };
+  if (!(await ownsServiceOrAdmin(supabase, admin, user, id))) return { ok: false, error: 'هذه الخدمة لا تخصّ مركزك' };
+  const { error } = await admin.from('service_menu').update({ active: !!active }).eq('id', id);
+  if (error) return { ok: false, error: error.message };
+  revalidatePath('/dashboard-pro');
+  return { ok: true };
+}
+
+export async function deleteService(id) {
+  const supabase = createServerSupabase();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { ok: false, error: 'غير مصرّح' };
+  const admin = getSupabaseAdmin();
+  if (!admin) return { ok: false, error: 'مفتاح الخدمة غير مهيّأ' };
+  if (!(await ownsServiceOrAdmin(supabase, admin, user, id))) return { ok: false, error: 'هذه الخدمة لا تخصّ مركزك' };
+  const { error } = await admin.from('service_menu').delete().eq('id', id);
+  if (error) return { ok: false, error: error.message };
+  revalidatePath('/dashboard-pro');
+  return { ok: true };
+}

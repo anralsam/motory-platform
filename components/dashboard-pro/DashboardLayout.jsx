@@ -16,7 +16,7 @@
  *   <DashboardLayout content={{ dashboard: <Admin/>, operations: <Ops/> }} />
  */
 import { useState } from 'react';
-import { LayoutDashboard, Activity, Inbox, BarChart3, Store, Settings, ClipboardList, ArrowLeft, Globe } from 'lucide-react';
+import { LayoutDashboard, Activity, Inbox, BarChart3, Store, Settings, ClipboardList, ArrowLeft, Globe, Tag } from 'lucide-react';
 
 // Pages (with their lucide icons) live in this CLIENT module — never passed from
 // the server (functions can't cross the RSC boundary). The server passes only the
@@ -32,6 +32,7 @@ const PAGES_BY_ROLE = {
   merchant: [
     { key: 'dashboard', label: 'لوحة التحكم', en: 'Dashboard', Icon: LayoutDashboard },
     { key: 'operations', label: 'العمليات', en: 'Operations', Icon: Activity },
+    { key: 'services', label: 'الخدمات والأسعار', en: 'Services', Icon: Tag },
   ],
   worker: [
     { key: 'tasks', label: 'مهامي', en: 'My Tasks', Icon: ClipboardList },

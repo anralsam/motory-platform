@@ -5,17 +5,16 @@
  * pages with NO reload. Logic lives in lib/dashboard-pro/queries; components are
  * presentational. Role-aware (admin / merchant / worker).
  */
-import { Activity, Gauge, AlertTriangle, PackageCheck } from 'lucide-react';
 import { createServerSupabase } from '@/lib/supabase/server';
 import { getSupabaseAdmin } from '@/lib/supabase/admin';
 import { getAdminData, getMerchantData, getWorkerData, getIntelligenceData, getOperationsData } from '@/lib/dashboard-pro/queries';
 import DashboardLayout from '@/components/dashboard-pro/DashboardLayout';
 import AdminDashboard from '@/components/dashboard-pro/AdminDashboard';
+import MerchantDashboard from '@/components/dashboard-pro/MerchantDashboard';
 import OperationsGrid from '@/components/dashboard-pro/OperationsGrid';
 import FinancePanel from '@/components/dashboard-pro/FinancePanel';
 import GovernancePanel from '@/components/dashboard-pro/GovernancePanel';
 import AssignControl from '@/components/dashboard-pro/AssignControl';
-import StatTile from '@/components/dashboard-pro/StatTile';
 import StatusPill from '@/components/dashboard-pro/StatusPill';
 import WorkerModule from '@/components/dashboard-pro/WorkerModule';
 import NoData from '@/components/dashboard-pro/NoData';
@@ -84,31 +83,16 @@ async function merchantContent(merchantId) {
     return { dashboard: <NoData title="لا توجد طلبات" hint="لا توجد طلبات ورشة على حسابك بعد." />, operations: <NoData title="لا توجد طلبات" /> };
   }
   const nameByUser = Object.fromEntries(d.workers.map((w) => [w.user_id, w.full_name]));
+  const completed = d.orders.filter((o) => o.status === 'completed').length;
+  const mMetrics = {
+    revenue: d.perf.revenue,
+    active: d.perf.live,
+    techLoad: d.perf.utilization,
+    health: d.orders.length ? Math.round((completed / d.orders.length) * 100) : 0,
+  };
+  const liveOrders = d.orders.filter((o) => o.status !== 'completed').slice(0, 12);
   return {
-    dashboard: (
-      <div className="space-y-6">
-        <div className="grid grid-cols-1 gap-5 sm:grid-cols-3">
-          <StatTile icon={Activity} tone="blue" label="طلبات حيّة الآن" value={d.perf.live.toLocaleString('en-US')} sub={`${d.perf.bookings} إجمالي الحجوزات`} />
-          <StatTile icon={Gauge} tone="emerald" label="استغلال الفنيين" value={`${d.perf.utilization}%`} sub="نسبة الطلبات النشطة" />
-          <StatTile icon={AlertTriangle} tone={d.stockAlerts.length ? 'rose' : 'slate'} label="تنبيهات المخزون" value={d.stockAlerts.length.toLocaleString('en-US')} sub="أصناف تحت الحد الأدنى" />
-        </div>
-        <div className="rounded-xl border border-slate-200 bg-white p-7 shadow-sm">
-          <div className="mb-5 flex items-center gap-2 text-sm font-semibold text-slate-900"><AlertTriangle size={16} className="text-amber-500" /> تنبيهات المخزون</div>
-          {d.stockAlerts.length ? (
-            <div className="space-y-4">
-              {d.stockAlerts.map((i) => (
-                <div key={i.id} className="flex items-center justify-between">
-                  <span className="text-sm text-slate-600">{i.name}</span>
-                  <span className="font-inter text-sm font-semibold tabular-nums text-rose-600" dir="ltr">{i.quantity} {i.unit || ''}</span>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="flex items-center gap-2 text-sm text-emerald-600"><PackageCheck size={16} /> كل الأصناف ضمن الحد الآمن</div>
-          )}
-        </div>
-      </div>
-    ),
+    dashboard: <MerchantDashboard metrics={mMetrics} orders={liveOrders} inventory={d.inventory} workers={d.workers} />,
     operations: (
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         {d.orders.slice(0, 12).map((o) => (

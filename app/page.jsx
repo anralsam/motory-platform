@@ -347,8 +347,8 @@ export default function LandingPage() {
                 transition={{ duration: 0.5, delay: i * 0.08, ease: [0.22, 1, 0.36, 1] }}
                 className="group flex h-full flex-col rounded-2xl border border-white/10 bg-zinc-900/50 p-6 transition-colors duration-300 hover:border-white/20"
               >
-                {/* coded mockup — no images */}
-                <div className="mb-6 flex min-h-[150px] items-center justify-center rounded-xl border border-white/10 bg-black/40 p-5">
+                {/* coded mockup — no images · fixed height keeps the grid even */}
+                <div className="mb-6 flex h-[208px] items-center justify-center overflow-hidden rounded-xl border border-white/10 bg-white/[0.02] p-5">
                   {b.mock}
                 </div>
                 <div className="text-[10px] font-medium uppercase tracking-[0.35em] text-zinc-500">{b.tag}</div>

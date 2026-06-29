@@ -232,8 +232,8 @@ export default function LandingPage() {
   // Registration CTAs route to the signup page when logged out; to the dashboard when in.
   const registerHref = authed ? '/dashboard' : '/auth/signup';
   const loginLabel = authed ? 'العودة للوحة التحكم' : 'تسجيل الدخول';
-  const heroCtaLabel = authed ? 'فتح لوحة التحكم' : 'ابدأ تجربة المركز';
-  const finalCtaLabel = authed ? 'فتح لوحة التحكم' : 'ابدأ تجربة المركز';
+  const heroCtaLabel = authed ? 'فتح لوحة التحكم' : 'سجّل مركزك مجاناً';
+  const finalCtaLabel = authed ? 'فتح لوحة التحكم' : 'سجّل مركزك مجاناً';
   const navStartLabel = authed ? 'لوحة التحكم' : 'ابدأ الآن';
 
   return (

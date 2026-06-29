@@ -1,0 +1,296 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>VOLD MOTOR · لوحة الإدارة العليا</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: { cairo: ['Cairo', 'sans-serif'] },
+          colors: {
+            canvas: '#f6f8fa', surface: '#ffffff', line: '#d0d7de',
+            ink: '#1f2328', muted: '#656d76', accent: '#0969da', success: '#1f883d', danger: '#cf222e', warn: '#9a6700',
+          },
+        },
+      },
+    };
+  </script>
+  <style>
+    * { font-family: 'Cairo', sans-serif; }
+    ::-webkit-scrollbar { width: 10px; height: 10px; }
+    ::-webkit-scrollbar-thumb { background: #d0d7de; border-radius: 99px; }
+    .fade-in { animation: fadeIn .35s ease both; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+    .apex-glass .apexcharts-tooltip {
+      background: rgba(255,255,255,.75) !important; backdrop-filter: blur(10px);
+      border: 1px solid #d0d7de !important; border-radius: 12px !important;
+      box-shadow: 0 8px 24px rgba(31,35,40,.12) !important; padding: 0 !important;
+    }
+  </style>
+</head>
+<body class="bg-canvas text-ink antialiased">
+  <div class="flex min-h-screen">
+    <!-- ════ Sidebar ════ -->
+    <aside class="fixed inset-y-0 end-0 z-40 hidden w-64 flex-col border-s border-line bg-surface md:flex">
+      <div class="flex h-16 items-center gap-2.5 border-b border-line px-5" dir="ltr">
+        <svg width="24" height="24" viewBox="0 0 48 48" fill="none"><path d="M6 10 L24 42 L42 10" stroke="#0969da" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" /></svg>
+        <span class="text-sm font-extrabold tracking-wide">VOLD <span class="text-accent">MOTOR</span></span>
+      </div>
+      <nav id="nav" class="flex-1 space-y-5 overflow-y-auto p-3"></nav>
+      <div class="flex items-center gap-3 border-t border-line p-4">
+        <div class="grid h-9 w-9 place-items-center rounded-full bg-accent text-sm font-extrabold text-white">A</div>
+        <div class="min-w-0"><div class="truncate text-sm font-bold">مدير المنصة</div><div class="text-xs text-muted">Super Admin</div></div>
+      </div>
+    </aside>
+
+    <!-- ════ Main ════ -->
+    <div class="flex min-h-screen flex-1 flex-col md:me-64">
+      <header class="sticky top-0 z-20 flex h-16 items-center justify-between border-b border-line bg-surface px-4 md:px-8">
+        <h1 id="title" class="text-[15px] font-bold">نظرة عامة</h1>
+        <div class="flex items-center gap-2">
+          <button id="langBtn" class="inline-flex items-center gap-1.5 rounded-md border border-line bg-surface px-3 py-1.5 text-sm font-semibold text-muted transition hover:border-accent hover:text-accent">🌐 <span id="langLbl">EN</span></button>
+          <a href="/" class="inline-flex items-center gap-1.5 rounded-md border border-line bg-surface px-3 py-1.5 text-sm font-semibold text-muted transition hover:border-accent hover:text-accent">← العودة للموقع</a>
+        </div>
+      </header>
+      <main id="view" class="flex-1 p-4 pb-24 md:p-8 md:pb-8"></main>
+    </div>
+  </div>
+
+  <!-- ════ Mobile bottom nav ════ -->
+  <nav id="bottomNav" class="fixed inset-x-0 bottom-0 z-40 flex items-stretch border-t border-line bg-surface md:hidden"></nav>
+
+  <script>
+  // ───────────────────────── Data (mock — wire to API later) ─────────────────────────
+  const KPIS = [
+    { label: 'صافي عمولات المنصة', value: '٢٤٬٠٥٠ ﷼', delta: +12.4 },
+    { label: 'الاشتراكات الشهرية B2B', value: '١٨٬٩٠٠ ﷼', delta: +6.1 },
+    { label: 'ورش تحت الفحص', value: '٣', delta: -2.0 },
+    { label: 'سيارات داخل الصالات الآن', value: '٢٦', delta: +9.5 },
+  ];
+  const SERIES = [
+    { m: 'يناير', v: 8200, g: 4, ops: 120 }, { m: 'فبراير', v: 9100, g: 11, ops: 138 },
+    { m: 'مارس', v: 8700, g: -4, ops: 131 }, { m: 'أبريل', v: 11200, g: 29, ops: 165 },
+    { m: 'مايو', v: 12800, g: 14, ops: 181 }, { m: 'يونيو', v: 15400, g: 20, ops: 210 },
+    { m: 'يوليو', v: 17900, g: 16, ops: 236 }, { m: 'أغسطس', v: 21050, g: 18, ops: 268 },
+  ];
+  const REQUESTS = [
+    { name: 'مركز رائد للعناية', city: 'الرياض', cr: 'مؤسسة فردية', status: 'بانتظار التدقيق' },
+    { name: 'ورشة الخليج', city: 'جدة', cr: 'شركة ذات مسؤولية', status: 'وثائق ناقصة' },
+    { name: 'تظليل الماسة', city: 'الدمام', cr: 'مؤسسة فردية', status: 'بانتظار التدقيق' },
+  ];
+  const CENTERS = [
+    { name: 'مركز رائد', pkg: 'Pro', cars: 7, sla: '٤٢ د' },
+    { name: 'ورشة الخليج', pkg: 'Basic', cars: 3, sla: '٥٨ د' },
+    { name: 'تظليل الماسة', pkg: 'Pro', cars: 5, sla: '٣٦ د' },
+    { name: 'مغسلة النخبة', pkg: 'Basic', cars: 2, sla: '٢٩ د' },
+  ];
+  const DISPUTES = [
+    { id: '#D-1042', center: 'مركز رائد', sev: 'حرجة', topic: 'تأخر تسليم سيارة ٣ أيام' },
+    { id: '#D-1039', center: 'ورشة الخليج', sev: 'متوسطة', topic: 'نزاع على قيمة فاتورة' },
+  ];
+  const AUDIT = [
+    { t: '2026-06-29 14:32', who: 'admin@voldmotor.com', ip: '212.118.4.21', op: 'اعتماد مركز «رائد»' },
+    { t: '2026-06-29 13:05', who: 'admin@voldmotor.com', ip: '94.56.10.7', op: 'فكّ قفل حساب فنّي' },
+    { t: '2026-06-29 11:48', who: 'ops@voldmotor.com', ip: '188.55.2.90', op: 'تعديل نسبة العمولة' },
+    { t: '2026-06-28 22:10', who: 'finance@voldmotor.com', ip: '212.118.4.21', op: 'تصدير تقرير تسويات' },
+  ];
+  const RBAC = [
+    { name: 'سعد الحربي', role: 'مدير مالي', active: true },
+    { name: 'منيرة الدوسري', role: 'دعم فني', active: true },
+    { name: 'خالد العتيبي', role: 'مدير إقليمي', active: false },
+  ];
+
+  // ───────────────────────── Helpers ─────────────────────────
+  const delta = (d) => d >= 0
+    ? `<span class="inline-flex items-center gap-0.5 text-xs font-bold text-success" dir="ltr">▲ ${d}%</span>`
+    : `<span class="inline-flex items-center gap-0.5 text-xs font-bold text-danger" dir="ltr">▼ ${Math.abs(d)}%</span>`;
+  const card = (c) => `
+    <div class="rounded-md border border-line bg-surface p-5 transition hover:shadow-sm">
+      <div class="text-xs font-semibold uppercase tracking-wide text-muted">${c.label}</div>
+      <div class="mt-3 flex items-end justify-between gap-2">
+        <div class="text-3xl font-extrabold tabular-nums" dir="ltr">${c.value}</div>
+        ${delta(c.delta)}
+      </div>
+      <div class="mt-1 text-[11px] text-muted">مقارنة بالشهر السابق</div>
+    </div>`;
+  const sevBadge = (s) => s === 'حرجة'
+    ? `<span class="rounded-full bg-danger/10 px-2.5 py-0.5 text-xs font-bold text-danger">حرجة</span>`
+    : `<span class="rounded-full bg-warn/10 px-2.5 py-0.5 text-xs font-bold text-warn">متوسطة</span>`;
+  const tableShell = (head, rows, filters = '') => `
+    ${filters}
+    <div class="overflow-hidden rounded-md border border-line bg-surface">
+      <div class="overflow-x-auto"><table class="w-full text-sm">
+        <thead><tr class="border-b border-line bg-canvas text-xs font-semibold uppercase tracking-wide text-muted">${head}</tr></thead>
+        <tbody>${rows}</tbody>
+      </table></div>
+    </div>`;
+  const btn = (label, kind = 'ghost') => {
+    const k = kind === 'primary' ? 'bg-accent text-white hover:bg-[#0860ca]'
+      : kind === 'danger' ? 'border border-line text-danger hover:bg-danger/5'
+      : kind === 'success' ? 'bg-success text-white hover:bg-[#1a7f37]'
+      : 'border border-line text-ink hover:bg-canvas';
+    return `<button onclick="toast('${label}')" class="rounded-md px-3 py-1.5 text-xs font-semibold transition ${k}">${label}</button>`;
+  };
+  const filterBar = (extra = '') => `
+    <div class="mb-4 flex flex-wrap items-center gap-2">
+      <input placeholder="بحث…" class="min-h-[38px] w-48 rounded-md border border-line bg-surface px-3 text-sm outline-none focus:border-accent" />
+      ${extra}
+    </div>`;
+
+  // ───────────────────────── Pages ─────────────────────────
+  const PAGES = {
+    overview: { title: 'نظرة عامة', render: () => `
+      <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4">${KPIS.map(card).join('')}</div>
+      <div class="apex-glass mt-6 rounded-md border border-line bg-surface p-6">
+        <div class="mb-1 text-sm font-bold">نمو صافي الأرباح</div>
+        <div class="mb-4 text-xs text-muted">الإيراد الصافي للمنصة على مدار العام</div>
+        <div id="chart"></div>
+      </div>`, after: () => renderChart() },
+
+    requests: { title: 'طلبات الانضمام والتدقيق', render: () => tableShell(
+      `<th class="px-4 py-3 text-start">المركز</th><th class="px-4 py-3 text-start">المدينة</th><th class="px-4 py-3 text-start">السجل التجاري</th><th class="px-4 py-3 text-start">حالة التدقيق</th><th class="px-4 py-3 text-end">إجراءات</th>`,
+      REQUESTS.map((r) => `<tr class="border-b border-line/60 transition hover:bg-canvas">
+        <td class="px-4 py-3 font-semibold">${r.name}</td><td class="px-4 py-3 text-muted">${r.city}</td>
+        <td class="px-4 py-3 text-muted">${r.cr}</td>
+        <td class="px-4 py-3"><span class="rounded-full bg-warn/10 px-2.5 py-0.5 text-xs font-bold text-warn">${r.status}</span></td>
+        <td class="px-4 py-3"><div class="flex justify-end gap-2">${btn('معاينة الوثائق')}${btn('موافقة','primary')}${btn('رفض','danger')}</div></td>
+      </tr>`).join(''),
+      filterBar(`<select class="min-h-[38px] rounded-md border border-line bg-surface px-3 text-sm outline-none"><option>كل الحالات</option><option>بانتظار التدقيق</option><option>وثائق ناقصة</option></select>`)) },
+
+    centers: { title: 'المراكز والورش النشطة', render: () => tableShell(
+      `<th class="px-4 py-3 text-start">الورشة</th><th class="px-4 py-3 text-start">الباقة</th><th class="px-4 py-3 text-start">سيارات بالصالة</th><th class="px-4 py-3 text-start">متوسط الإصلاح SLA</th><th class="px-4 py-3 text-end">إجراءات</th>`,
+      CENTERS.map((c) => `<tr class="border-b border-line/60 transition hover:bg-canvas">
+        <td class="px-4 py-3 font-semibold">${c.name}</td>
+        <td class="px-4 py-3"><span class="rounded-full bg-accent/10 px-2.5 py-0.5 text-xs font-bold text-accent">${c.pkg}</span></td>
+        <td class="px-4 py-3 tabular-nums" dir="ltr">${c.cars}</td><td class="px-4 py-3 tabular-nums text-muted">${c.sla}</td>
+        <td class="px-4 py-3 text-end">${btn('دخول كمحاكي','primary')}</td>
+      </tr>`).join(''), filterBar()) },
+
+    finance: { title: 'إحصائيات المنصة والأرباح', render: () => `
+      <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4">
+        ${card({ label: 'اشتراكات B2B الثابتة', value: '١٨٬٩٠٠ ﷼', delta: 6.1 })}
+        ${card({ label: 'عمولة المنصة (٥٪)', value: '١٢٬٠٢٥ ﷼', delta: 12.4 })}
+        ${card({ label: 'أموال محتجزة', value: '٤٬٣٠٠ ﷼', delta: -3.2 })}
+        ${card({ label: 'عبر بوابات الدفع', value: '٣١٬١٠٠ ﷼', delta: 8.8 })}
+      </div>
+      <div class="mt-6">${tableShell(
+        `<th class="px-4 py-3 text-start">المصدر</th><th class="px-4 py-3 text-start">النوع</th><th class="px-4 py-3 text-end">المبلغ</th>`,
+        [['اشتراكات Pro','ثابت B2B','١٤٬٠٠٠ ﷼'],['اشتراكات Basic','ثابت B2B','٤٬٩٠٠ ﷼'],['عمولة الفواتير','٥٪ مباشر','١٢٬٠٢٥ ﷼']]
+          .map((r) => `<tr class="border-b border-line/60 hover:bg-canvas"><td class="px-4 py-3 font-semibold">${r[0]}</td><td class="px-4 py-3 text-muted">${r[1]}</td><td class="px-4 py-3 text-end tabular-nums" dir="ltr">${r[2]}</td></tr>`).join(''))}</div>` },
+
+    disputes: { title: 'مركز النزاعات والشكاوى', render: () => tableShell(
+      `<th class="px-4 py-3 text-start">التذكرة</th><th class="px-4 py-3 text-start">المركز</th><th class="px-4 py-3 text-start">الموضوع</th><th class="px-4 py-3 text-start">الخطورة</th><th class="px-4 py-3 text-end">إجراءات</th>`,
+      DISPUTES.map((d) => `<tr class="border-b border-line/60 transition hover:bg-canvas">
+        <td class="px-4 py-3 font-semibold" dir="ltr">${d.id}</td><td class="px-4 py-3 text-muted">${d.center}</td>
+        <td class="px-4 py-3">${d.topic}</td><td class="px-4 py-3">${sevBadge(d.sev)}</td>
+        <td class="px-4 py-3 text-end">${btn('تحكيم مالي','primary')}</td>
+      </tr>`).join(''), filterBar(`<select class="min-h-[38px] rounded-md border border-line bg-surface px-3 text-sm"><option>كل الدرجات</option><option>حرجة</option><option>متوسطة</option></select>`)) },
+
+    audit: { title: 'سجل حركات المشرفين', render: () => `
+      <div class="mb-3 text-xs text-muted">سجل أمني غير قابل للتعديل (Append-only).</div>
+      ${tableShell(
+        `<th class="px-4 py-3 text-start">الوقت</th><th class="px-4 py-3 text-start">الموظف</th><th class="px-4 py-3 text-start">IP</th><th class="px-4 py-3 text-start">الحركة</th>`,
+        AUDIT.map((l) => `<tr class="border-b border-line/60 hover:bg-canvas">
+          <td class="px-4 py-3 font-inter tabular-nums text-muted" dir="ltr">${l.t}</td>
+          <td class="px-4 py-3 text-muted" dir="ltr">${l.who}</td>
+          <td class="px-4 py-3 font-inter tabular-nums text-muted" dir="ltr">${l.ip}</td>
+          <td class="px-4 py-3 font-semibold">${l.op}</td></tr>`).join(''))}` },
+
+    rbac: { title: 'إدارة الصلاحيات RBAC', render: () => tableShell(
+      `<th class="px-4 py-3 text-start">المشرف</th><th class="px-4 py-3 text-start">الدور</th><th class="px-4 py-3 text-start">الحالة</th><th class="px-4 py-3 text-end">إجراء</th>`,
+      RBAC.map((u, i) => `<tr class="border-b border-line/60 hover:bg-canvas">
+        <td class="px-4 py-3 font-semibold">${u.name}</td>
+        <td class="px-4 py-3"><span class="rounded-full bg-accent/10 px-2.5 py-0.5 text-xs font-bold text-accent">${u.role}</span></td>
+        <td class="px-4 py-3">${u.active ? '<span class="text-success font-bold text-xs">مفعّل</span>' : '<span class="text-muted text-xs">معطّل</span>'}</td>
+        <td class="px-4 py-3 text-end">${u.active ? btn('تعطيل','danger') : btn('تفعيل','success')}</td>
+      </tr>`).join('')) },
+  };
+
+  const GROUPS = [
+    { title: 'العمليات', items: [['overview','نظرة عامة','📊'],['requests','طلبات الانضمام','📥'],['centers','المراكز النشطة','🏪'],['disputes','النزاعات والشكاوى','⚠️']] },
+    { title: 'المالية', items: [['finance','الأرباح والعمولات','💰']] },
+    { title: 'الحوكمة والأمان', items: [['audit','سجل المشرفين','🛡️'],['rbac','إدارة الصلاحيات','🔐']] },
+  ];
+  const ALL = GROUPS.flatMap((g) => g.items);
+
+  // ───────────────────────── Router ─────────────────────────
+  let active = 'overview';
+  function navHtml() {
+    return GROUPS.map((g) => `
+      <div><div class="px-2 pb-1.5 text-[10px] font-bold uppercase tracking-widest text-muted">${g.title}</div>
+      <div class="space-y-0.5">${g.items.map(([id, lbl, ic]) => `
+        <button data-id="${id}" onclick="go('${id}')" class="nav-item flex w-full items-center gap-2.5 rounded-md px-3 py-2 text-start text-sm font-semibold transition ${active === id ? 'bg-accent/10 text-accent' : 'text-ink hover:bg-canvas'}">
+          <span>${ic}</span><span class="truncate">${lbl}</span></button>`).join('')}</div></div>`).join('');
+  }
+  function bottomHtml() {
+    return ALL.slice(0, 4).map(([id, lbl, ic]) => `
+      <button onclick="go('${id}')" class="flex flex-1 flex-col items-center gap-1 py-2.5 text-[10px] font-semibold transition ${active === id ? 'text-accent' : 'text-muted'}">
+        <span class="text-base">${ic}</span><span class="truncate px-1">${lbl}</span></button>`).join('');
+  }
+  function go(id) {
+    active = id;
+    const p = PAGES[id];
+    document.getElementById('title').textContent = p.title;
+    const v = document.getElementById('view');
+    v.innerHTML = `<div class="fade-in">${p.render()}</div>`;
+    document.getElementById('nav').innerHTML = navHtml();
+    document.getElementById('bottomNav').innerHTML = bottomHtml();
+    if (p.after) p.after();
+  }
+
+  // ───────────────────────── Smooth area chart (YouTube Analytics style) ─────────────────────────
+  function renderChart() {
+    const el = document.querySelector('#chart');
+    if (!el || typeof ApexCharts === 'undefined') return;
+    new ApexCharts(el, {
+      chart: { type: 'area', height: 300, fontFamily: 'Cairo, sans-serif', toolbar: { show: false }, animations: { enabled: true, easing: 'easeinout', speed: 700 } },
+      series: [{ name: 'صافي الأرباح', data: SERIES.map((s) => s.v) }],
+      colors: ['#0969da'],
+      stroke: { curve: 'smooth', width: 3 },
+      fill: { type: 'gradient', gradient: { shadeIntensity: 1, opacityFrom: 0.45, opacityTo: 0, stops: [0, 100] } },
+      dataLabels: { enabled: false },
+      grid: { borderColor: '#eaeef2', strokeDashArray: 4, padding: { left: 8, right: 8 } },
+      xaxis: { categories: SERIES.map((s) => s.m), axisBorder: { show: false }, axisTicks: { show: false }, labels: { style: { colors: '#656d76', fontSize: '12px' } }, crosshairs: { stroke: { color: '#0969da', width: 1, dashArray: 4 } } },
+      yaxis: { labels: { style: { colors: '#656d76', fontSize: '12px' }, formatter: (v) => (v >= 1000 ? (v / 1000).toFixed(0) + 'k' : v) } },
+      tooltip: {
+        custom: ({ dataPointIndex }) => {
+          const s = SERIES[dataPointIndex];
+          const g = s.g >= 0 ? `<span style="color:#1f883d">▲ ${s.g}%</span>` : `<span style="color:#cf222e">▼ ${Math.abs(s.g)}%</span>`;
+          return `<div style="padding:10px 14px;min-width:170px;font-family:Cairo">
+            <div style="font-weight:800;margin-bottom:6px">${s.m}</div>
+            <div style="display:flex;justify-content:space-between;gap:16px;font-size:12px;color:#656d76"><span>الدخل الصافي</span><b style="color:#1f2328" dir="ltr">${s.v.toLocaleString('en-US')} ﷼</b></div>
+            <div style="display:flex;justify-content:space-between;gap:16px;font-size:12px;color:#656d76"><span>النمو</span><b dir="ltr">${g}</b></div>
+            <div style="display:flex;justify-content:space-between;gap:16px;font-size:12px;color:#656d76"><span>عمليات ناجحة</span><b style="color:#1f2328" dir="ltr">${s.ops}</b></div>
+          </div>`;
+        },
+      },
+    }).render();
+  }
+
+  // ───────────────────────── i18n + toast ─────────────────────────
+  function toast(msg) {
+    const t = document.createElement('div');
+    t.textContent = msg;
+    t.className = 'fixed bottom-24 start-1/2 z-50 -translate-x-1/2 rounded-md bg-ink px-4 py-2.5 text-sm font-semibold text-white shadow-xl md:bottom-6';
+    document.body.appendChild(t);
+    setTimeout(() => t.remove(), 2200);
+  }
+  let lang = 'ar';
+  document.getElementById('langBtn').onclick = () => {
+    lang = lang === 'ar' ? 'en' : 'ar';
+    document.documentElement.setAttribute('dir', lang === 'ar' ? 'rtl' : 'ltr');
+    document.documentElement.setAttribute('lang', lang);
+    document.getElementById('langLbl').textContent = lang === 'ar' ? 'EN' : 'AR';
+    toast(lang === 'ar' ? 'الواجهة بالعربية' : 'Interface set to English (RTL/dir flipped)');
+  };
+
+  go('overview');
+  </script>
+</body>
+</html>

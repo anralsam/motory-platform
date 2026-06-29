@@ -1,30 +1,54 @@
 'use client';
 
 /**
- * AdminDashboard — the main Admin Command Center view (System Token).
- *   • 4 metric cards (royal-blue accents).
- *   • Revenue line chart (recharts, clean blue line, no gradient).
- *   • High-density shop-approvals data table (AcceptanceTable) with optimistic
- *     Approve/Reject/Suspend/Unlock.
- * Receives serializable data from the server orchestrator (page.jsx).
+ * AdminDashboard — Admin Command Center (rendered inside DashboardLayout's
+ * dashboard tab; no legacy shell). System Token: #f9f9f9 page · #ffffff cards ·
+ * #2563eb accents · rounded-xl · border-slate-200 · shadow-sm.
+ *   • 4 metric cards with a staggered framer-motion fade-in + hover:shadow-md.
+ *   • Revenue line chart (recharts, clean blue line).
+ *   • High-density shop-approvals data table (optimistic actions).
  */
+import { motion } from 'framer-motion';
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts';
 import { Wallet, Activity, Store, ShieldCheck } from 'lucide-react';
-import StatTile from './StatTile';
 import AcceptanceTable from './AcceptanceTable';
 
 const sar = (n) => `${(Number(n) || 0).toLocaleString('en-US')} ﷼`;
 
+function MetricCard({ icon: Icon, label, value, sub, i }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4, delay: i * 0.08, ease: 'easeOut' }}
+      className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm transition-shadow duration-300 ease-in-out hover:shadow-md"
+    >
+      <div className="flex items-center justify-between">
+        <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">{label}</span>
+        <span className="grid h-10 w-10 place-items-center rounded-xl bg-blue-50 text-blue-600">
+          <Icon size={19} strokeWidth={2} />
+        </span>
+      </div>
+      <div className="mt-4 font-inter text-3xl font-bold tabular-nums tracking-tight text-slate-900" dir="ltr">{value}</div>
+      {sub ? <div className="mt-1 text-xs font-normal text-slate-400">{sub}</div> : null}
+    </motion.div>
+  );
+}
+
 export default function AdminDashboard({ metrics = {}, revenue = [], approvals = [] }) {
   const m = metrics;
+  const cards = [
+    { icon: Wallet, label: 'إجمالي الإيراد', value: sar(m.revenue), sub: 'من الطلبات المكتملة' },
+    { icon: Activity, label: 'طلبات قيد التنفيذ', value: (m.active || 0).toLocaleString('en-US'), sub: 'نشطة الآن' },
+    { icon: Store, label: 'الورش النشطة', value: (m.workshops || 0).toLocaleString('en-US'), sub: 'مركز مفعّل' },
+    { icon: ShieldCheck, label: 'بانتظار الاعتماد', value: (m.pending || 0).toLocaleString('en-US'), sub: 'طلب انضمام' },
+  ];
+
   return (
     <div className="space-y-6">
-      {/* 4 metric cards — royal-blue accents */}
+      {/* Metric cards — staggered fade-in */}
       <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4">
-        <StatTile icon={Wallet} tone="blue" label="إجمالي الإيراد" value={sar(m.revenue)} sub="من الطلبات المكتملة" />
-        <StatTile icon={Activity} tone="blue" label="طلبات قيد التنفيذ" value={(m.active || 0).toLocaleString('en-US')} sub="نشطة الآن" />
-        <StatTile icon={Store} tone="blue" label="الورش النشطة" value={(m.workshops || 0).toLocaleString('en-US')} sub="مركز مفعّل" />
-        <StatTile icon={ShieldCheck} tone="blue" label="بانتظار الاعتماد" value={(m.pending || 0).toLocaleString('en-US')} sub="طلب انضمام" />
+        {cards.map((c, i) => <MetricCard key={c.label} {...c} i={i} />)}
       </div>
 
       {/* Revenue line chart */}

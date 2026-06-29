@@ -109,11 +109,113 @@ function HeroPreview() {
   );
 }
 
+/* ── Box 1 · Smart Intake — Saudi license plate + service dropdown ── */
+function PlateMock() {
+  return (
+    <div className="space-y-2.5">
+      <div className="mx-auto flex w-full max-w-[230px] overflow-hidden rounded-md border border-white/25 bg-white shadow-lg">
+        <div className="flex w-9 flex-col items-center justify-center gap-0.5 bg-[#1d4ed8] py-1 text-[6px] font-bold text-white">
+          <span>KSA</span><span className="text-[8px]">🇸🇦</span>
+        </div>
+        <div className="flex flex-1 flex-col">
+          <div className="flex items-center justify-around px-2 py-1 text-slate-900" dir="ltr">
+            <span className="text-base font-extrabold tracking-widest">1 2 3 4</span>
+            <span className="text-base font-extrabold tracking-widest">ب ج د</span>
+          </div>
+          <div className="flex items-center justify-around border-t border-slate-200 px-2 py-0.5 text-slate-500" dir="ltr">
+            <span className="text-[10px] font-bold tracking-[0.2em]">1234</span>
+            <span className="text-[10px] font-bold tracking-[0.2em]">B J D</span>
+          </div>
+        </div>
+      </div>
+      <div className="flex items-center justify-between rounded-lg border border-white/10 bg-white/[0.04] px-3 py-2">
+        <span className="text-[11px] font-medium text-white/55">نوع الخدمة</span>
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" className="text-white/30"><path d="m6 9 6 6 6-6" /></svg>
+      </div>
+      <div className="h-2 w-2/3 rounded-full bg-white/10" />
+      <div className="h-2 w-1/2 rounded-full bg-white/[0.06]" />
+    </div>
+  );
+}
+
+/* ── Box 2 · Worker Kanban — 3 columns with draggable-looking cards ── */
+function KanbanMock() {
+  const cols = [
+    { label: 'انتظار', dot: 'bg-amber-400', cars: ['تويوتا كامري'] },
+    { label: 'جاري العمل', dot: 'bg-blue-500', cars: ['نيسان باترول', 'هونداي سوناتا'] },
+    { label: 'جاهز', dot: 'bg-emerald-500', cars: ['لكزس LX'] },
+  ];
+  return (
+    <div className="grid grid-cols-3 gap-2">
+      {cols.map((c) => (
+        <div key={c.label} className="rounded-lg border border-white/10 bg-white/[0.03] p-1.5">
+          <div className="mb-1.5 flex items-center gap-1 text-[8px] font-bold text-white/55">
+            <span className={`h-1.5 w-1.5 rounded-full ${c.dot}`} />{c.label}
+          </div>
+          <div className="space-y-1.5">
+            {c.cars.map((car, i) => (
+              <div key={i} className="rounded-md border border-white/10 bg-white/[0.06] p-1.5 shadow-sm">
+                <div className="text-[8px] font-bold text-white/85">{car}</div>
+                <div className="mt-0.5 text-[7px] text-white/35" dir="ltr">B J D · 1234</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/* ── Box 3 · AI Insights — 3 tinted cards with +12% trend ── */
+function AIReportsMock() {
+  const cards = [
+    { tint: 'border-blue-400/20 bg-blue-500/10', t: 'ذروة النشاط', s: 'الخميس · ٥ مساءً' },
+    { tint: 'border-amber-400/20 bg-amber-500/10', t: 'تنبيه مخزون', s: '٣ أصناف تحت الحد' },
+    { tint: 'border-rose-400/20 bg-rose-500/10', t: 'فرصة نمو', s: 'خدمة التلميع الأعلى' },
+  ];
+  return (
+    <div className="space-y-2">
+      {cards.map((c) => (
+        <div key={c.t} className={`flex items-center justify-between rounded-lg border p-2.5 ${c.tint}`}>
+          <div>
+            <div className="text-[11px] font-bold text-white/85">{c.t}</div>
+            <div className="mt-0.5 text-[9px] text-white/40">{c.s}</div>
+          </div>
+          <span className="inline-flex items-center gap-0.5 rounded-md bg-emerald-500/15 px-1.5 py-0.5 text-[9px] font-bold text-emerald-400 tabular-nums" dir="ltr">
+            <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="m6 15 6-6 6 6" /></svg>+12%
+          </span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/* ── Box 4 · ZATCA Invoice — dashed receipt + QR square ── */
+function InvoiceMock() {
+  const qr = [1, 0, 1, 1, 0, 1, 0, 0, 1, 1, 0, 1, 0, 1, 1, 0, 1, 1, 1, 0, 0, 1, 0, 1, 1];
+  return (
+    <div className="mx-auto w-full max-w-[170px] rounded-lg border border-white/10 bg-white/[0.04] p-3">
+      <div className="text-center text-[10px] font-extrabold text-white/85">فاتورة ضريبية مبسطة</div>
+      <div className="my-2 border-t border-dashed border-white/15" />
+      {[['الإجمالي', '٢٣٠٫٠٠'], ['الضريبة ١٥٪', '٣٤٫٥٠'], ['المستحق', '٢٦٤٫٥٠']].map(([l, v], i) => (
+        <div key={i} className={`flex items-center justify-between py-0.5 text-[9px] ${i === 2 ? 'font-bold text-white/90' : 'text-white/45'}`}>
+          <span>{l}</span><span className="tabular-nums" dir="ltr">{v} ﷼</span>
+        </div>
+      ))}
+      <div className="my-2 border-t border-dashed border-white/15" />
+      <div className="mx-auto mt-1 grid h-14 w-14 grid-cols-5 gap-px rounded bg-white p-1">
+        {qr.map((on, i) => <span key={i} className={on ? 'bg-slate-900' : 'bg-white'} />)}
+      </div>
+      <div className="mt-1.5 text-center text-[7px] tracking-wide text-white/30">ZATCA · امسح للتحقّق</div>
+    </div>
+  );
+}
+
 const BENTOS = [
-  { key: 'pos', tag: 'الاستقبال', title: 'الاستقبال الذكي', desc: 'أتمتة كاملة لدخول المركبات. تعرّف آلي على لوحات السيارات وتوجيه فوري للفنيين في ثوانٍ معدودة.' },
-  { key: 'kanban', tag: 'العمليات', title: 'تحكم مطلق بسير العمل', desc: 'تتبع دقيق لحالة كل سيارة من لحظة الدخول حتى التسليم بواجهة تفاعلية بسيطة وفعالة.' },
-  { key: 'reports', tag: 'التقارير', title: 'بياناتك، دليلك للنمو', desc: 'رؤى حية وتحليلات دقيقة للإيرادات ومعدلات الإشغال لاتخاذ قرارات استراتيجية مدعومة بالأرقام.' },
-  { key: 'invoice', tag: 'الفوترة', title: 'امتثال تام، دون تعقيد', desc: 'فواتير ضريبية معتمدة من (ZATCA)، تُصدر بضغطة زر وتُرسل تلقائياً لعملائك عبر واتساب.' },
+  { key: 'pos', tag: 'الاستقبال', title: 'الاستقبال الذكي', desc: 'تعرّف آلي على لوحات السيارات وتوجيه فوري للفنيين في ثوانٍ.', mock: <PlateMock /> },
+  { key: 'kanban', tag: 'العمليات', title: 'تحكم مطلق بسير العمل', desc: 'تتبّع حالة كل سيارة من الدخول حتى التسليم على لوحة تفاعلية.', mock: <KanbanMock /> },
+  { key: 'reports', tag: 'الذكاء', title: 'رؤى تقود النمو', desc: 'تحليلات حيّة لذروة النشاط والمخزون وفرص النمو مدعومة بالأرقام.', mock: <AIReportsMock /> },
+  { key: 'invoice', tag: 'الفوترة', title: 'امتثال ZATCA بضغطة', desc: 'فواتير ضريبية برمز QR تُصدر وتُرسل لعميلك تلقائياً عبر واتساب.', mock: <InvoiceMock /> },
 ];
 
 export default function LandingPage() {
@@ -193,11 +295,11 @@ export default function LandingPage() {
             <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
               <Link
                 href={registerHref}
-                className="w-full rounded-xl bg-white px-6 py-3 text-sm font-medium text-[#0a0a0a] transition hover:bg-zinc-100 sm:w-auto"
+                className="w-full rounded-xl bg-[#2563eb] px-6 py-3 text-sm font-semibold text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.25),0_10px_30px_-10px_rgba(37,99,235,0.7)] transition hover:bg-[#1d4ed8] sm:w-auto"
               >
                 {heroCtaLabel}
               </Link>
-              <Link href="#features" className="w-full rounded-xl border border-zinc-800 px-6 py-3 text-sm font-light text-zinc-400 transition hover:border-zinc-700 hover:text-white sm:w-auto">
+              <Link href="#features" className="w-full rounded-xl border border-white/10 bg-white/[0.02] px-6 py-3 text-sm font-light text-zinc-300 transition hover:border-white/20 hover:text-white sm:w-auto">
                 استكشف المنصة
               </Link>
             </div>
@@ -243,8 +345,12 @@ export default function LandingPage() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, margin: '-60px' }}
                 transition={{ duration: 0.5, delay: i * 0.08, ease: [0.22, 1, 0.36, 1] }}
-                className="flex h-full min-h-[200px] flex-col justify-center rounded-2xl border border-white/10 bg-zinc-900/50 p-8 transition-colors duration-300 hover:border-white/20"
+                className="group flex h-full flex-col rounded-2xl border border-white/10 bg-zinc-900/50 p-6 transition-colors duration-300 hover:border-white/20"
               >
+                {/* coded mockup — no images */}
+                <div className="mb-6 flex min-h-[150px] items-center justify-center rounded-xl border border-white/10 bg-black/40 p-5">
+                  {b.mock}
+                </div>
                 <div className="text-[10px] font-medium uppercase tracking-[0.35em] text-zinc-500">{b.tag}</div>
                 <h3 className="mt-3 text-lg font-semibold tracking-tight text-white">{b.title}</h3>
                 <p className="mt-2 text-sm font-normal leading-relaxed text-zinc-300">{b.desc}</p>

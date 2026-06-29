@@ -9,6 +9,7 @@ import { createServerSupabase } from '@/lib/supabase/server';
 import { getSupabaseAdmin } from '@/lib/supabase/admin';
 import { getAdminData, getMerchantData, getWorkerData, getIntelligenceData, getOperationsData } from '@/lib/dashboard-pro/queries';
 import DashboardLayout from '@/components/dashboard-pro/DashboardLayout';
+import AdminConsole from '@/components/dashboard-pro/AdminConsole';
 import AdminDashboard from '@/components/dashboard-pro/AdminDashboard';
 import MerchantDashboard from '@/components/dashboard-pro/MerchantDashboard';
 import OperationsGrid from '@/components/dashboard-pro/OperationsGrid';
@@ -54,27 +55,6 @@ function revenueByMonth(orders) {
     if (o.status === 'completed' && o.created_at) arr[new Date(o.created_at).getMonth()] += Number(o.price) || 0;
   });
   return MONTHS.map((label, i) => ({ label, value: arr[i] }));
-}
-
-// ── Admin content map ──
-async function adminContent() {
-  const [adminData, intelRaw, ops] = await Promise.all([getAdminData(), getIntelligenceData(), getOperationsData(20)]);
-  const intel = intelRaw || { orders: [], workers: [], branches: [] };
-  const fin = computeFinance(intel.orders);
-  const metrics = {
-    revenue: fin.revenue,
-    active: intel.orders.filter((o) => o.status === 'in_progress' || o.status === 'ready').length,
-    workshops: adminData?.joinStats?.approved || 0,
-    pending: adminData?.joinStats?.pending || 0,
-  };
-  const approvals = adminData?.acceptanceRows || [];
-  return {
-    home: <AdminDashboard metrics={metrics} revenue={revenueByMonth(intel.orders)} />,
-    requests: <GovernancePanel rows={approvals} pending={metrics.pending} />,
-    stats: <IntelligenceModule orders={intel.orders} workers={intel.workers} branches={intel.branches} />,
-    shops: <OperationsGrid orders={ops} />,
-    settings: <NoData title="الإعدادات" hint="إعدادات المنصة — قريباً." />,
-  };
 }
 
 // ── Merchant content map ──
@@ -123,16 +103,38 @@ async function merchantContent(merchantId) {
   };
 }
 
+// ── Super-Admin console data (dark GitHub-Primer command center) ──
+async function adminConsoleData() {
+  const [adminData, intelRaw] = await Promise.all([getAdminData(), getIntelligenceData()]);
+  const intel = intelRaw || { orders: [] };
+  const completedRev = intel.orders.filter((o) => o.status === 'completed').reduce((s, o) => s + (Number(o.price) || 0), 0);
+  const total = intel.orders.length;
+  const completed = intel.orders.filter((o) => o.status === 'completed').length;
+  const rows = adminData?.acceptanceRows || [];
+  const centers = rows.filter((r) => r.status === 'approved').map((r) => ({ id: r.id, name: r.shop_name || '—', city: r.location || '—', pkg: 'Pro', engineers: '—' }));
+  const metrics = {
+    commissions: Math.round(completedRev * 0.1),
+    gmv: completedRev,
+    slaPct: total ? Math.round((completed / total) * 100) : 0,
+    underInspection: adminData?.joinStats?.pending || 0,
+    carsInOps: intel.orders.filter((o) => o.status === 'in_progress').length,
+  };
+  return { metrics, centers, requests: rows };
+}
+
 export default async function DashboardProPage() {
   const supabase = createServerSupabase();
   const { data: { user } } = await supabase.auth.getUser();
   const role = await detectRole(supabase, user);
   const userName = (user?.email || '').split('@')[0] || 'المستخدم';
 
-  let content;
+  // Super Admin → dedicated dark console (its own shell)
   if (role === 'admin') {
-    content = await adminContent();
-  } else if (role === 'worker') {
+    return <AdminConsole data={await adminConsoleData()} userName={userName} />;
+  }
+
+  let content;
+  if (role === 'worker') {
     const { orders, inventory } = await getWorkerData(user?.id);
     content = { tasks: <WorkerModule orders={orders} inventory={inventory} /> };
   } else {

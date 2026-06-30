@@ -4,7 +4,7 @@ import { useAuth } from '@/components/AuthProvider';
 import { roleOf } from '@/lib/roles';
 import { useDashboard } from '@/lib/useDashboard';
 import DashboardContainer from '@/components/dashboard-pro/dna/DashboardContainer';
-import UnifiedChart from '@/components/dashboard-pro/dna/UnifiedChart';
+import AnalyticsPanel from '@/components/dashboard-pro/dna/AnalyticsPanel';
 
 function fmt(n) { return Number(n || 0).toLocaleString('en'); }
 
@@ -40,31 +40,32 @@ export default function DashboardHome() {
     <div className="mx-auto max-w-6xl space-y-5">
       <h1 className="text-xl font-bold tracking-tight text-slate-900">لوحة التحكم <span className="font-medium text-slate-400">· {branchName}</span></h1>
 
-      {/* KPI cards */}
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        {CARDS.map((c) => (
-          <div key={c.key} className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-slate-500">{c.label}</span>
-              <span className={`grid h-8 w-8 place-items-center rounded-lg ${c.iconBg}`}>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={c.iconColor} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                  {c.icon.split(' M').map((seg, i) => <path key={i} d={i === 0 ? seg : 'M' + seg} />)}
-                </svg>
-              </span>
-            </div>
-            <div className={`mt-2 text-2xl font-extrabold tabular-nums ${c.accent}`}>
-              {loading ? '—' : c.value}{c.suffix && !loading ? <span className="text-sm font-bold text-slate-400"> {c.suffix}</span> : null}
-            </div>
-            {c.sub && <div className="mt-1 text-[11px] font-semibold text-slate-400">{c.sub}</div>}
-          </div>
-        ))}
-      </div>
-
-      {/* Unified analytics engine (financial → owner-only, W-2) */}
-      {isOwner && (
+      {isOwner ? (
+        /* Owner → full Unified DNA analytics (premium cards + master chart + donut +
+           top services). Financial → owner-only per W-2. */
         <DashboardContainer role="merchant" orders={orders || []} workers={[]} inventory={[]} actions={{}}>
-          <UnifiedChart />
+          <AnalyticsPanel />
         </DashboardContainer>
+      ) : (
+        /* Manager → operational KPIs only (no financials). */
+        <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+          {CARDS.map((c) => (
+            <div key={c.key} className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-slate-500">{c.label}</span>
+                <span className={`grid h-8 w-8 place-items-center rounded-lg ${c.iconBg}`}>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={c.iconColor} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                    {c.icon.split(' M').map((seg, i) => <path key={i} d={i === 0 ? seg : 'M' + seg} />)}
+                  </svg>
+                </span>
+              </div>
+              <div className={`mt-2 text-2xl font-extrabold tabular-nums ${c.accent}`}>
+                {loading ? '—' : c.value}{c.suffix && !loading ? <span className="text-sm font-bold text-slate-400"> {c.suffix}</span> : null}
+              </div>
+              {c.sub && <div className="mt-1 text-[11px] font-semibold text-slate-400">{c.sub}</div>}
+            </div>
+          ))}
+        </div>
       )}
 
       <div className="grid gap-5 lg:grid-cols-3">

@@ -256,19 +256,34 @@ async function ownsServiceOrAdmin(supabase, admin, user, serviceId) {
   return s && s.merchant_id === user.id;
 }
 
-export async function addService(name, price, category) {
-  if (!name?.trim()) return { ok: false, error: 'اسم الخدمة مطلوب' };
+export async function addService(name, price, category, stockCode) {
+  if (!name?.trim()) return { ok: false, error: 'اسم الصنف مطلوب' };
   const supabase = createServerSupabase();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { ok: false, error: 'غير مصرّح' };
   const admin = getSupabaseAdmin();
   if (!admin) return { ok: false, error: 'مفتاح الخدمة غير مهيّأ' };
   const { data, error } = await admin.from('service_menu')
-    .insert({ merchant_id: user.id, name: name.trim(), price: Number(price) || 0, category: category?.trim() || 'عام', active: true })
-    .select('id, name, price, category, active').maybeSingle();
+    .insert({ merchant_id: user.id, name: name.trim(), price: Number(price) || 0, category: category?.trim() || 'عام', stock_code: stockCode?.trim() || null, active: true })
+    .select('id, name, price, category, stock_code, active').maybeSingle();
   if (error) return { ok: false, error: error.message };
   revalidatePath('/dashboard-pro');
+  revalidatePath('/dashboard/settings');
   return { ok: true, service: data };
+}
+
+export async function updateServiceStockCode(id, stockCode) {
+  if (!id) return { ok: false, error: 'مدخلات ناقصة' };
+  const supabase = createServerSupabase();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { ok: false, error: 'غير مصرّح' };
+  const admin = getSupabaseAdmin();
+  if (!admin) return { ok: false, error: 'مفتاح الخدمة غير مهيّأ' };
+  if (!(await ownsServiceOrAdmin(supabase, admin, user, id))) return { ok: false, error: 'هذا الصنف لا يخصّ مركزك' };
+  const { error } = await admin.from('service_menu').update({ stock_code: stockCode?.trim() || null }).eq('id', id);
+  if (error) return { ok: false, error: error.message };
+  revalidatePath('/dashboard/settings');
+  return { ok: true };
 }
 
 export async function updateServicePrice(id, price) {

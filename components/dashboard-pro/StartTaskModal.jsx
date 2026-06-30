@@ -6,14 +6,19 @@
  * the center's inventory (type "فلتر" → suggests matching items). Submits via the
  * startOrderWithParts Server Action (validates stock + auth server-side).
  */
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
 import { startOrderWithParts } from '@/app/dashboard-pro/actions';
 
 const SERVICES = ['تغيير زيت', 'غسيل وتلميع', 'فحص بطارية', 'تظليل', 'تبديل إطارات', 'فرامل', 'صيانة دورية', 'تكييف', 'كهرباء', 'ميكانيكا'];
 
-export default function StartTaskModal({ order, inventory = [], onClose, onStarted }) {
+export default function StartTaskModal({ order, inventory = [], services = [], onClose, onStarted }) {
   const serviceOptions = [...new Set([order?.service_type, ...SERVICES].filter(Boolean))];
+  // Master template cache → activity categories + their fixed tiers (no free text).
+  const cats = useMemo(() => [...new Set(services.map((s) => s.category || 'عام'))], [services]);
+  const [activeCat, setActiveCat] = useState('');
+  const effectiveCat = activeCat || cats[0] || '';
+  const tiers = useMemo(() => services.filter((s) => (s.category || 'عام') === effectiveCat), [services, effectiveCat]);
   const [plate, setPlate] = useState(order?.plate || '');
   const [serviceType, setServiceType] = useState(order?.service_type || '');
   const [rows, setRows] = useState([]); // { itemId, qty }
@@ -64,20 +69,42 @@ export default function StartTaskModal({ order, inventory = [], onClose, onStart
         </div>
 
         <form onSubmit={submit} className="space-y-4">
-          <div className="grid gap-3 sm:grid-cols-2">
-            <div>
-              <label className="mb-1.5 block text-xs font-medium text-slate-500">رقم اللوحة *</label>
-              <input value={plate} onChange={(e) => setPlate(e.target.value)} dir="ltr" placeholder="ABC-1234"
-                className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-center font-mono text-sm tracking-widest outline-none focus:border-blue-600" />
-            </div>
-            <div>
-              <label className="mb-1.5 block text-xs font-medium text-slate-500">نوع الخدمة *</label>
+          <div>
+            <label className="mb-1.5 block text-xs font-medium text-slate-500">رقم اللوحة *</label>
+            <input value={plate} onChange={(e) => setPlate(e.target.value)} dir="ltr" placeholder="ABC-1234"
+              className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-center font-mono text-sm tracking-widest outline-none focus:border-blue-600" />
+          </div>
+
+          {/* Service type — from the master template cache (fixed tiers), no free typing */}
+          <div>
+            <label className="mb-1.5 block text-xs font-medium text-slate-500">نوع النشاط *</label>
+            {services.length ? (
+              <>
+                <div className="flex flex-wrap gap-2">
+                  {cats.map((c) => (
+                    <button type="button" key={c} onClick={() => { setActiveCat(c); setServiceType(''); }}
+                      className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-all ${effectiveCat === c ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}>
+                      {c}
+                    </button>
+                  ))}
+                </div>
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {tiers.length ? tiers.map((t) => (
+                    <button type="button" key={t.id} onClick={() => setServiceType(t.name)}
+                      className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-sm transition-all ${serviceType === t.name ? 'border-blue-600 bg-blue-50 font-bold text-blue-700' : 'border-slate-200 font-medium text-slate-700 hover:border-blue-400'}`}>
+                      <span>{t.name}</span>
+                      <span className="font-mono text-xs tabular-nums text-slate-400" dir="ltr">{Number(t.price)} ر.س</span>
+                    </button>
+                  )) : <span className="text-xs text-slate-400">لا توجد قوالب لهذا النشاط.</span>}
+                </div>
+              </>
+            ) : (
               <select value={serviceType} onChange={(e) => setServiceType(e.target.value)}
                 className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm outline-none transition-colors duration-300 focus:border-blue-600">
                 <option value="">اختر الخدمة…</option>
                 {serviceOptions.map((s) => <option key={s} value={s}>{s}</option>)}
               </select>
-            </div>
+            )}
           </div>
 
           {/* Type-ahead parts search */}

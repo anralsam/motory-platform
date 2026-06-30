@@ -69,7 +69,7 @@ async function merchantContent(merchantId) {
   // Hand the RAW orders to the Grand Unified DNA — the client engine derives every
   // dataset reactively from the Global Control Bar (range + metric). No precompute.
   return {
-    dashboard: <MerchantDashboard orders={d.orders} workers={d.workers} inventory={d.inventory} />,
+    dashboard: <MerchantDashboard orders={d.orders} workers={d.workers} inventory={d.inventory} services={services} />,
     operations: (
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         {d.orders.slice(0, 12).map((o) => (

@@ -7,6 +7,7 @@ import { supabase } from '@/lib/supabaseClient';
 import { useServices } from '@/lib/useServices';
 import { fmtSar } from '@/lib/billing';
 import ServiceModal from '@/components/ServiceModal';
+import MasterCatalog from '@/components/MasterCatalog';
 import Toast from '@/components/Toast';
 
 const THEMES = [
@@ -48,7 +49,7 @@ export default function SettingsPage() {
 
       {/* Tabs */}
       <div className="flex gap-1 border-b border-slate-200">
-        {[['identity', 'هوية المركز'], ['services', 'الخدمات والأسعار']].map(([k, label]) => (
+        {[['identity', 'هوية المركز'], ['services', 'الخدمات والأسعار'], ['catalog', 'الكشّة الثابتة']].map(([k, label]) => (
           <button key={k} onClick={() => setTab(k)}
             className={`-mb-px border-b-2 px-4 py-2.5 text-sm font-extrabold transition ${tab === k ? 'border-brand text-brand' : 'border-transparent text-slate-500 hover:text-slate-800'}`}>
             {label}
@@ -56,9 +57,9 @@ export default function SettingsPage() {
         ))}
       </div>
 
-      {tab === 'identity'
-        ? <IdentityTab user={user} centerId={centerId} loadBranches={loadBranches} showToast={showToast} />
-        : <ServicesTab centerId={centerId} branchId={selectedId} centerType={centerType} showToast={showToast} />}
+      {tab === 'identity' && <IdentityTab user={user} centerId={centerId} loadBranches={loadBranches} showToast={showToast} />}
+      {tab === 'services' && <ServicesTab centerId={centerId} branchId={selectedId} centerType={centerType} showToast={showToast} />}
+      {tab === 'catalog' && <MasterCatalog centerId={centerId} branchId={selectedId} showToast={showToast} />}
 
       <Toast toast={toast} />
     </div>

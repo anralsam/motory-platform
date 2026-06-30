@@ -18,17 +18,17 @@ import AssignControl from './AssignControl';
 import NoData from './NoData';
 import { updateOrderStatus, assignOrderToWorker, startOrderWithParts, deductParts, transferWorkerBranch } from '@/app/dashboard-pro/actions';
 
-export default function MerchantDashboard({ orders = [], workers = [], inventory = [] }) {
+export default function MerchantDashboard({ orders = [], workers = [], inventory = [], services = [] }) {
   return (
     <DashboardContainer role="merchant" orders={orders} workers={workers} inventory={inventory}
       actions={{ updateOrderStatus, assignOrderToWorker, startOrderWithParts, deductParts, transferWorkerBranch }}>
       <AnalyticsPanel />
-      <MerchantLiveOps />
+      <MerchantLiveOps services={services} />
     </DashboardContainer>
   );
 }
 
-function MerchantLiveOps() {
+function MerchantLiveOps({ services = [] }) {
   const { orders, inventory, workers, patchOrder } = useActions();
   const [modalOrder, setModalOrder] = useState(null);
   const nameByUser = Object.fromEntries(workers.map((w) => [w.user_id, w.full_name]));
@@ -64,7 +64,7 @@ function MerchantLiveOps() {
 
       <AnimatePresence>
         {modalOrder && (
-          <StartTaskModal key="m" order={modalOrder} inventory={inventory} onClose={() => setModalOrder(null)} onStarted={(id) => patchOrder(id, { status: 'in_progress' })} />
+          <StartTaskModal key="m" order={modalOrder} inventory={inventory} services={services} onClose={() => setModalOrder(null)} onStarted={(id) => patchOrder(id, { status: 'in_progress' })} />
         )}
       </AnimatePresence>
     </motion.div>

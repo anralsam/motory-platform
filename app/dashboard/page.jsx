@@ -1,5 +1,4 @@
 'use client';
-import { useMemo } from 'react';
 import { useBranchStore } from '@/store/branchStore';
 import { useAuth } from '@/components/AuthProvider';
 import { roleOf } from '@/lib/roles';
@@ -27,11 +26,6 @@ export default function DashboardHome() {
 
   const { loading, kpis, series, activity } = useDashboard(centerId, selectedId);
 
-  const greeting = useMemo(() => {
-    const h = new Date().getHours();
-    return h < 12 ? 'صباح الخير' : h < 18 ? 'مساء الخير' : 'مساء الخير';
-  }, []);
-
   const isOwner = myRole === 'owner';
   // W-2: revenue + customer financials are owner-only; managers see operational KPIs only.
   const CARDS = [
@@ -42,11 +36,8 @@ export default function DashboardHome() {
   ].filter((c) => isOwner || !c.owner);
 
   return (
-    <div className="mx-auto max-w-6xl space-y-6">
-      <div>
-        <h1 className="text-2xl font-extrabold text-slate-900">{greeting} 👋</h1>
-        <p className="mt-1 text-sm text-slate-500">نظرة سريعة على أداء <span className="font-bold text-slate-700">{branchName}</span></p>
-      </div>
+    <div className="mx-auto max-w-6xl space-y-5">
+      <h1 className="text-xl font-bold tracking-tight text-slate-900">لوحة التحكم <span className="font-medium text-slate-400">· {branchName}</span></h1>
 
       {/* KPI cards */}
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">

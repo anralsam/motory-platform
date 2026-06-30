@@ -93,9 +93,8 @@ function TopBar({ name, presence, onToggle, clock }) {
   return (
     <div className="flex items-center justify-between rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
       <div>
-        <div className="text-xs font-medium text-slate-400">مرحباً بعودتك 👋</div>
-        <div className="mt-0.5 text-2xl font-extrabold tracking-tight">{name}</div>
-        <div className="mt-1 font-mono text-sm font-semibold text-slate-500" dir="ltr">⏱ {clock}</div>
+        <div className="text-2xl font-extrabold tracking-tight">{name}</div>
+        <div className="mt-1 font-mono text-sm font-semibold text-slate-500" dir="ltr">{clock}</div>
       </div>
       <div className="flex flex-col items-end gap-2">
         <motion.button whileTap={{ scale: 1.05 }} onClick={onToggle}

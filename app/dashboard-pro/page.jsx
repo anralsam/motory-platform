@@ -109,7 +109,41 @@ async function adminConsoleData() {
     underInspection: adminData?.joinStats?.pending || 0,
     carsInOps: intel.orders.filter((o) => o.status === 'in_progress').length,
   };
-  return { metrics, centers, requests: rows, orders: intel.orders || [], workers: intel.workers || [] };
+
+  // ── Per-merchant consolidation (macro summary + leaderboard) ──
+  const byMerchant = {};
+  (intel.orders || []).forEach((o) => {
+    if (!o.merchant_id) return;
+    const m = byMerchant[o.merchant_id] || (byMerchant[o.merchant_id] = { revenue: 0, orders: 0 });
+    m.orders += 1;
+    if (o.status === 'completed') m.revenue += Number(o.price) || 0;
+  });
+  const brByOwner = {};
+  (intel.branches || []).forEach((b) => {
+    const x = brByOwner[b.owner_id] || (brByOwner[b.owner_id] = { count: 0, name: null });
+    x.count += 1;
+    if (b.is_primary || !x.name) x.name = b.name;
+  });
+  const staffByCenter = {};
+  (intel.workers || []).forEach((w) => { if (w.center_id) staffByCenter[w.center_id] = (staffByCenter[w.center_id] || 0) + 1; });
+
+  const merchantIds = [...new Set([...Object.keys(byMerchant), ...Object.keys(brByOwner)])];
+  const totalRev = merchantIds.reduce((s, id) => s + (byMerchant[id]?.revenue || 0), 0);
+  const leaderboard = merchantIds
+    .map((id) => ({
+      id,
+      name: brByOwner[id]?.name || 'مركز',
+      branches: brByOwner[id]?.count || 0,
+      orders: byMerchant[id]?.orders || 0,
+      staff: staffByCenter[id] || 0,
+      revenue: byMerchant[id]?.revenue || 0,
+    }))
+    .sort((a, b) => b.revenue - a.revenue)
+    .map((m) => ({ ...m, share: totalRev ? Math.round((m.revenue / totalRev) * 100) : 0 }));
+
+  const macro = { revenue: totalRev, activeCenters: merchantIds.length, totalOps: total };
+
+  return { metrics, centers, requests: rows, orders: intel.orders || [], workers: intel.workers || [], macro, leaderboard };
 }
 
 export default async function DashboardProPage() {

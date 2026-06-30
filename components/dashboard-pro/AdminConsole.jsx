@@ -199,9 +199,102 @@ function Empty({ label }) {
   return <div className={`${CARD} grid place-items-center py-16 text-sm ${MUTED}`}>{label}</div>;
 }
 
+function MacroSummary({ macro = {} }) {
+  const cells = [
+    { label: 'إجمالي الإيرادات المنصية', value: sar(macro.revenue) },
+    { label: 'المراكز النشطة', value: (macro.activeCenters || 0).toLocaleString('en-US') },
+    { label: 'حجم العمليات الكلي', value: (macro.totalOps || 0).toLocaleString('en-US') },
+  ];
+  return (
+    <div className="grid grid-cols-1 overflow-hidden rounded-2xl border border-slate-200 bg-[#fafafa]/50 md:grid-cols-3">
+      {cells.map((c, i) => (
+        <div key={c.label} className={`p-6 ${i > 0 ? 'border-slate-200 md:border-e' : ''}`}>
+          <div className="text-sm font-medium text-slate-500">{c.label}</div>
+          <div className="mt-2 font-mono text-3xl font-bold tracking-tight text-slate-900 tabular-nums" dir="ltr">{c.value}</div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function MerchantLeaderboard({ rows = [], onManage }) {
+  if (!rows.length) return <Empty label="لا توجد مراكز نشطة بعد" />;
+  return (
+    <div className="mt-6 w-full rounded-2xl border border-slate-200 bg-white p-8 shadow-sm">
+      <div className="text-lg font-bold tracking-tight text-slate-900">مصفوفة ترتيب وتقييم المراكز</div>
+      <div className="mt-1 mb-6 text-sm font-medium text-slate-500">ترتيب المراكز حسب الإيراد ومساهمتها في السوق</div>
+      <div className="space-y-2">
+        {rows.map((r, i) => (
+          <div key={r.id} className="flex items-center gap-4 rounded-xl px-3 py-3 transition-colors hover:bg-slate-50">
+            <span className="grid h-7 w-7 flex-none place-items-center rounded-lg bg-slate-100 font-mono text-xs font-bold text-slate-500" dir="ltr">{i + 1}</span>
+            <div className="min-w-0 flex-1">
+              <div className="mb-1.5 flex flex-wrap items-center justify-between gap-2">
+                <span className="truncate text-sm font-bold text-slate-900">{r.name}</span>
+                <div className="flex flex-none items-center gap-2">
+                  <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-semibold text-slate-500">{r.branches} فرع</span>
+                  <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-semibold text-slate-500">{r.orders} عملية</span>
+                  <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-semibold text-slate-500">{r.staff} موظف</span>
+                  <span className="font-mono text-sm font-bold tabular-nums text-slate-900" dir="ltr">{sar(r.revenue)}</span>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="h-2 flex-1 overflow-hidden rounded-full bg-slate-100">
+                  <div className="h-full rounded-full bg-gradient-to-l from-blue-500 to-blue-600" style={{ width: `${Math.max(3, r.share)}%` }} />
+                </div>
+                <span className="font-mono text-[11px] font-semibold tabular-nums text-slate-400" dir="ltr">{r.share}%</span>
+              </div>
+            </div>
+            <button onClick={() => onManage(r)}
+              className="flex flex-none items-center gap-1.5 rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-600 transition-colors hover:border-blue-400 hover:text-blue-600">
+              <Settings size={13} /> إدارة الحساب
+            </button>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function ManageSheet({ row, flash, onClose }) {
+  if (!row) return null;
+  const ACTIONS = [['تدقيق مالي إجباري', 'بدأ التدقيق المالي'], ['تجميد الحساب مؤقتاً', 'تم تجميد الحساب'], ['إعادة ضبط الباقة', 'أُعيد ضبط الباقة']];
+  return (
+    <div dir="rtl" className="fixed inset-0 z-50 flex items-stretch justify-start bg-slate-900/40 backdrop-blur-sm" onClick={onClose}>
+      <div className="h-full w-full max-w-md overflow-y-auto border-e border-slate-200 bg-white p-8 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+        <div className="flex items-center justify-between">
+          <h3 className="text-lg font-bold tracking-tight text-slate-900">إدارة الحساب</h3>
+          <button onClick={onClose} className="grid h-8 w-8 place-items-center rounded-lg text-slate-400 hover:bg-slate-100">✕</button>
+        </div>
+        <div className="mt-1 text-sm font-medium text-slate-500">{row.name}</div>
+
+        <div className="mt-6 grid grid-cols-2 gap-3">
+          {[['الفروع', row.branches], ['العمليات', row.orders], ['الموظفون', row.staff], ['الإيراد', sar(row.revenue)]].map(([l, v]) => (
+            <div key={l} className="rounded-xl border border-slate-200 p-4">
+              <div className="text-xs font-medium text-slate-500">{l}</div>
+              <div className="mt-1 font-mono text-lg font-bold tabular-nums text-slate-900" dir="ltr">{v}</div>
+            </div>
+          ))}
+        </div>
+
+        <div className="mt-6 text-xs font-bold uppercase tracking-wider text-slate-400">تجاوزات إدارية</div>
+        <div className="mt-3 space-y-2">
+          {ACTIONS.map(([label, msg]) => (
+            <button key={label} onClick={() => { flash(`${msg} — ${row.name}`); onClose(); }}
+              className="flex w-full items-center justify-between rounded-xl border border-slate-200 px-4 py-3 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-50">
+              {label}<span className="text-slate-300">›</span>
+            </button>
+          ))}
+        </div>
+        <MockNote />
+      </div>
+    </div>
+  );
+}
+
 export default function AdminConsole({ data = {}, userName = 'المدير' }) {
-  const { metrics = {}, centers = [], requests = [], orders = [], workers = [] } = data;
+  const { metrics = {}, centers = [], requests = [], orders = [], workers = [], macro = {}, leaderboard = [] } = data;
   const [active, setActive] = useState('centers');
+  const [manage, setManage] = useState(null);
   const [toast, setToast] = useState(null);
   const flash = (msg) => { setToast(msg); setTimeout(() => setToast(null), 2400); };
 
@@ -270,14 +363,22 @@ export default function AdminConsole({ data = {}, userName = 'المدير' }) {
         <main className="flex-1 p-4 pb-24 md:p-8 md:pb-8">
           {/* Grand Unified DNA — same brain (range+metric) + master chart as merchant/worker */}
           <DashboardContainer role="admin" orders={orders} workers={workers}>
-            {/* persistent platform KPI strip */}
+            {/* Multi-tenant macro summary — consolidated across all centers */}
+            <MacroSummary macro={macro} />
+
+            {/* persistent platform governance KPI strip */}
             <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4">
               <MetricCard icon={Wallet} label="صافي عمولات المنصة" value={sar(metrics.commissions)} delta="12%" />
               <MetricCard icon={Gauge} label="نجاح الالتزام SLA" value={`${metrics.slaPct || 0}%`} />
               <MetricCard icon={ShieldCheck} label="ورش تحت الفحص" value={(metrics.underInspection || 0).toLocaleString('en-US')} />
               <MetricCard icon={Car} label="سيارات داخل الصالات" value={(metrics.carsInOps || 0).toLocaleString('en-US')} />
             </div>
+
             <UnifiedChart showControls />
+
+            {/* Merchant leaderboard / ranking matrix */}
+            <MerchantLeaderboard rows={leaderboard} onManage={setManage} />
+
             {renderView()}
           </DashboardContainer>
         </main>
@@ -294,6 +395,8 @@ export default function AdminConsole({ data = {}, userName = 'المدير' }) {
           );
         })}
       </nav>
+
+      <ManageSheet row={manage} flash={flash} onClose={() => setManage(null)} />
 
       {toast && <div className="pointer-events-none fixed bottom-24 start-1/2 z-50 -translate-x-1/2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-xl md:bottom-6">{toast}</div>}
     </div>

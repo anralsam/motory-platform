@@ -11,8 +11,9 @@
  * Renders the role-aware GlobalControlBar at the top, then the consuming children.
  * Role-agnostic shell, role-aware control bar.
  */
-import { createContext, useContext, useMemo, useState, useCallback } from 'react';
+import { createContext, useContext, useMemo, useState, useCallback, useEffect } from 'react';
 import { computeDerived } from './engine';
+import { useBranchStore } from '@/store/branchStore';
 import GlobalControlBar from './GlobalControlBar';
 
 const DataCtx = createContext(null);
@@ -28,7 +29,23 @@ export default function DashboardContainer({ role = 'merchant', orders = [], wor
   const [ordersState, setOrders] = useState(orders);
   const [invState, setInv] = useState(inventory);
 
-  const derived = useMemo(() => computeDerived(ordersState, workers, timeline), [ordersState, workers, timeline]);
+  // Global branch state (shared zustand brain) → mirrored into this context so the
+  // header switcher and every consumer agree. Branch filtering is 100% client-side.
+  const currentBranchId = useBranchStore((s) => s.selectedBranchId);
+  const setCurrentBranchId = useBranchStore((s) => s.setSelectedBranch);
+  const branches = useBranchStore((s) => s.branches);
+
+  // Keep local state in sync with the pre-fetched matrix as it arrives/refreshes.
+  useEffect(() => { setOrders(orders); }, [orders]);
+  useEffect(() => { setInv(inventory); }, [inventory]);
+
+  // Instant, zero-latency branch slice over the in-memory matrix (no refetch).
+  const branchOrders = useMemo(
+    () => (currentBranchId && currentBranchId !== 'all' ? ordersState.filter((o) => o.branch_id === currentBranchId) : ordersState),
+    [ordersState, currentBranchId],
+  );
+
+  const derived = useMemo(() => computeDerived(branchOrders, workers, timeline), [branchOrders, workers, timeline]);
 
   // ── Centralized optimistic mutators ──
   const updateStatus = useCallback(async (id, status) => {
@@ -66,7 +83,10 @@ export default function DashboardContainer({ role = 'merchant', orders = [], wor
   // Local-only patch (server write already happened elsewhere, e.g. a modal).
   const patchOrder = useCallback((id, patch) => setOrders((o) => o.map((x) => (x.id === id ? { ...x, ...patch } : x))), []);
 
-  const dataValue = useMemo(() => ({ role, metric, setMetric, timeline, setTimeline, orders: ordersState, ...derived }), [role, metric, timeline, ordersState, derived]);
+  const dataValue = useMemo(
+    () => ({ role, metric, setMetric, timeline, setTimeline, orders: branchOrders, currentBranchId, setCurrentBranchId, branches, ...derived }),
+    [role, metric, timeline, branchOrders, currentBranchId, setCurrentBranchId, branches, derived],
+  );
   const actionsValue = useMemo(() => ({ role, orders: ordersState, inventory: invState, workers, updateStatus, assign, deduct, start, patchOrder }), [role, ordersState, invState, workers, updateStatus, assign, deduct, start, patchOrder]);
 
   return (

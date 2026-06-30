@@ -85,6 +85,12 @@ async function merchantContent(merchantId) {
   const moRev = Array(12).fill(0); const moOps = Array(12).fill(0);
   d.orders.forEach((o) => { if (o.created_at) { const i = new Date(o.created_at).getMonth(); moOps[i]++; if (o.status === 'completed') moRev[i] += Number(o.price) || 0; } });
   const trend = MONTHS.map((label, i) => ({ label, revenue: moRev[i], orders: moOps[i] }));
+  // Month-over-month growth (current vs previous month)
+  const nowM = new Date().getMonth();
+  const prevM = (nowM + 11) % 12;
+  const pctGrow = (cur, prev) => (prev > 0 ? ((cur - prev) / prev) * 100 : cur > 0 ? 100 : 0);
+  const revGrowth = pctGrow(moRev[nowM], moRev[prevM]);
+  const ordGrowth = pctGrow(moOps[nowM], moOps[prevM]);
   // Status distribution (donut)
   const STATUS_META = [
     { key: 'pending', name: 'انتظار', color: '#f59e0b' },
@@ -105,7 +111,7 @@ async function merchantContent(merchantId) {
   });
   const topServices = Object.values(svcMap).sort((a, b) => b.count - a.count).slice(0, 5);
   return {
-    dashboard: <MerchantDashboard metrics={mMetrics} orders={liveOrders} inventory={d.inventory} workers={d.workers} peak={peak} lastHour={lastHour} trend={trend} statusDist={statusDist} topServices={topServices} totalOrders={d.orders.length} />,
+    dashboard: <MerchantDashboard metrics={mMetrics} orders={liveOrders} inventory={d.inventory} workers={d.workers} peak={peak} lastHour={lastHour} trend={trend} statusDist={statusDist} topServices={topServices} totalOrders={d.orders.length} revGrowth={revGrowth} ordGrowth={ordGrowth} />,
     operations: (
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         {d.orders.slice(0, 12).map((o) => (

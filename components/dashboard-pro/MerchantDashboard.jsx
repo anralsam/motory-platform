@@ -19,7 +19,7 @@ import NoData from './NoData';
 
 const sar = (n) => `${(Number(n) || 0).toLocaleString('en-US')} ﷼`;
 
-export default function MerchantDashboard({ metrics = {}, orders = [], inventory = [], workers = [], peak = [], lastHour = {}, trend = [], statusDist = [], topServices = [], totalOrders = 0 }) {
+export default function MerchantDashboard({ metrics = {}, orders = [], inventory = [], workers = [], peak = [], lastHour = {}, trend = [], statusDist = [], topServices = [], totalOrders = 0, revGrowth, ordGrowth }) {
   const [items, setItems] = useState(orders);
   const [modalOrder, setModalOrder] = useState(null);
   const [trendKey, setTrendKey] = useState('revenue');
@@ -33,8 +33,8 @@ export default function MerchantDashboard({ metrics = {}, orders = [], inventory
     <div className="space-y-6">
       {/* 4 hero cards */}
       <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4">
-        <StatTile icon={Wallet} tone="blue" label="الإيراد اليومي" value={sar(metrics.revenue)} sub="من الطلبات المكتملة" />
-        <StatTile icon={Activity} tone="blue" label="الطلبات النشطة" value={(metrics.active || 0).toLocaleString('en-US')} sub="جارية الآن" />
+        <StatTile icon={Wallet} tone="blue" label="الإيراد اليومي" value={sar(metrics.revenue)} sub="من الطلبات المكتملة" growth={revGrowth} />
+        <StatTile icon={Activity} tone="blue" label="الطلبات النشطة" value={(metrics.active || 0).toLocaleString('en-US')} sub="جارية الآن" growth={ordGrowth} />
         <StatTile icon={Users} tone="blue" label="حمل الفنّيين" value={`${metrics.techLoad || 0}%`} sub="نسبة الانشغال" />
         <StatTile icon={HeartPulse} tone="blue" label="صحة المركز" value={`${metrics.health || 0}%`} sub="معدّل الإنجاز" />
       </div>

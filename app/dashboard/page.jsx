@@ -3,7 +3,8 @@ import { useBranchStore } from '@/store/branchStore';
 import { useAuth } from '@/components/AuthProvider';
 import { roleOf } from '@/lib/roles';
 import { useDashboard } from '@/lib/useDashboard';
-import DailyOpsChart from '@/components/DailyOpsChart';
+import DashboardContainer from '@/components/dashboard-pro/dna/DashboardContainer';
+import UnifiedChart from '@/components/dashboard-pro/dna/UnifiedChart';
 
 function fmt(n) { return Number(n || 0).toLocaleString('en'); }
 
@@ -24,7 +25,7 @@ export default function DashboardHome() {
   const primary = branches.find((b) => b.is_primary) || branches[0];
   const branchName = selectedId === 'all' ? (branches.length > 1 ? 'كل الفروع' : (primary?.name || 'مركزي')) : (branches.find((b) => b.id === selectedId)?.name || 'فرع');
 
-  const { loading, kpis, series, activity } = useDashboard(centerId, selectedId);
+  const { loading, kpis, activity, orders } = useDashboard(centerId, selectedId);
 
   const isOwner = myRole === 'owner';
   // W-2: revenue + customer financials are owner-only; managers see operational KPIs only.
@@ -59,26 +60,16 @@ export default function DashboardHome() {
         ))}
       </div>
 
-      <div className="grid gap-5 lg:grid-cols-3">
-        {/* Trend chart (financial source → owner-only) */}
-        {isOwner && (
-          <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm lg:col-span-2">
-            <div className="mb-2 flex items-center justify-between">
-              <div>
-                <h3 className="text-base font-extrabold text-slate-900">أداء آخر 7 أيام</h3>
-                <p className="text-xs text-slate-500">العمليات المنجزة يومياً · {branchName}</p>
-              </div>
-            </div>
-            {loading ? (
-              <div className="grid h-64 place-items-center text-sm text-slate-400">جاري التحميل...</div>
-            ) : (
-              <DailyOpsChart data={series} />
-            )}
-          </div>
-        )}
+      {/* Unified analytics engine (financial → owner-only, W-2) */}
+      {isOwner && (
+        <DashboardContainer role="merchant" orders={orders || []} workers={[]} inventory={[]} actions={{}}>
+          <UnifiedChart />
+        </DashboardContainer>
+      )}
 
+      <div className="grid gap-5 lg:grid-cols-3">
         {/* Recent activity */}
-        <div className={`rounded-2xl border border-slate-200 bg-white p-5 shadow-sm ${isOwner ? '' : 'lg:col-span-3'}`}>
+        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm lg:col-span-3">
           <h3 className="mb-3 text-base font-extrabold text-slate-900">آخر النشاطات</h3>
           {loading ? (
             <div className="py-10 text-center text-sm text-slate-400">جاري التحميل...</div>

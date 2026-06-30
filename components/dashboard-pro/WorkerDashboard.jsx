@@ -52,7 +52,7 @@ export default function WorkerDashboard({ userName = 'الفنّي', orders = []
   }
 
   return (
-    <div dir="rtl" className="min-h-screen bg-[#f9f9f9] pb-10 font-sans text-slate-900">
+    <div dir="rtl" className="min-h-screen bg-slate-50 pb-10 font-sans text-slate-900">
       <div className="mx-auto max-w-xl space-y-5 px-4 pt-5">
         <TopBar name={userName} presence={presence} onToggle={() => setPresence((p) => (p === 'active' ? 'break' : 'active'))} clock={fmtClock(secs)} />
 
@@ -74,7 +74,7 @@ export default function WorkerDashboard({ userName = 'الفنّي', orders = []
             </motion.div>
           ) : (
             <motion.div key="empty" initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-              className="rounded-2xl border border-slate-200 bg-white p-12 text-center shadow-[0_2px_10px_-3px_rgba(0,0,0,0.07)]">
+              className="rounded-2xl border border-slate-200 bg-white p-12 text-center shadow-sm">
               <CheckCircle2 className="mx-auto mb-3 text-emerald-500" size={40} />
               <div className="text-lg font-bold">لا توجد مهام الآن</div>
               <div className="mt-1 text-sm text-slate-400">استمتع باستراحتك ☕️</div>
@@ -91,7 +91,7 @@ export default function WorkerDashboard({ userName = 'الفنّي', orders = []
 function TopBar({ name, presence, onToggle, clock }) {
   const on = presence === 'active';
   return (
-    <div className="flex items-center justify-between rounded-2xl border border-slate-200 bg-white p-5 shadow-[0_2px_10px_-3px_rgba(0,0,0,0.07)]">
+    <div className="flex items-center justify-between rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
       <div>
         <div className="text-xs font-medium text-slate-400">مرحباً بعودتك 👋</div>
         <div className="mt-0.5 text-2xl font-extrabold tracking-tight">{name}</div>
@@ -110,7 +110,7 @@ function TopBar({ name, presence, onToggle, clock }) {
 
 function CurrentTask({ order, stage, onStage, busy }) {
   return (
-    <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_2px_10px_-3px_rgba(0,0,0,0.07)]">
+    <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
       {/* Hero: plate + service */}
       <div className="bg-gradient-to-br from-slate-900 to-slate-800 p-7 text-white">
         <div className="text-xs font-medium text-white/50">المركبة الحالية</div>
@@ -185,7 +185,7 @@ function QuickDeduct({ orderId, inv, setInv }) {
   }
 
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-[0_2px_10px_-3px_rgba(0,0,0,0.07)]">
+    <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
       <div className="mb-3 text-sm font-bold">صرف سريع من المخزون</div>
 
       {sel ? (

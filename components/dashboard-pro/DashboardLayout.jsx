@@ -97,9 +97,9 @@ export default function DashboardLayout({ role = 'admin', content = {}, userName
   };
 
   return (
-    <div dir={dir} className={`min-h-screen bg-[#f9f9f9] text-slate-900 ${isAr ? 'font-sans' : 'font-inter'}`}>
+    <div dir={dir} className={`min-h-screen bg-slate-50 text-slate-900 ${isAr ? 'font-sans' : 'font-inter'}`}>
       {/* ══ Sidebar — desktop only (hidden md:flex) ══ */}
-      <aside className="fixed inset-y-0 end-0 z-40 hidden w-60 flex-col border-s border-slate-200 bg-[#f9f9f9] md:flex">
+      <aside className="fixed inset-y-0 end-0 z-40 hidden w-60 flex-col border-s border-slate-200 bg-slate-50 md:flex">
         <div className="flex h-16 items-center gap-2.5 border-b border-slate-200 px-5" dir="ltr">
           <Logo />
           <span className="text-sm font-extrabold tracking-wide text-slate-900">VOLD <span className="text-blue-600">MOTOR</span></span>
@@ -119,7 +119,7 @@ export default function DashboardLayout({ role = 'admin', content = {}, userName
       {/* ══ Main column ══ */}
       <div className="flex min-h-screen flex-col md:me-60">
         {/* Header — glass, 64px, sticky */}
-        <header className="sticky top-0 z-20 flex h-16 items-center justify-between border-b border-slate-200/70 bg-white/70 px-4 backdrop-blur-md md:px-8">
+        <header className="sticky top-0 z-20 flex h-16 items-center justify-between border-b border-slate-200/60 bg-white/80 px-4 backdrop-blur-xl md:px-8">
           <div className="flex items-center gap-3">
             {/* Back: on a sub-page → root tab · on root → site home */}
             {isRoot ? (

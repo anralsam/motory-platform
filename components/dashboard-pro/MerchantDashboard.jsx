@@ -19,7 +19,7 @@ import StartTaskModal from './StartTaskModal';
 import NoData from './NoData';
 
 const sar = (n) => `${(Number(n) || 0).toLocaleString('en-US')} ﷼`;
-const PANEL = 'rounded-2xl border border-slate-100 bg-white shadow-[0_2px_10px_-3px_rgba(0,0,0,0.06)] transition-all duration-300 ease-out hover:scale-[1.01] hover:shadow-[0_8px_30px_-6px_rgba(0,0,0,0.12)]';
+const PANEL = 'rounded-2xl border border-slate-100 bg-white shadow-sm transition-all duration-300 ease-out hover:scale-[1.01] hover:shadow-lg';
 
 function GrowthPill({ growth }) {
   const up = growth >= 0;
@@ -39,7 +39,7 @@ function GrowthPill({ growth }) {
 function MetricCard({ icon: Icon, label, value, sub, growth }) {
   const hasGrowth = typeof growth === 'number' && isFinite(growth);
   return (
-    <div className="group relative overflow-hidden rounded-2xl border border-slate-100 bg-white p-8 shadow-[0_2px_10px_-3px_rgba(0,0,0,0.06)] transition-all duration-300 ease-out hover:scale-[1.01] hover:shadow-[0_8px_30px_-6px_rgba(0,0,0,0.12)]">
+    <div className="group relative overflow-hidden rounded-2xl border border-slate-100 bg-white p-8 shadow-sm transition-all duration-300 ease-out hover:scale-[1.01] hover:shadow-lg">
       <div className="flex items-start justify-between">
         <span className="grid h-12 w-12 place-items-center rounded-2xl bg-blue-50 text-blue-600 transition-transform duration-300 group-hover:scale-105">
           <Icon size={22} strokeWidth={2} />

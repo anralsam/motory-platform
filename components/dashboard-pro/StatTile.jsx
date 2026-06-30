@@ -36,7 +36,7 @@ function GrowthPill({ growth }) {
 export default function StatTile({ icon: Icon, label, value, sub, tone = 'slate', growth }) {
   const hasGrowth = typeof growth === 'number' && isFinite(growth);
   return (
-    <div className="group rounded-xl border border-slate-200 bg-white p-7 shadow-sm transition-all duration-300 ease-in-out hover:-translate-y-1 hover:shadow-md">
+    <div className="group rounded-2xl border border-slate-200 bg-white p-7 shadow-[0_2px_10px_-3px_rgba(0,0,0,0.07)] transition-all duration-300 ease-out hover:scale-[1.01] hover:shadow-[0_8px_30px_-6px_rgba(0,0,0,0.12)]">
       <div className="flex items-center justify-between">
         <span className="text-xs font-medium uppercase tracking-wider text-slate-500">{label}</span>
         <div className="flex items-center gap-2">

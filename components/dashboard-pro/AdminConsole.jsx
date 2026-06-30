@@ -40,13 +40,13 @@ const ALL_ITEMS = GROUPS.flatMap((g) => g.items);
 const TITLE = Object.fromEntries(ALL_ITEMS.map((i) => [i.k, i.label]));
 
 // surfaces
-const CARD = 'rounded-xl border border-[#30363d] bg-[#161b22]';
-const MUTED = 'text-[#8b949e]';
+const CARD = 'rounded-2xl border border-slate-200 bg-white shadow-sm';
+const MUTED = 'text-slate-500';
 
 function Pill({ tone = 'gray', children }) {
   const map = {
-    green: 'bg-emerald-500/15 text-emerald-400', blue: 'bg-blue-500/15 text-blue-400',
-    amber: 'bg-amber-500/15 text-amber-400', red: 'bg-rose-500/15 text-rose-400', gray: 'bg-white/5 text-[#8b949e]',
+    green: 'bg-emerald-50 text-emerald-600', blue: 'bg-blue-50 text-blue-600',
+    amber: 'bg-amber-50 text-amber-600', red: 'bg-rose-50 text-rose-600', gray: 'bg-slate-100 text-slate-500',
   };
   return <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold ${map[tone]}`}>{children}</span>;
 }
@@ -56,10 +56,10 @@ function MetricCard({ icon: Icon, label, value, delta }) {
     <div className={`${CARD} p-5`}>
       <div className="flex items-center justify-between">
         <span className={`text-xs font-medium uppercase tracking-wider ${MUTED}`}>{label}</span>
-        <span className="grid h-9 w-9 place-items-center rounded-lg bg-blue-500/10 text-blue-400"><Icon size={18} /></span>
+        <span className="grid h-9 w-9 place-items-center rounded-lg bg-blue-50 text-blue-600"><Icon size={18} /></span>
       </div>
-      <div className="mt-4 font-inter text-3xl font-bold tabular-nums tracking-tight text-[#e6edf3]" dir="ltr">{value}</div>
-      {delta ? <div className="mt-1 text-xs font-semibold text-emerald-400" dir="ltr">▲ {delta}</div> : null}
+      <div className="mt-4 font-inter text-3xl font-bold tabular-nums tracking-tight text-slate-900" dir="ltr">{value}</div>
+      {delta ? <div className="mt-1 text-xs font-semibold text-emerald-600" dir="ltr">▲ {delta}</div> : null}
     </div>
   );
 }
@@ -70,23 +70,23 @@ function CentersView({ centers, flash }) {
   if (!centers.length) return <Empty label="لا توجد مراكز نشطة" />;
   return (
     <div className={`${CARD} overflow-hidden`}>
-      <div className="grid grid-cols-[1.4fr_1fr_1fr_auto_auto_44px] items-center gap-4 border-b border-[#30363d] px-5 py-3 text-xs font-semibold uppercase tracking-wider text-[#8b949e]">
+      <div className="grid grid-cols-[1.4fr_1fr_1fr_auto_auto_44px] items-center gap-4 border-b border-slate-200 px-5 py-3 text-xs font-semibold uppercase tracking-wider text-slate-500">
         <span>المركز</span><span>المدينة</span><span>الباقة</span><span>المهندسون</span><span>الحالة</span><span />
       </div>
-      <div className="divide-y divide-[#21262d]">
+      <div className="divide-y divide-slate-200">
         {centers.map((c) => (
-          <div key={c.id} className="grid grid-cols-[1.4fr_1fr_1fr_auto_auto_44px] items-center gap-4 px-5 py-4 text-sm transition-colors hover:bg-[#1c2128]">
-            <span className="truncate font-semibold text-[#e6edf3]">{c.name}</span>
+          <div key={c.id} className="grid grid-cols-[1.4fr_1fr_1fr_auto_auto_44px] items-center gap-4 px-5 py-4 text-sm transition-colors hover:bg-slate-100">
+            <span className="truncate font-semibold text-slate-900">{c.name}</span>
             <span className={MUTED}>{c.city || '—'}</span>
             <span><Pill tone="blue">{c.pkg}</Pill></span>
-            <span className="tabular-nums text-[#e6edf3]" dir="ltr">{c.engineers}</span>
+            <span className="tabular-nums text-slate-900" dir="ltr">{c.engineers}</span>
             <span><Pill tone="green">نشط</Pill></span>
             <div className="relative">
-              <button onClick={() => setMenu(menu === c.id ? null : c.id)} className="grid h-8 w-8 place-items-center rounded-lg text-[#8b949e] hover:bg-white/5"><MoreHorizontal size={16} /></button>
+              <button onClick={() => setMenu(menu === c.id ? null : c.id)} className="grid h-8 w-8 place-items-center rounded-lg text-slate-500 hover:bg-slate-100"><MoreHorizontal size={16} /></button>
               {menu === c.id && (
-                <div className="absolute end-0 z-10 mt-1 w-44 overflow-hidden rounded-lg border border-[#30363d] bg-[#161b22] py-1 shadow-xl">
+                <div className="absolute end-0 z-10 mt-1 w-44 overflow-hidden rounded-lg border border-slate-200 bg-white py-1 shadow-xl">
                   {[['حظر مؤقت', 'red'], ['تدقيق مالي', 'gray'], ['محاكاة الدخول', 'gray']].map(([t]) => (
-                    <button key={t} onClick={() => { setMenu(null); flash(`${t} — ${c.name}`); }} className="block w-full px-3 py-2 text-start text-sm text-[#c9d1d9] hover:bg-white/5">{t}</button>
+                    <button key={t} onClick={() => { setMenu(null); flash(`${t} — ${c.name}`); }} className="block w-full px-3 py-2 text-start text-sm text-slate-700 hover:bg-slate-100">{t}</button>
                   ))}
                 </div>
               )}
@@ -115,15 +115,15 @@ function RequestsView({ initial, flash }) {
   }
   if (!pending.length) return <Empty label="لا توجد طلبات بانتظار التدقيق" />;
   return (
-    <div className={`${CARD} divide-y divide-[#21262d] overflow-hidden`}>
+    <div className={`${CARD} divide-y divide-slate-200 overflow-hidden`}>
       {pending.map((r) => (
         <div key={r.id} className="flex flex-wrap items-center gap-3 px-5 py-4">
           <div className="min-w-0 flex-1">
-            <div className="text-sm font-semibold text-[#e6edf3]">{r.shop_name || '—'}</div>
+            <div className="text-sm font-semibold text-slate-900">{r.shop_name || '—'}</div>
             <div className={`truncate text-xs ${MUTED}`}>{r.owner_name}{r.location ? ` · ${r.location}` : ''}</div>
           </div>
           <button disabled={busy === r.id} onClick={() => act(r.id, 'approve')} className="rounded-lg bg-blue-600 px-4 py-2 text-xs font-semibold text-white transition hover:bg-blue-700 disabled:opacity-50">قبول</button>
-          <button disabled={busy === r.id} onClick={() => act(r.id, 'reject')} className="rounded-lg border border-[#30363d] px-4 py-2 text-xs font-semibold text-[#c9d1d9] transition hover:bg-white/5 disabled:opacity-50">رفض</button>
+          <button disabled={busy === r.id} onClick={() => act(r.id, 'reject')} className="rounded-lg border border-slate-200 px-4 py-2 text-xs font-semibold text-slate-700 transition hover:bg-slate-100 disabled:opacity-50">رفض</button>
         </div>
       ))}
     </div>
@@ -139,16 +139,16 @@ function AuditView() {
   ];
   return (
     <div className={`${CARD} overflow-hidden`}>
-      <div className="grid grid-cols-[auto_1fr_1.4fr_1fr] gap-4 border-b border-[#30363d] px-5 py-3 text-xs font-semibold uppercase tracking-wider text-[#8b949e]">
+      <div className="grid grid-cols-[auto_1fr_1.4fr_1fr] gap-4 border-b border-slate-200 px-5 py-3 text-xs font-semibold uppercase tracking-wider text-slate-500">
         <span>الوقت</span><span>IP</span><span>العملية</span><span>المنفّذ</span>
       </div>
-      <div className="divide-y divide-[#21262d]">
+      <div className="divide-y divide-slate-200">
         {logs.map((l, i) => (
-          <div key={i} className="grid grid-cols-[auto_1fr_1.4fr_1fr] gap-4 px-5 py-3 text-sm hover:bg-[#1c2128]">
-            <span className="tabular-nums text-[#8b949e]" dir="ltr">{l.t}</span>
-            <span className="font-inter tabular-nums text-[#8b949e]" dir="ltr">{l.ip}</span>
-            <span className="text-[#e6edf3]">{l.op}</span>
-            <span className="truncate text-[#8b949e]" dir="ltr">{l.who}</span>
+          <div key={i} className="grid grid-cols-[auto_1fr_1.4fr_1fr] gap-4 px-5 py-3 text-sm hover:bg-slate-100">
+            <span className="tabular-nums text-slate-500" dir="ltr">{l.t}</span>
+            <span className="font-inter tabular-nums text-slate-500" dir="ltr">{l.ip}</span>
+            <span className="text-slate-900">{l.op}</span>
+            <span className="truncate text-slate-500" dir="ltr">{l.who}</span>
           </div>
         ))}
       </div>
@@ -160,10 +160,10 @@ function AuditView() {
 function RbacView() {
   const admins = [['مدير المنصة', 'admin@voldmotor.com', 'Owner', 'green'], ['فريق العمليات', 'ops@voldmotor.com', 'Operations', 'blue'], ['المالية', 'finance@voldmotor.com', 'Finance', 'amber']];
   return (
-    <div className={`${CARD} divide-y divide-[#21262d] overflow-hidden`}>
+    <div className={`${CARD} divide-y divide-slate-200 overflow-hidden`}>
       {admins.map(([name, email, role, tone], i) => (
         <div key={i} className="flex items-center gap-3 px-5 py-4">
-          <div className="min-w-0 flex-1"><div className="text-sm font-semibold text-[#e6edf3]">{name}</div><div className={`text-xs ${MUTED}`} dir="ltr">{email}</div></div>
+          <div className="min-w-0 flex-1"><div className="text-sm font-semibold text-slate-900">{name}</div><div className={`text-xs ${MUTED}`} dir="ltr">{email}</div></div>
           <Pill tone={tone}>{role}</Pill>
         </div>
       ))}
@@ -175,13 +175,13 @@ function RbacView() {
 function ListView({ rows, cols }) {
   return (
     <div className={`${CARD} overflow-hidden`}>
-      <div className="grid gap-4 border-b border-[#30363d] px-5 py-3 text-xs font-semibold uppercase tracking-wider text-[#8b949e]" style={{ gridTemplateColumns: cols.map(() => '1fr').join(' ') }}>
+      <div className="grid gap-4 border-b border-slate-200 px-5 py-3 text-xs font-semibold uppercase tracking-wider text-slate-500" style={{ gridTemplateColumns: cols.map(() => '1fr').join(' ') }}>
         {cols.map((c) => <span key={c}>{c}</span>)}
       </div>
-      <div className="divide-y divide-[#21262d]">
+      <div className="divide-y divide-slate-200">
         {rows.map((r, i) => (
-          <div key={i} className="grid gap-4 px-5 py-3 text-sm hover:bg-[#1c2128]" style={{ gridTemplateColumns: cols.map(() => '1fr').join(' ') }}>
-            {r.map((cell, j) => <span key={j} className={j === 0 ? 'font-semibold text-[#e6edf3]' : MUTED} dir={j > 0 ? 'ltr' : 'rtl'}>{cell}</span>)}
+          <div key={i} className="grid gap-4 px-5 py-3 text-sm hover:bg-slate-100" style={{ gridTemplateColumns: cols.map(() => '1fr').join(' ') }}>
+            {r.map((cell, j) => <span key={j} className={j === 0 ? 'font-semibold text-slate-900' : MUTED} dir={j > 0 ? 'ltr' : 'rtl'}>{cell}</span>)}
           </div>
         ))}
       </div>
@@ -191,7 +191,7 @@ function ListView({ rows, cols }) {
 }
 
 function MockNote() {
-  return <div className="border-t border-[#30363d] px-5 py-2 text-[11px] text-[#6e7681]">عرض تجريبي — يُربط بجدول حقيقي عند تجهيز الوحدة.</div>;
+  return <div className="border-t border-slate-200 px-5 py-2 text-[11px] text-slate-400">عرض تجريبي — يُربط بجدول حقيقي عند تجهيز الوحدة.</div>;
 }
 function Empty({ label }) {
   return <div className={`${CARD} grid place-items-center py-16 text-sm ${MUTED}`}>{label}</div>;
@@ -225,23 +225,23 @@ export default function AdminConsole({ data = {}, userName = 'المدير' }) {
   }
 
   return (
-    <div dir="rtl" className="min-h-screen bg-[#0d1117] font-sans text-[#e6edf3]">
+    <div dir="rtl" className="min-h-screen bg-slate-50 font-sans text-slate-900">
       {/* Sidebar — desktop */}
-      <aside className="fixed inset-y-0 end-0 z-40 hidden w-64 flex-col border-s border-[#30363d] bg-[#0d1117] md:flex">
-        <div className="flex h-16 items-center gap-2.5 border-b border-[#30363d] px-5" dir="ltr">
+      <aside className="fixed inset-y-0 end-0 z-40 hidden w-64 flex-col border-s border-slate-200 bg-slate-50 md:flex">
+        <div className="flex h-16 items-center gap-2.5 border-b border-slate-200 px-5" dir="ltr">
           <svg width="24" height="24" viewBox="0 0 48 48" fill="none"><path d="M6 10 L24 42 L42 10" stroke="#2563eb" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round" /></svg>
-          <span className="text-sm font-extrabold tracking-wide">VOLD <span className="text-blue-500">MOTOR</span></span>
+          <span className="text-sm font-extrabold tracking-wide">VOLD <span className="text-blue-600">MOTOR</span></span>
         </div>
         <nav className="flex-1 space-y-5 overflow-y-auto p-3">
           {GROUPS.map((g) => (
             <div key={g.title}>
-              <div className="px-2 pb-1.5 text-[10px] font-bold uppercase tracking-[0.12em] text-[#6e7681]">{g.title}</div>
+              <div className="px-2 pb-1.5 text-[10px] font-bold uppercase tracking-[0.12em] text-slate-400">{g.title}</div>
               <div className="space-y-0.5">
                 {g.items.map((it) => {
                   const on = active === it.k;
                   return (
                     <button key={it.k} onClick={() => setActive(it.k)}
-                      className={`flex w-full items-center gap-3 rounded-lg px-3 py-2 text-start text-sm font-medium transition-colors ${on ? 'bg-blue-600/15 text-blue-400' : 'text-[#c9d1d9] hover:bg-white/5'}`}>
+                      className={`flex w-full items-center gap-3 rounded-lg px-3 py-2 text-start text-sm font-medium transition-colors ${on ? 'bg-blue-50 text-blue-600' : 'text-slate-700 hover:bg-slate-100'}`}>
                       <it.Icon size={17} className="flex-none" /><span className="truncate">{it.label}</span>
                     </button>
                   );
@@ -250,17 +250,17 @@ export default function AdminConsole({ data = {}, userName = 'المدير' }) {
             </div>
           ))}
         </nav>
-        <div className="flex items-center gap-3 border-t border-[#30363d] p-4">
+        <div className="flex items-center gap-3 border-t border-slate-200 p-4">
           <div className="grid h-9 w-9 place-items-center rounded-full bg-blue-600 text-sm font-black text-white">{(userName || 'A').charAt(0).toUpperCase()}</div>
-          <div className="min-w-0"><div className="truncate text-sm font-bold">{userName}</div><div className="text-xs text-[#6e7681]">Super Admin</div></div>
+          <div className="min-w-0"><div className="truncate text-sm font-bold">{userName}</div><div className="text-xs text-slate-400">Super Admin</div></div>
         </div>
       </aside>
 
       {/* Main */}
       <div className="flex min-h-screen flex-col md:me-64">
-        <header className="sticky top-0 z-20 flex h-16 items-center justify-between border-b border-[#30363d] bg-[#0d1117]/80 px-4 backdrop-blur-md md:px-8">
+        <header className="sticky top-0 z-20 flex h-16 items-center justify-between border-b border-slate-200 bg-white/80 px-4 backdrop-blur-xl md:px-8">
           <h1 className="text-[15px] font-bold">{TITLE[active]}</h1>
-          <a href="/" className="inline-flex items-center gap-1.5 rounded-lg border border-[#30363d] px-3 py-2 text-sm font-semibold text-[#c9d1d9] transition hover:border-blue-500 hover:text-blue-400">
+          <a href="/" className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 px-3 py-2 text-sm font-semibold text-slate-700 transition hover:border-blue-400 hover:text-blue-600">
             <ArrowLeft size={16} className="rotate-180" /><span>العودة للموقع</span>
           </a>
         </header>
@@ -278,11 +278,11 @@ export default function AdminConsole({ data = {}, userName = 'المدير' }) {
       </div>
 
       {/* Mobile bottom nav — key sections */}
-      <nav className="fixed inset-x-0 bottom-0 z-40 flex items-stretch border-t border-[#30363d] bg-[#0d1117] md:hidden">
+      <nav className="fixed inset-x-0 bottom-0 z-40 flex items-stretch border-t border-slate-200 bg-slate-50 md:hidden">
         {[['centers', Store], ['requests', Inbox], ['commissions', Wallet], ['audit', ScrollText]].map(([k, Icon]) => {
           const on = active === k;
           return (
-            <button key={k} onClick={() => setActive(k)} className={`flex flex-1 flex-col items-center gap-1 py-2.5 text-[10px] font-semibold transition-colors ${on ? 'text-blue-400' : 'text-[#6e7681]'}`}>
+            <button key={k} onClick={() => setActive(k)} className={`flex flex-1 flex-col items-center gap-1 py-2.5 text-[10px] font-semibold transition-colors ${on ? 'text-blue-600' : 'text-slate-400'}`}>
               <Icon size={20} /><span className="truncate px-1">{TITLE[k].split(' ')[0]}</span>
             </button>
           );

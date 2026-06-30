@@ -12,8 +12,11 @@
  */
 import { useEffect, useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Hourglass, Wrench, CheckCircle2, Search, Minus, Plus, Power, LogOut } from 'lucide-react';
+import { Hourglass, Wrench, CheckCircle2, Search, Minus, Plus, Power, LogOut, MessageCircle } from 'lucide-react';
 import { updateOrderStatus, deductParts } from '@/app/dashboard-pro/actions';
+import { waUrl, AUTOMATIONS } from '@/lib/whatsapp';
+
+const AUTO_MSG = Object.fromEntries(AUTOMATIONS.filter((a) => a.msg).map((a) => [a.key, a.msg]));
 
 const STAGES = [
   { key: 'pending', label: 'انتظار', Icon: Hourglass },
@@ -23,7 +26,7 @@ const STAGES = [
 const stageIndex = (s) => (s === 'completed' ? 2 : s === 'pending' ? 0 : 1);
 const fmtClock = (s) => [Math.floor(s / 3600), Math.floor((s % 3600) / 60), s % 60].map((n) => String(n).padStart(2, '0')).join(':');
 
-export default function WorkerDashboard({ userName = 'الفنّي', orders = [], inventory = [] }) {
+export default function WorkerDashboard({ userName = 'الفنّي', orders = [], inventory = [], automations = null }) {
   const [tasks, setTasks] = useState(orders);
   const [inv, setInv] = useState(inventory);
   const [activeId, setActiveId] = useState(orders[0]?.id || null);
@@ -70,7 +73,7 @@ export default function WorkerDashboard({ userName = 'الفنّي', orders = []
         <AnimatePresence mode="wait">
           {active ? (
             <motion.div key={active.id} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -12 }} transition={{ duration: 0.25, ease: 'easeOut' }}>
-              <CurrentTask order={active} stage={curStage} onStage={setStage} busy={busy} />
+              <CurrentTask order={active} stage={curStage} onStage={setStage} busy={busy} automations={automations} />
             </motion.div>
           ) : (
             <motion.div key="empty" initial={{ opacity: 0 }} animate={{ opacity: 1 }}
@@ -107,7 +110,16 @@ function TopBar({ name, presence, onToggle, clock }) {
   );
 }
 
-function CurrentTask({ order, stage, onStage, busy }) {
+function CurrentTask({ order, stage, onStage, busy, automations }) {
+  // Gated WhatsApp dispatch — fires on the matching status if the trigger is ON.
+  const phone = order.customer_phone;
+  const on = (k) => !automations || automations[k] !== false;
+  let dispatch = null;
+  if (phone && order.status === 'in_progress' && on('job_start')) dispatch = { text: AUTO_MSG.job_start };
+  else if (phone && order.status === 'completed' && on('job_ready')) {
+    const link = typeof window !== 'undefined' ? `${window.location.origin}/receipt/${order.id}` : '';
+    dispatch = { text: `${AUTO_MSG.job_ready}${link ? `\n${link}` : ''}` };
+  }
   return (
     <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
       {/* Hero: plate + service */}
@@ -152,6 +164,16 @@ function CurrentTask({ order, stage, onStage, busy }) {
           );
         })}
       </div>
+
+      {/* Gated WhatsApp shop-floor dispatch */}
+      {dispatch && (
+        <div className="px-5 pb-5">
+          <a href={waUrl(phone, dispatch.text)} target="_blank" rel="noopener noreferrer"
+            className="flex w-full items-center justify-center gap-2 rounded-2xl bg-emerald-500 py-3.5 text-sm font-bold text-white shadow-lg shadow-emerald-500/25 transition-transform duration-200 will-change-transform hover:bg-emerald-600 active:scale-[1.03]">
+            <MessageCircle size={18} /> 💬 إرسال التحديث عبر الـ WhatsApp
+          </a>
+        </div>
+      )}
     </div>
   );
 }

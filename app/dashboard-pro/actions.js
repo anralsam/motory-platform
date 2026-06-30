@@ -325,3 +325,22 @@ export async function deleteService(id) {
   revalidatePath('/dashboard-pro');
   return { ok: true };
 }
+
+// ── WhatsApp automation triggers — merchant toggles their own row ──
+const AUTOMATION_KEYS = ['welcome', 'job_start', 'job_ready', 'invoice', 'campaigns'];
+
+export async function setAutomation(key, enabled) {
+  if (!AUTOMATION_KEYS.includes(key)) return { ok: false, error: 'مفتاح غير صالح' };
+  const supabase = createServerSupabase();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { ok: false, error: 'غير مصرّح' };
+  const admin = getSupabaseAdmin();
+  if (!admin) return { ok: false, error: 'مفتاح الخدمة غير مهيّأ' };
+  // Row is keyed by the merchant's own id, so a merchant can only edit their own.
+  const { error } = await admin
+    .from('whatsapp_automations')
+    .upsert({ merchant_id: user.id, [key]: !!enabled, updated_at: new Date().toISOString() }, { onConflict: 'merchant_id' });
+  if (error) return { ok: false, error: error.message };
+  revalidatePath('/dashboard/settings');
+  return { ok: true };
+}

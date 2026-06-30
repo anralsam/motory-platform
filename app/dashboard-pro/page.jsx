@@ -125,8 +125,8 @@ export default async function DashboardProPage() {
 
   // Technician → dedicated mobile-first full-screen console (its own shell)
   if (role === 'worker') {
-    const { orders, inventory } = await getWorkerData(user?.id);
-    return <WorkerDashboard userName={userName} orders={orders} inventory={inventory} />;
+    const { orders, inventory, automations } = await getWorkerData(user?.id);
+    return <WorkerDashboard userName={userName} orders={orders} inventory={inventory} automations={automations} />;
   }
 
   const content = await merchantContent(user?.id);

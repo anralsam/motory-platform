@@ -109,7 +109,7 @@ async function adminConsoleData() {
     underInspection: adminData?.joinStats?.pending || 0,
     carsInOps: intel.orders.filter((o) => o.status === 'in_progress').length,
   };
-  return { metrics, centers, requests: rows };
+  return { metrics, centers, requests: rows, orders: intel.orders || [], workers: intel.workers || [] };
 }
 
 export default async function DashboardProPage() {

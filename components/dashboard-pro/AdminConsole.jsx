@@ -15,6 +15,8 @@ import {
 } from 'lucide-react';
 import { supabase } from '@/lib/supabaseClient';
 import { SUPABASE_URL } from '@/lib/supabase/config';
+import DashboardContainer from './dna/DashboardContainer';
+import UnifiedChart from './dna/UnifiedChart';
 
 const EDGE = `${SUPABASE_URL}/functions/v1/admin-merchants`;
 const sar = (n) => `${(Number(n) || 0).toLocaleString('en-US')} ﷼`;
@@ -198,7 +200,7 @@ function Empty({ label }) {
 }
 
 export default function AdminConsole({ data = {}, userName = 'المدير' }) {
-  const { metrics = {}, centers = [], requests = [] } = data;
+  const { metrics = {}, centers = [], requests = [], orders = [], workers = [] } = data;
   const [active, setActive] = useState('centers');
   const [toast, setToast] = useState(null);
   const flash = (msg) => { setToast(msg); setTimeout(() => setToast(null), 2400); };
@@ -265,15 +267,19 @@ export default function AdminConsole({ data = {}, userName = 'المدير' }) {
           </a>
         </header>
 
-        <main className="flex-1 space-y-6 p-4 pb-24 md:p-8 md:pb-8">
-          {/* persistent KPI strip */}
-          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4">
-            <MetricCard icon={Wallet} label="صافي عمولات المنصة" value={sar(metrics.commissions)} delta="12%" />
-            <MetricCard icon={Gauge} label="نجاح الالتزام SLA" value={`${metrics.slaPct || 0}%`} />
-            <MetricCard icon={ShieldCheck} label="ورش تحت الفحص" value={(metrics.underInspection || 0).toLocaleString('en-US')} />
-            <MetricCard icon={Car} label="سيارات داخل الصالات" value={(metrics.carsInOps || 0).toLocaleString('en-US')} />
-          </div>
-          {renderView()}
+        <main className="flex-1 p-4 pb-24 md:p-8 md:pb-8">
+          {/* Grand Unified DNA — same brain (range+metric) + master chart as merchant/worker */}
+          <DashboardContainer role="admin" orders={orders} workers={workers}>
+            {/* persistent platform KPI strip */}
+            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4">
+              <MetricCard icon={Wallet} label="صافي عمولات المنصة" value={sar(metrics.commissions)} delta="12%" />
+              <MetricCard icon={Gauge} label="نجاح الالتزام SLA" value={`${metrics.slaPct || 0}%`} />
+              <MetricCard icon={ShieldCheck} label="ورش تحت الفحص" value={(metrics.underInspection || 0).toLocaleString('en-US')} />
+              <MetricCard icon={Car} label="سيارات داخل الصالات" value={(metrics.carsInOps || 0).toLocaleString('en-US')} />
+            </div>
+            <UnifiedChart title="أداء المنصة" />
+            {renderView()}
+          </DashboardContainer>
         </main>
       </div>
 

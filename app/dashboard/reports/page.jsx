@@ -2,7 +2,8 @@
 import { useMemo, useRef, useState } from 'react';
 import { useBranchStore } from '@/store/branchStore';
 import { useAuth } from '@/components/AuthProvider';
-import { roleOf } from '@/lib/roles';
+import { usePermissions } from '@/lib/usePermissions';
+import Forbidden403 from '@/components/Forbidden403';
 import { useCompletedOps } from '@/lib/useReports';
 import { useReportMetrics } from '@/lib/useReportMetrics';
 import SalesOpsChart from '@/components/SalesOpsChart';
@@ -33,6 +34,7 @@ function fmtDate(d) { try { return new Date(d).toLocaleDateString('en-GB'); } ca
 
 export default function ReportsPage() {
   const { user } = useAuth();
+  const { canViewFinancials } = usePermissions();
   const selectedId = useBranchStore((s) => s.selectedBranchId);
   const branches = useBranchStore((s) => s.branches);
   const branchName = selectedId === 'all' ? 'كل الفروع' : (branches.find((b) => b.id === selectedId)?.name || 'فرع');
@@ -80,18 +82,8 @@ export default function ReportsPage() {
   }
   function exportPDF() { showToast('جارٍ تجهيز PDF…', 'info'); setTimeout(() => window.print(), 350); }
 
-  // W-2: reports (revenue, completed-ops, AI financial analysis) are owner-only.
-  if (roleOf(user?.user_metadata?.role) !== 'owner') {
-    return (
-      <div className="mx-auto grid max-w-md place-items-center py-24 text-center">
-        <div className="grid h-14 w-14 place-items-center rounded-2xl bg-slate-100 text-slate-400">
-          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" /></svg>
-        </div>
-        <h1 className="mt-4 text-xl font-extrabold text-slate-900">صفحة مالية محظورة</h1>
-        <p className="mt-1 text-sm text-slate-500">هذه الصفحة متاحة لمالك المركز فقط.</p>
-      </div>
-    );
-  }
+  // Financial route — gated by can_view_financials (owners always pass).
+  if (!canViewFinancials) return <Forbidden403 title="صفحة مالية محظورة — 403" hint="التقارير المالية متاحة لمن يملك صلاحية «عرض المالية». تواصل مع مالك المركز." />;
 
   return (
     <div className="mx-auto max-w-6xl space-y-6">

@@ -3,6 +3,7 @@ import { useBranchStore } from '@/store/branchStore';
 import { useAuth } from '@/components/AuthProvider';
 import { roleOf } from '@/lib/roles';
 import { useDashboard } from '@/lib/useDashboard';
+import { usePermissions } from '@/lib/usePermissions';
 import DashboardContainer from '@/components/dashboard-pro/dna/DashboardContainer';
 import AnalyticsPanel from '@/components/dashboard-pro/dna/AnalyticsPanel';
 import { transferWorkerBranch } from '@/app/dashboard-pro/actions';
@@ -28,6 +29,7 @@ export default function DashboardHome() {
 
   const { loading, kpis, activity, orders, workers } = useDashboard(centerId, selectedId);
 
+  const { canViewFinancials, canTransferStaff } = usePermissions();
   const isOwner = myRole === 'owner';
   // W-2: revenue + customer financials are owner-only; managers see operational KPIs only.
   const CARDS = [
@@ -43,14 +45,15 @@ export default function DashboardHome() {
     <div className="flex w-full flex-col gap-8">
       <h1 className="text-xl font-bold tracking-tight text-slate-900">لوحة التحكم <span className="font-medium text-slate-400">· {branchName}</span></h1>
 
-      {isOwner ? (
-        /* Owner → full Unified DNA analytics (premium cards + master chart + donut +
-           top services). Financial → owner-only per W-2. */
-        <DashboardContainer role="merchant" orders={orders || []} workers={workers || []} inventory={[]} actions={{ transferWorkerBranch }}>
+      {canViewFinancials ? (
+        /* Full Unified DNA analytics — gated by the can_view_financials permission.
+           (Owners always pass; staff need the key toggled on.) */
+        <DashboardContainer role="merchant" orders={orders || []} workers={workers || []} inventory={[]}
+          actions={{ transferWorkerBranch }} permissions={{ canTransfer: canTransferStaff }}>
           <AnalyticsPanel />
         </DashboardContainer>
       ) : (
-        /* Manager → operational KPIs only (no financials). */
+        /* No financial access → operational KPIs only (no revenue / chart). */
         <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
           {CARDS.map((c) => (
             <div key={c.key} className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">

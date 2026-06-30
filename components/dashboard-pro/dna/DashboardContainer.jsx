@@ -21,7 +21,7 @@ const ActionsCtx = createContext(null);
 export const useDashboardData = () => useContext(DataCtx);
 export const useActions = () => useContext(ActionsCtx);
 
-export default function DashboardContainer({ role = 'merchant', orders = [], workers = [], inventory = [], actions = {}, headerActions = null, children }) {
+export default function DashboardContainer({ role = 'merchant', orders = [], workers = [], inventory = [], actions = {}, headerActions = null, permissions = { canTransfer: true }, children }) {
   // The UnifiedChart matrix is the master controller: it owns metric + timeline,
   // and the whole dashboard (cards/tables) re-derives from this single state.
   const [metric, setMetric] = useState('revenue');
@@ -102,8 +102,8 @@ export default function DashboardContainer({ role = 'merchant', orders = [], wor
   }, [workersState, actions]);
 
   const dataValue = useMemo(
-    () => ({ role, metric, setMetric, timeline, setTimeline, orders: branchOrders, workers: branchWorkers, currentBranchId, setCurrentBranchId, branches, ...derived }),
-    [role, metric, timeline, branchOrders, branchWorkers, currentBranchId, setCurrentBranchId, branches, derived],
+    () => ({ role, metric, setMetric, timeline, setTimeline, orders: branchOrders, workers: branchWorkers, currentBranchId, setCurrentBranchId, branches, permissions, ...derived }),
+    [role, metric, timeline, branchOrders, branchWorkers, currentBranchId, setCurrentBranchId, branches, permissions, derived],
   );
   const actionsValue = useMemo(() => ({ role, orders: ordersState, inventory: invState, workers: workersState, updateStatus, assign, deduct, start, patchOrder, transferWorker }), [role, ordersState, invState, workersState, updateStatus, assign, deduct, start, patchOrder, transferWorker]);
 

@@ -14,8 +14,9 @@ import { ArrowLeftRight, Check } from 'lucide-react';
 import { useDashboardData, useActions } from './DashboardContainer';
 
 export default function WorkforcePanel() {
-  const { orders = [], workers = [], branches = [], currentBranchId = 'all' } = useDashboardData() || {};
+  const { orders = [], workers = [], branches = [], currentBranchId = 'all', permissions = {} } = useDashboardData() || {};
   const { transferWorker } = useActions() || {};
+  const canTransfer = permissions.canTransfer !== false;
   const [openId, setOpenId] = useState(null);
 
   const statsByTech = useMemo(() => {
@@ -67,8 +68,8 @@ export default function WorkforcePanel() {
                 </div>
               </div>
 
-              {/* Transfer engine */}
-              {branches.length > 0 && transferWorker && (
+              {/* Transfer engine — gated by can_transfer_staff */}
+              {canTransfer && branches.length > 0 && transferWorker && (
                 <div className="relative flex-none">
                   <button onClick={() => setOpenId(openId === r.user_id ? null : r.user_id)}
                     className="flex items-center gap-1.5 rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-600 transition-colors hover:border-blue-400 hover:text-blue-600">

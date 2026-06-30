@@ -2,6 +2,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useBranchStore } from '@/store/branchStore';
 import { useAuth } from '@/components/AuthProvider';
+import { usePermissions } from '@/lib/usePermissions';
 import { roleOf } from '@/lib/roles';
 import { supabase } from '@/lib/supabaseClient';
 import { useServices } from '@/lib/useServices';
@@ -34,6 +35,7 @@ export default function SettingsPage() {
     return primary?.center_type || 'أخرى';
   }, [selectedId, branches, primary]);
 
+  const { canManageCatalog } = usePermissions();
   const [tab, setTab] = useState('identity');
 
   const [toast, setToast] = useState({ show: false, msg: '', type: 'success' });
@@ -50,7 +52,7 @@ export default function SettingsPage() {
 
       {/* Tabs */}
       <div className="flex gap-1 border-b border-slate-200">
-        {[['identity', 'هوية المركز'], ['services', 'الخدمات والأسعار'], ['catalog', 'الكشّة الثابتة'], ['automation', 'أتمتة واتساب']].map(([k, label]) => (
+        {[['identity', 'هوية المركز'], ['services', 'الخدمات والأسعار'], ...(canManageCatalog ? [['catalog', 'الكشّة الثابتة']] : []), ['automation', 'أتمتة واتساب']].map(([k, label]) => (
           <button key={k} onClick={() => setTab(k)}
             className={`-mb-px border-b-2 px-4 py-2.5 text-sm font-extrabold transition ${tab === k ? 'border-brand text-brand' : 'border-transparent text-slate-500 hover:text-slate-800'}`}>
             {label}
@@ -60,7 +62,7 @@ export default function SettingsPage() {
 
       {tab === 'identity' && <IdentityTab user={user} centerId={centerId} loadBranches={loadBranches} showToast={showToast} />}
       {tab === 'services' && <ServicesTab centerId={centerId} branchId={selectedId} centerType={centerType} showToast={showToast} />}
-      {tab === 'catalog' && <MasterCatalog centerId={centerId} branchId={selectedId} showToast={showToast} />}
+      {tab === 'catalog' && canManageCatalog && <MasterCatalog centerId={centerId} branchId={selectedId} showToast={showToast} />}
       {tab === 'automation' && <AutomationHub centerId={centerId} showToast={showToast} />}
 
       <Toast toast={toast} />

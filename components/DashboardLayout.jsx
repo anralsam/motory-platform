@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 import Sidebar from './Sidebar';
 import BranchSwitcherDropdown from './BranchSwitcherDropdown';
 import { useAuth } from './AuthProvider';
+import { useLocaleStore, dirFor } from '@/store/localeStore';
 
 /**
  * Enterprise shell:
@@ -16,6 +17,9 @@ export default function DashboardLayout({ children }) {
   const menuRef = useRef(null);
   const router = useRouter();
   const { user, signOut } = useAuth();
+  const lang = useLocaleStore((s) => s.lang);
+  const setLang = useLocaleStore((s) => s.setLang);
+  const dir = dirFor(lang);
 
   const email = user?.email || '';
   const centerName = user?.user_metadata?.center_name || user?.user_metadata?.shop_name || email.split('@')[0] || 'مركزي';
@@ -44,9 +48,9 @@ export default function DashboardLayout({ children }) {
   }, []);
 
   return (
-    <div className="flex h-screen bg-[var(--app-bg)] text-slate-900">
-      {/* 1. Sidebar (desktop, white-labeled) */}
-      <aside className="hidden w-64 flex-col border-l border-slate-200 bg-white md:flex">
+    <div dir={dir} className="flex h-screen bg-[var(--app-bg)] text-slate-900">
+      {/* 1. Sidebar (desktop, white-labeled) — inline-start, flips with dir */}
+      <aside className="hidden w-64 flex-col border-e border-slate-200 bg-white md:flex">
         <Sidebar />
       </aside>
 
@@ -58,8 +62,8 @@ export default function DashboardLayout({ children }) {
         onClick={() => setDrawerOpen(false)}
       />
       <aside
-        className={`fixed inset-y-0 right-0 z-50 w-64 border-l border-slate-200 bg-white shadow-xl transition-transform md:hidden ${
-          drawerOpen ? 'translate-x-0' : 'translate-x-full'
+        className={`fixed inset-y-0 end-0 z-50 w-64 border-s border-slate-200 bg-white shadow-xl transition-transform md:hidden ${
+          drawerOpen ? 'translate-x-0' : (dir === 'ltr' ? '-translate-x-full' : 'translate-x-full')
         }`}
       >
         <Sidebar onNavigate={() => setDrawerOpen(false)} />
@@ -82,6 +86,16 @@ export default function DashboardLayout({ children }) {
 
             {/* Global branch switcher */}
             <BranchSwitcherDropdown />
+
+            {/* Language / direction switch (RTL ↔ LTR) */}
+            <div className="flex items-center gap-1.5 rounded-xl bg-slate-100 p-1">
+              {[['ar', 'AR'], ['en', 'EN']].map(([k, label]) => (
+                <button key={k} onClick={() => setLang(k)}
+                  className={`rounded-lg px-3 py-1.5 text-xs font-bold transition-all ${lang === k ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-800'}`}>
+                  {label}
+                </button>
+              ))}
+            </div>
           </div>
 
           {/* User profile / notifications */}

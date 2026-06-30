@@ -362,6 +362,26 @@ export async function deleteService(id) {
   return { ok: true };
 }
 
+// ── Granular staff permissions — owner toggles their workers' access keys ──
+const PERMISSION_KEYS = ['can_view_financials', 'can_manage_catalog', 'can_transfer_staff'];
+
+export async function setWorkerPermission(workerUserId, key, value) {
+  if (!workerUserId || !PERMISSION_KEYS.includes(key)) return { ok: false, error: 'مدخلات غير صالحة' };
+  const supabase = createServerSupabase();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { ok: false, error: 'غير مصرّح' };
+  const admin = getSupabaseAdmin();
+  if (!admin) return { ok: false, error: 'مفتاح الخدمة غير مهيّأ' };
+  const { data: w } = await admin.from('workers').select('center_id').eq('user_id', workerUserId).maybeSingle();
+  if (!w) return { ok: false, error: 'الموظف غير موجود' };
+  if (!(await isAdmin(supabase, user)) && w.center_id !== user.id) return { ok: false, error: 'هذا الموظف لا يتبع مركزك' };
+  const { error } = await admin.from('workers').update({ [key]: !!value }).eq('user_id', workerUserId);
+  if (error) return { ok: false, error: error.message };
+  revalidatePath('/dashboard');
+  revalidatePath('/dashboard-pro');
+  return { ok: true };
+}
+
 // ── WhatsApp automation triggers — merchant toggles their own row ──
 const AUTOMATION_KEYS = ['welcome', 'job_start', 'job_ready', 'invoice', 'campaigns', 'use_fallback_links'];
 

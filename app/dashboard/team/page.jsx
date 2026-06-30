@@ -8,6 +8,7 @@ import { roleOf } from '@/lib/roles';
 import { supabase } from '@/lib/supabaseClient';
 import { genPin, setPin, pinFor, whatsappLink, createWorker } from '@/lib/team';
 import AddStaffModal from '@/components/AddStaffModal';
+import StaffPermissionMatrix from '@/components/StaffPermissionMatrix';
 import Toast from '@/components/Toast';
 
 const ROLE_BADGE = {
@@ -24,7 +25,7 @@ export default function TeamPage() {
   const branches = useBranchStore((s) => s.branches);
   const branchName = selectedId === 'all' ? 'كل الفروع' : (branches.find((b) => b.id === selectedId)?.name || 'فرع');
 
-  const { members, loading, error, refetch } = useTeam(user?.id, selectedId);
+  const { members, loading, error, refetch, setMembers } = useTeam(user?.id, selectedId);
 
   const [open, setOpen] = useState(false);
   const [toast, setToast] = useState({ show: false, msg: '', type: 'success' });
@@ -168,6 +169,8 @@ export default function TeamPage() {
           </table>
         </div>
       </div>
+
+      <StaffPermissionMatrix members={members} setMembers={setMembers} showToast={showToast} />
 
       <AddStaffModal open={open} onClose={() => setOpen(false)} onSubmit={addStaff} />
       <Toast toast={toast} />

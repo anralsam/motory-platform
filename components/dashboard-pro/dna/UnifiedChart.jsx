@@ -8,7 +8,7 @@
  * the Global Control Bar's metric toggle. framer-motion re-animates on every change.
  */
 import { motion } from 'framer-motion';
-import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts';
+import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip } from 'recharts';
 import { useDashboardData } from './DashboardContainer';
 import { ACCENT, METRICS, RANGES, fmtValue } from './engine';
 
@@ -28,22 +28,23 @@ export default function UnifiedChart({ filterType, title = 'تحليل الأد�
           <div className="mt-1 text-sm font-medium text-secondary">{m.label} · {rangeLabel}</div>
         </div>
       </div>
-      <motion.div key={`${metricKey}-${ctx.range}`} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, ease: 'easeOut' }} dir="ltr" style={{ height }}>
+      {/* Floating area — soft blue-600/20 → transparent fill, no grid lines, Y-axis only */}
+      <motion.div key={`${metricKey}-${ctx.range}`} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }} dir="ltr" style={{ height }}>
         <ResponsiveContainer width="100%" height="100%">
-          <AreaChart data={ctx.series} margin={{ top: 8, right: 8, left: -8, bottom: 0 }}>
+          <AreaChart data={ctx.series} margin={{ top: 10, right: 4, left: -10, bottom: 0 }}>
             <defs>
               <linearGradient id={gid} x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor={ACCENT} stopOpacity={0.3} />
-                <stop offset="75%" stopColor={ACCENT} stopOpacity={0.04} />
+                <stop offset="0%" stopColor={ACCENT} stopOpacity={0.2} />
+                <stop offset="60%" stopColor={ACCENT} stopOpacity={0.05} />
                 <stop offset="100%" stopColor={ACCENT} stopOpacity={0} />
               </linearGradient>
             </defs>
-            <CartesianGrid vertical={false} stroke="#f1f5f9" />
-            <XAxis dataKey="label" tickLine={false} axisLine={false} tick={{ fontSize: 11, fill: '#94a3b8' }} minTickGap={16} />
-            <YAxis tickLine={false} axisLine={false} tick={{ fontSize: 11, fill: '#94a3b8' }} width={42} tickFormatter={yFmt} />
-            <Tooltip contentStyle={{ borderRadius: 14, border: '1px solid #e2e8f0', fontSize: 12, boxShadow: '0 8px 30px -6px rgba(0,0,0,0.12)' }}
+            <XAxis dataKey="label" tickLine={false} axisLine={false} tick={{ fontSize: 11, fill: '#94a3b8' }} minTickGap={20} dy={6} />
+            <YAxis tickLine={false} axisLine={false} tick={{ fontSize: 11, fill: '#94a3b8' }} width={44} tickFormatter={yFmt} />
+            <Tooltip cursor={{ stroke: ACCENT, strokeWidth: 1, strokeDasharray: '4 4' }}
+              contentStyle={{ borderRadius: 14, border: '1px solid #e2e8f0', fontSize: 12, boxShadow: '0 8px 30px -6px rgba(0,0,0,0.12)' }}
               formatter={(v) => [fmtValue(v, m.unit), m.label]} />
-            <Area type="monotone" dataKey={metricKey} stroke={ACCENT} strokeWidth={3} fill={`url(#${gid})`} dot={false} activeDot={{ r: 5, fill: ACCENT, stroke: '#fff', strokeWidth: 2.5 }} />
+            <Area type="monotone" dataKey={metricKey} stroke={ACCENT} strokeWidth={2.5} fill={`url(#${gid})`} dot={false} activeDot={{ r: 5, fill: ACCENT, stroke: '#fff', strokeWidth: 2.5 }} />
           </AreaChart>
         </ResponsiveContainer>
       </motion.div>

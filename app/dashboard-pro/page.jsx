@@ -85,8 +85,27 @@ async function merchantContent(merchantId) {
   const moRev = Array(12).fill(0); const moOps = Array(12).fill(0);
   d.orders.forEach((o) => { if (o.created_at) { const i = new Date(o.created_at).getMonth(); moOps[i]++; if (o.status === 'completed') moRev[i] += Number(o.price) || 0; } });
   const trend = MONTHS.map((label, i) => ({ label, revenue: moRev[i], orders: moOps[i] }));
+  // Status distribution (donut)
+  const STATUS_META = [
+    { key: 'pending', name: 'انتظار', color: '#f59e0b' },
+    { key: 'in_progress', name: 'جاري', color: '#2563eb' },
+    { key: 'ready', name: 'جاهز', color: '#7c3aed' },
+    { key: 'completed', name: 'مكتمل', color: '#10b981' },
+  ];
+  const statusDist = STATUS_META
+    .map((s) => ({ name: s.name, value: d.orders.filter((o) => o.status === s.key).length, color: s.color }))
+    .filter((s) => s.value > 0);
+  // Top services (by order count + revenue)
+  const svcMap = {};
+  d.orders.forEach((o) => {
+    const k = o.service_type || 'أخرى';
+    if (!svcMap[k]) svcMap[k] = { name: k, count: 0, revenue: 0 };
+    svcMap[k].count++;
+    if (o.status === 'completed') svcMap[k].revenue += Number(o.price) || 0;
+  });
+  const topServices = Object.values(svcMap).sort((a, b) => b.count - a.count).slice(0, 5);
   return {
-    dashboard: <MerchantDashboard metrics={mMetrics} orders={liveOrders} inventory={d.inventory} workers={d.workers} peak={peak} lastHour={lastHour} trend={trend} />,
+    dashboard: <MerchantDashboard metrics={mMetrics} orders={liveOrders} inventory={d.inventory} workers={d.workers} peak={peak} lastHour={lastHour} trend={trend} statusDist={statusDist} topServices={topServices} totalOrders={d.orders.length} />,
     operations: (
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         {d.orders.slice(0, 12).map((o) => (

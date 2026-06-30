@@ -10,7 +10,7 @@
  */
 import { useState } from 'react';
 import { AnimatePresence } from 'framer-motion';
-import { ResponsiveContainer, BarChart, Bar, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts';
+import { ResponsiveContainer, BarChart, Bar, AreaChart, Area, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts';
 import { Wallet, Activity, Users, HeartPulse, Clock } from 'lucide-react';
 import StatTile from './StatTile';
 import StatusPill from './StatusPill';
@@ -19,7 +19,7 @@ import NoData from './NoData';
 
 const sar = (n) => `${(Number(n) || 0).toLocaleString('en-US')} ﷼`;
 
-export default function MerchantDashboard({ metrics = {}, orders = [], inventory = [], workers = [], peak = [], lastHour = {}, trend = [] }) {
+export default function MerchantDashboard({ metrics = {}, orders = [], inventory = [], workers = [], peak = [], lastHour = {}, trend = [], statusDist = [], topServices = [], totalOrders = 0 }) {
   const [items, setItems] = useState(orders);
   const [modalOrder, setModalOrder] = useState(null);
   const [trendKey, setTrendKey] = useState('revenue');
@@ -69,6 +69,69 @@ export default function MerchantDashboard({ metrics = {}, orders = [], inventory
               <Area type="monotone" dataKey={trendKey} stroke="#2563eb" strokeWidth={3} fill="url(#mTrend)" dot={false} activeDot={{ r: 4, fill: '#2563eb', stroke: '#fff', strokeWidth: 2 }} />
             </AreaChart>
           </ResponsiveContainer>
+        </div>
+      </div>
+
+      {/* Status distribution (donut) + top services */}
+      <div className="grid grid-cols-1 gap-5 lg:grid-cols-5">
+        <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm lg:col-span-2">
+          <div className="mb-1 text-sm font-semibold text-slate-900">توزيع الحالات</div>
+          <div className="mb-4 text-xs font-normal text-slate-400">إجمالي {totalOrders.toLocaleString('en-US')} طلب</div>
+          {statusDist.length ? (
+            <div className="flex items-center gap-4">
+              <div className="relative h-40 w-40 shrink-0" dir="ltr">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie data={statusDist} dataKey="value" nameKey="name" innerRadius={48} outerRadius={68} paddingAngle={2} strokeWidth={0}>
+                      {statusDist.map((s) => <Cell key={s.name} fill={s.color} />)}
+                    </Pie>
+                    <Tooltip contentStyle={{ borderRadius: 12, border: '1px solid #e2e8f0', fontSize: 12, boxShadow: 'none' }} formatter={(v, n) => [v, n]} />
+                  </PieChart>
+                </ResponsiveContainer>
+                <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
+                  <span className="font-inter text-2xl font-bold tabular-nums text-slate-900" dir="ltr">{totalOrders}</span>
+                  <span className="text-[10px] text-slate-400">طلب</span>
+                </div>
+              </div>
+              <div className="flex-1 space-y-2.5">
+                {statusDist.map((s) => (
+                  <div key={s.name} className="flex items-center justify-between text-xs">
+                    <span className="flex items-center gap-2 text-slate-600"><span className="h-2.5 w-2.5 rounded-full" style={{ background: s.color }} /> {s.name}</span>
+                    <span className="font-inter font-semibold tabular-nums text-slate-900" dir="ltr">{s.value}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className="py-10 text-center text-xs text-slate-400">لا توجد بيانات</div>
+          )}
+        </div>
+        <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm lg:col-span-3">
+          <div className="mb-1 text-sm font-semibold text-slate-900">أفضل الخدمات</div>
+          <div className="mb-4 text-xs font-normal text-slate-400">الأكثر طلباً مع إيرادها</div>
+          {topServices.length ? (
+            <div className="space-y-3">
+              {topServices.map((s, i) => {
+                const max = topServices[0].count || 1;
+                return (
+                  <div key={s.name + i}>
+                    <div className="mb-1 flex items-center justify-between text-xs">
+                      <span className="font-medium text-slate-700">{s.name}</span>
+                      <span className="flex items-center gap-3">
+                        <span className="text-slate-400">{s.count} طلب</span>
+                        <span className="font-inter font-semibold tabular-nums text-slate-900" dir="ltr">{sar(s.revenue)}</span>
+                      </span>
+                    </div>
+                    <div className="h-2 overflow-hidden rounded-full bg-slate-100">
+                      <div className="h-full rounded-full bg-blue-600 transition-all duration-500" style={{ width: `${Math.max(6, Math.round((s.count / max) * 100))}%` }} />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="py-10 text-center text-xs text-slate-400">لا توجد خدمات مسجّلة بعد</div>
+          )}
         </div>
       </div>
 

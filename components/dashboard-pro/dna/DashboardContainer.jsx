@@ -64,7 +64,7 @@ export default function DashboardContainer({ role = 'merchant', orders = [], wor
   // Local-only patch (server write already happened elsewhere, e.g. a modal).
   const patchOrder = useCallback((id, patch) => setOrders((o) => o.map((x) => (x.id === id ? { ...x, ...patch } : x))), []);
 
-  const dataValue = useMemo(() => ({ role, range, setRange, metric, setMetric, ...derived }), [role, range, metric, derived]);
+  const dataValue = useMemo(() => ({ role, range, setRange, metric, setMetric, orders: ordersState, ...derived }), [role, range, metric, ordersState, derived]);
   const actionsValue = useMemo(() => ({ role, orders: ordersState, inventory: invState, workers, updateStatus, assign, deduct, start, patchOrder }), [role, ordersState, invState, workers, updateStatus, assign, deduct, start, patchOrder]);
 
   return (

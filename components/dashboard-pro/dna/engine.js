@@ -50,6 +50,74 @@ export const fmtValue = (v, unit) => {
   return n.toLocaleString('en-US');
 };
 
+// Compact axis formatter: 45000 → 45k · 1200000 → 1.2M.
+export const fmtCompact = (v) => {
+  const s = Number(v) || 0;
+  const n = Math.abs(s);
+  if (n >= 1e6) return `${(s / 1e6).toFixed(1).replace(/\.0$/, '')}M`;
+  if (n >= 1e3) return `${(s / 1e3).toFixed(n >= 1e4 ? 0 : 1).replace(/\.0$/, '')}k`;
+  return `${s}`;
+};
+
+// ── UnifiedChart multi-filter matrix ──
+export const CHART_METRICS = [
+  { key: 'revenue', label: 'الأرباح', unit: 'sar' },
+  { key: 'sales', label: 'المبيعات', unit: 'int' },
+  { key: 'customers', label: 'عدد العملاء', unit: 'int' },
+];
+export const CHART_TIMELINES = [
+  { key: 'day', label: 'آخر يوم' },
+  { key: 'week', label: 'آخر أسبوع' },
+  { key: 'month', label: 'آخر شهر' },
+  { key: 'year', label: 'آخر سنة' },
+];
+
+/**
+ * Build the chart series for a (metric × timeline) cell of the matrix.
+ *   metric:   revenue (completed SAR) · sales (order count) · customers (unique names)
+ *   timeline: day (24 hourly) · week (7 daily) · month (30 daily) · year (12 monthly)
+ * Returns { series: [{label, value}], unit }. Pure — recomputes instantly client-side.
+ */
+export function computeChartSeries(orders = [], metric = 'revenue', timeline = 'week') {
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const buckets = [];
+  if (timeline === 'day') {
+    for (let h = 0; h < 24; h++) buckets.push({ label: `${String(h).padStart(2, '0')}:00` });
+  } else if (timeline === 'week' || timeline === 'month') {
+    const span = timeline === 'week' ? 7 : 30;
+    for (let i = span - 1; i >= 0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth(), now.getDate() - i);
+      buckets.push({ label: `${d.getDate()}/${d.getMonth() + 1}`, key: d.toISOString().slice(0, 10) });
+    }
+  } else {
+    for (let m = 0; m < 12; m++) buckets.push({ label: MONTHS[m] });
+  }
+
+  const keyIndex = Object.fromEntries(buckets.map((b, i) => [b.key, i]));
+  const acc = buckets.map(() => (metric === 'customers' ? new Set() : 0));
+  orders.forEach((o) => {
+    if (!o.created_at) return;
+    const dt = new Date(o.created_at);
+    let idx = -1;
+    if (timeline === 'day') {
+      if (dt >= today) idx = dt.getHours();
+    } else if (timeline === 'year') {
+      if (dt.getFullYear() === now.getFullYear()) idx = dt.getMonth();
+    } else {
+      idx = keyIndex[dt.toISOString().slice(0, 10)] ?? -1;
+    }
+    if (idx < 0 || idx >= acc.length) return;
+    if (metric === 'revenue') { if (o.status === 'completed') acc[idx] += Number(o.price) || 0; }
+    else if (metric === 'sales') { acc[idx] += 1; }
+    else if (o.customer_name) acc[idx].add(o.customer_name);
+  });
+
+  const series = buckets.map((b, i) => ({ label: b.label, value: metric === 'customers' ? acc[i].size : acc[i] }));
+  const unit = metric === 'revenue' ? 'sar' : 'int';
+  return { series, unit };
+}
+
 /**
  * Compute every derived dataset for a given raw orders set + time range.
  * Runs client-side (live filter response with zero network round-trips).

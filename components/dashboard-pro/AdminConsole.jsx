@@ -277,7 +277,7 @@ export default function AdminConsole({ data = {}, userName = 'المدير' }) {
               <MetricCard icon={ShieldCheck} label="ورش تحت الفحص" value={(metrics.underInspection || 0).toLocaleString('en-US')} />
               <MetricCard icon={Car} label="سيارات داخل الصالات" value={(metrics.carsInOps || 0).toLocaleString('en-US')} />
             </div>
-            <UnifiedChart title="أداء المنصة" />
+            <UnifiedChart showControls />
             {renderView()}
           </DashboardContainer>
         </main>

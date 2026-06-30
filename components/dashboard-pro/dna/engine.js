@@ -131,6 +131,26 @@ export function timelineWindowStart(timeline, now = new Date()) {
   return new Date(now.getFullYear(), 0, 1); // year
 }
 
+// Period-over-period comparison for the YouTube-style summary cards:
+// current window vs the immediately-preceding equal window.
+export function computeComparisons(orders = [], timeline = 'week') {
+  const now = new Date();
+  const start = timelineWindowStart(timeline, now);
+  const span = now.getTime() - start.getTime();
+  const prevStart = new Date(start.getTime() - span);
+  const cur = orders.filter((o) => o.created_at && new Date(o.created_at) >= start);
+  const prev = orders.filter((o) => { if (!o.created_at) return false; const d = new Date(o.created_at); return d >= prevStart && d < start; });
+  const rev = (a) => a.filter((o) => o.status === 'completed').reduce((s, o) => s + (Number(o.price) || 0), 0);
+  const cust = (a) => new Set(a.filter((o) => o.customer_name).map((o) => o.customer_name)).size;
+  const grow = (c, p) => (p > 0 ? Math.round(((c - p) / p) * 100) : c > 0 ? 100 : 0);
+  return {
+    sales: { value: cur.length, growth: grow(cur.length, prev.length) },
+    revenue: { value: rev(cur), growth: grow(rev(cur), rev(prev)) },
+    customers: { value: cust(cur), growth: grow(cust(cur), cust(prev)) },
+    days: timeline === 'day' ? 1 : timeline === 'week' ? 7 : timeline === 'month' ? 30 : 365,
+  };
+}
+
 export function computeDerived(orders = [], workers = [], timeline = 'week') {
   const windowStart = timelineWindowStart(timeline);
   const inWindow = orders.filter((o) => o.created_at && new Date(o.created_at) >= windowStart);

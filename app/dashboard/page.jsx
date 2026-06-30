@@ -37,7 +37,9 @@ export default function DashboardHome() {
   ].filter((c) => isOwner || !c.owner);
 
   return (
-    <div className="mx-auto max-w-6xl space-y-5">
+    // Clean vertical stack — gap-8, full width, no clipping. (min-h-screen/bg/padding
+    // are already supplied by the DashboardLayout shell, so they're not duplicated here.)
+    <div className="flex w-full flex-col gap-8">
       <h1 className="text-xl font-bold tracking-tight text-slate-900">لوحة التحكم <span className="font-medium text-slate-400">· {branchName}</span></h1>
 
       {isOwner ? (

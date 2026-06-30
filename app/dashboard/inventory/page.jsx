@@ -136,16 +136,16 @@ export default function InventoryPage() {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="ابحث باسم الصنف أو المورّد..."
-          className="w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 pe-10 text-sm font-semibold text-gray-900 outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/15"
+          className="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 pe-10 text-sm font-semibold text-gray-900 outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/15"
         />
       </div>
 
       {/* Data table */}
-      <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
+      <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
         <div className="overflow-x-auto">
           <table className="w-full text-right">
             <thead>
-              <tr className="border-b border-gray-200 bg-gray-50 text-xs font-bold text-gray-500">
+              <tr className="border-b border-slate-200 bg-gray-50 text-xs font-bold text-gray-500">
                 <th className="px-5 py-3 text-start">الصنف</th>
                 <th className="px-5 py-3 text-start">الفئة</th>
                 <th className="px-5 py-3 text-start">الكمية</th>
@@ -202,7 +202,7 @@ export default function InventoryPage() {
                         <button
                           onClick={() => setMovementItem(i)}
                           title="تسجيل حركة مخزون"
-                          className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 px-2.5 py-1.5 text-xs font-bold text-gray-600 transition hover:border-brand hover:text-brand"
+                          className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 px-2.5 py-1.5 text-xs font-bold text-gray-600 transition hover:border-brand hover:text-brand"
                         >
                           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M8 7H3m0 0 3-3M3 7l3 3M16 17h5m0 0-3 3m3-3-3-3" /></svg>
                           حركة
@@ -244,7 +244,7 @@ function Chip({ active, onClick, children }) {
     <button
       onClick={onClick}
       className={`rounded-full border px-4 py-2 text-sm font-bold transition ${
-        active ? 'border-brand bg-brand text-white' : 'border-gray-200 bg-white text-gray-500 hover:border-brand hover:text-brand'
+        active ? 'border-brand bg-brand text-white' : 'border-slate-200 bg-white text-gray-500 hover:border-brand hover:text-brand'
       }`}
     >
       {children}

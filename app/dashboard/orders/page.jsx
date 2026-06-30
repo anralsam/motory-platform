@@ -70,11 +70,11 @@ export default function OrdersPage() {
         </button>
       </div>
 
-      <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
+      <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
         <div className="overflow-x-auto">
           <table className="w-full text-right">
             <thead>
-              <tr className="border-b border-gray-200 bg-gray-50 text-xs font-bold text-gray-500">
+              <tr className="border-b border-slate-200 bg-gray-50 text-xs font-bold text-gray-500">
                 <th className="px-5 py-3 text-start">السيارة</th>
                 <th className="px-5 py-3 text-start">اللوحة</th>
                 <th className="px-5 py-3 text-start">الخدمة</th>

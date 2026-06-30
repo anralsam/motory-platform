@@ -115,11 +115,11 @@ export default function InvoicesPage() {
       </div>
 
       {/* ── Invoices table ── */}
-      <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
+      <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
         <div className="overflow-x-auto">
           <table className="w-full text-right">
             <thead>
-              <tr className="border-b border-gray-200 bg-gray-50 text-xs font-bold text-gray-500">
+              <tr className="border-b border-slate-200 bg-gray-50 text-xs font-bold text-gray-500">
                 <th className="px-5 py-3 text-start">رقم الفاتورة</th>
                 <th className="px-5 py-3 text-start">التاريخ</th>
                 <th className="px-5 py-3 text-start">العميل</th>
@@ -147,7 +147,7 @@ export default function InvoicesPage() {
                       <td className="px-5 py-3.5 font-extrabold text-brand">{fmtSar(t.total)} ر.س</td>
                       <td className="px-5 py-3.5">
                         <div className="flex items-center gap-2">
-                          <button onClick={() => setReceipt(o)} className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-bold text-gray-600 transition hover:border-brand hover:text-brand">
+                          <button onClick={() => setReceipt(o)} className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-bold text-gray-600 transition hover:border-brand hover:text-brand">
                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 9V2h12v7M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" /><rect x="6" y="14" width="12" height="8" /></svg>
                             طباعة الفاتورة
                           </button>

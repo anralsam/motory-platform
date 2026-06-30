@@ -2,6 +2,7 @@
   "version": "0.0.1",
   "autoPort": true,
   "configurations": [
-    { "name": "vm-static", "runtimeExecutable": "python3", "runtimeArgs": ["serve.py"], "port": 8099, "autoPort": true }
+    { "name": "vm-static", "runtimeExecutable": "python3", "runtimeArgs": ["serve.py"], "port": 8099, "autoPort": true },
+    { "name": "vm-next", "runtimeExecutable": "npm", "runtimeArgs": ["run", "dev"], "port": 3000, "autoPort": true }
   ]
 }

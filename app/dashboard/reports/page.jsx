@@ -103,7 +103,7 @@ export default function ReportsPage() {
       </div>
 
       {/* ════════ Sales vs Operations trend (current month) ════════ */}
-      <section className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
+      <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
         <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
           <div>
             <h3 className="text-base font-extrabold text-gray-900">حجم المبيعات مقابل الطلبات المنجزة</h3>
@@ -164,15 +164,15 @@ export default function ReportsPage() {
           <div className="mb-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {metricsLoading ? (
               Array.from({ length: 3 }).map((_, i) => (
-                <div key={i} className="h-[92px] animate-pulse rounded-2xl border border-gray-200 bg-gray-50" />
+                <div key={i} className="h-[92px] animate-pulse rounded-2xl border border-slate-200 bg-gray-50" />
               ))
             ) : metrics.length === 0 ? (
-              <div className="col-span-full rounded-2xl border border-dashed border-gray-200 p-6 text-center text-sm text-gray-400">
+              <div className="col-span-full rounded-2xl border border-dashed border-slate-200 p-6 text-center text-sm text-gray-400">
                 لا توجد بيانات كافية لهذا الفرع لحساب المقارنة الشهرية بعد.
               </div>
             ) : (
               metrics.map((m, i) => (
-                <div key={i} className="rounded-2xl border border-gray-200 bg-white p-4">
+                <div key={i} className="rounded-2xl border border-slate-200 bg-white p-4">
                   <div className="text-xs font-bold text-gray-500">{m.label}</div>
                   <div className="mt-1.5 text-xl font-extrabold text-gray-900">{m.value}</div>
                   <TrendBadge tone={m.tone} dir={m.dir} text={m.delta} />
@@ -202,7 +202,7 @@ export default function ReportsPage() {
           <TierLabel n="3" title="التوصيات الاستراتيجية" sub="خطوات قابلة للتنفيذ لرفع الربحية" />
           <div className="space-y-2.5">
             {RECOMMENDATIONS.map((r, i) => (
-              <div key={i} className="flex items-center gap-3 rounded-2xl border border-gray-200 bg-white p-3.5">
+              <div key={i} className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white p-3.5">
                 <span className="grid h-8 w-8 flex-none place-items-center rounded-full bg-violet-100 text-sm font-extrabold text-violet-700">{i + 1}</span>
                 <p className="flex-1 text-sm font-semibold text-gray-700">{r.text}</p>
                 <button className="flex-none rounded-lg border border-violet-200 px-3 py-1.5 text-xs font-extrabold text-violet-700 transition hover:bg-violet-50">{r.cta}</button>
@@ -220,8 +220,8 @@ export default function ReportsPage() {
       </div>
 
       {/* ════════ Standard reports (bottom) ════════ */}
-      <section className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
-        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-gray-200 px-5 py-4">
+      <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 px-5 py-4">
           <div>
             <h3 className="text-base font-extrabold text-gray-900">الفواتير والعمليات المنجزة</h3>
             <p className="text-xs text-gray-500">{branchName} · آخر 100 عملية</p>
@@ -233,7 +233,7 @@ export default function ReportsPage() {
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round"><path d="M6 9l6 6 6-6" /></svg>
             </button>
             {exportOpen && (
-              <div className="absolute end-0 z-20 mt-2 w-40 overflow-hidden rounded-xl border border-gray-200 bg-white shadow-lg">
+              <div className="absolute end-0 z-20 mt-2 w-40 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-lg">
                 <button onClick={() => { setExportOpen(false); exportCSV(); }} className="block w-full px-4 py-2.5 text-start text-sm font-bold text-gray-700 hover:bg-gray-50">تصدير CSV</button>
                 <button onClick={() => { setExportOpen(false); exportPDF(); }} className="block w-full px-4 py-2.5 text-start text-sm font-bold text-gray-700 hover:bg-gray-50">تصدير PDF</button>
               </div>
@@ -244,7 +244,7 @@ export default function ReportsPage() {
         <div className="overflow-x-auto">
           <table className="w-full text-right">
             <thead>
-              <tr className="border-b border-gray-200 bg-gray-50 text-xs font-bold text-gray-500">
+              <tr className="border-b border-slate-200 bg-gray-50 text-xs font-bold text-gray-500">
                 <th className="px-5 py-3 text-start">التاريخ</th>
                 <th className="px-5 py-3 text-start">رقم العملية</th>
                 <th className="px-5 py-3 text-start">العميل</th>
@@ -311,7 +311,7 @@ function TrendBadge({ tone, dir, text }) {
 
 function KPI({ label, value, suffix, accent = 'text-gray-900' }) {
   return (
-    <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
+    <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
       <div className="text-xs font-bold text-gray-500">{label}</div>
       <div className={`mt-2 text-2xl font-extrabold tabular-nums ${accent}`}>
         {value}{suffix ? <span className="text-sm font-bold text-gray-400"> {suffix}</span> : null}

@@ -42,7 +42,7 @@ export default function BranchSwitcherDropdown() {
     <div className="relative" ref={ref}>
       <button
         onClick={() => setOpen((o) => !o)}
-        className="flex items-center gap-2 rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 text-sm font-bold text-gray-800 transition hover:border-brand hover:bg-white"
+        className="flex items-center gap-2 rounded-xl border border-slate-200 bg-gray-50 px-3 py-2 text-sm font-bold text-gray-800 transition hover:border-brand hover:bg-white"
       >
         <BranchIcon />
         <span className="max-w-[140px] truncate">{current.name}</span>
@@ -52,7 +52,7 @@ export default function BranchSwitcherDropdown() {
       </button>
 
       {open && (
-        <div className="absolute z-30 mt-2 w-60 overflow-hidden rounded-xl border border-gray-200 bg-white shadow-lg">
+        <div className="absolute z-30 mt-2 w-60 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-lg">
           <button
             onClick={() => { setSelectedBranch('all'); setOpen(false); }}
             className={`flex w-full items-center gap-2 px-4 py-3 text-sm font-bold transition hover:bg-gray-50 ${selectedId === 'all' ? 'text-brand' : 'text-gray-700'}`}

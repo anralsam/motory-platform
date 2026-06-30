@@ -9,7 +9,7 @@ function TooltipBox({ active, payload, label }) {
   const sales = payload.find((p) => p.dataKey === 'sales')?.value ?? 0;
   const ops = payload.find((p) => p.dataKey === 'ops')?.value ?? 0;
   return (
-    <div dir="rtl" className="rounded-xl border border-gray-200 bg-white px-3 py-2 text-xs shadow-lg">
+    <div dir="rtl" className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs shadow-lg">
       <div className="mb-1 font-extrabold text-gray-900">يوم {label}</div>
       <div className="flex items-center gap-1.5 font-bold" style={{ color: BLUE }}>
         <span className="h-2 w-2 rounded-full" style={{ background: BLUE }} /> المبيعات: {Number(sales).toLocaleString('en')} ر.س

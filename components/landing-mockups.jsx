@@ -13,7 +13,7 @@ function Plate({ value = 'أ ب ج 1234' }) {
 
 export function PosMock() {
   return (
-    <div className="w-full max-w-sm rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
+    <div className="w-full max-w-sm rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
       <div className="mb-4 flex items-center justify-between">
         <div className="text-sm font-extrabold text-gray-900">إنشاء طلب جديد</div>
         <span className="rounded-full bg-blue-50 px-2.5 py-1 text-[11px] font-bold text-blue-600">استقبال</span>
@@ -22,7 +22,7 @@ export function PosMock() {
         {['رقم الجوال', 'اسم العميل', 'الشركة', 'الطراز'].map((l, i) => (
           <div key={i}>
             <div className="mb-1 text-[11px] font-bold text-gray-500">{l}</div>
-            <div className="h-8 rounded-lg border border-gray-200 bg-gray-50" />
+            <div className="h-8 rounded-lg border border-slate-200 bg-gray-50" />
           </div>
         ))}
       </div>
@@ -32,7 +32,7 @@ export function PosMock() {
       </div>
       <div className="mt-3 flex flex-wrap gap-1.5">
         {['غسيل VIP', 'تلميع', 'تنظيف داخلي'].map((s, i) => (
-          <span key={i} className={`rounded-full border px-2.5 py-1 text-[11px] font-bold ${i === 0 ? 'border-brand bg-brand text-white' : 'border-gray-200 text-gray-600'}`}>{s}</span>
+          <span key={i} className={`rounded-full border px-2.5 py-1 text-[11px] font-bold ${i === 0 ? 'border-brand bg-brand text-white' : 'border-slate-200 text-gray-600'}`}>{s}</span>
         ))}
       </div>
       <button className="mt-4 w-full rounded-xl bg-brand py-2.5 text-sm font-extrabold text-white">إسناد لفني · إنشاء الطلب</button>
@@ -52,7 +52,7 @@ export function KanbanMock() {
         <div key={i} className="rounded-2xl bg-gray-100/70 p-2">
           <div className={`mb-2 rounded-lg px-2 py-1.5 text-center text-[11px] font-extrabold ${col.tint}`}>{col.t}</div>
           {col.cards.map((c, k) => (
-            <div key={k} className="rounded-xl border border-gray-200 bg-white p-2.5 shadow-sm">
+            <div key={k} className="rounded-xl border border-slate-200 bg-white p-2.5 shadow-sm">
               <div className="mb-1.5 truncate text-[12px] font-extrabold text-gray-900">{c.c}</div>
               <div className="inline-flex items-stretch overflow-hidden rounded border border-gray-800 font-mono text-[9px]" dir="ltr">
                 <span className="bg-gray-800 px-1 text-white">KSA</span>

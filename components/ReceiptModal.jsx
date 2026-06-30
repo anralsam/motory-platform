@@ -92,7 +92,7 @@ export default function ReceiptModal({ open, order, centerName, vatNumber, onClo
 
         {/* Controls (hidden on print) */}
         <div className="mt-4 flex gap-2 print:hidden">
-          <button onClick={onClose} className="flex-1 rounded-xl border border-gray-200 bg-white py-2.5 text-sm font-bold text-gray-600 hover:bg-gray-50">إغلاق</button>
+          <button onClick={onClose} className="flex-1 rounded-xl border border-slate-200 bg-white py-2.5 text-sm font-bold text-gray-600 hover:bg-gray-50">إغلاق</button>
           <button onClick={() => window.print()} className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-brand py-2.5 text-sm font-extrabold text-white hover:bg-brand-dark">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round"><path d="M6 9V2h12v7M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" /><rect x="6" y="14" width="12" height="8" /></svg>
             طباعة الفاتورة

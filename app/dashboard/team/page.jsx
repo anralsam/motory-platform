@@ -94,11 +94,11 @@ export default function TeamPage() {
       </div>
 
       {/* Table */}
-      <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
+      <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
         <div className="overflow-x-auto">
           <table className="w-full text-right">
             <thead>
-              <tr className="border-b border-gray-200 bg-gray-50 text-xs font-bold text-gray-500">
+              <tr className="border-b border-slate-200 bg-gray-50 text-xs font-bold text-gray-500">
                 <th className="px-5 py-3 text-start">الاسم</th>
                 <th className="px-5 py-3 text-start">المنصب</th>
                 <th className="px-5 py-3 text-start">رقم الجوال</th>
@@ -154,7 +154,7 @@ export default function TeamPage() {
                           </button>
                           <button
                             onClick={() => toggleStatus(m)}
-                            className="rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-bold text-gray-600 transition hover:border-gray-300"
+                            className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-bold text-gray-600 transition hover:border-slate-200"
                           >
                             {active ? 'إيقاف' : 'تفعيل'}
                           </button>

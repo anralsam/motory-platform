@@ -51,7 +51,7 @@ export default function DashboardHome() {
       {/* KPI cards */}
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         {CARDS.map((c) => (
-          <div key={c.key} className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
+          <div key={c.key} className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
             <div className="flex items-center justify-between">
               <span className="text-xs font-bold text-gray-500">{c.label}</span>
               <span className={`grid h-8 w-8 place-items-center rounded-lg ${c.iconBg}`}>
@@ -71,7 +71,7 @@ export default function DashboardHome() {
       <div className="grid gap-5 lg:grid-cols-3">
         {/* Trend chart (financial source → owner-only) */}
         {isOwner && (
-          <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm lg:col-span-2">
+          <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm lg:col-span-2">
             <div className="mb-2 flex items-center justify-between">
               <div>
                 <h3 className="text-base font-extrabold text-gray-900">أداء آخر 7 أيام</h3>
@@ -87,7 +87,7 @@ export default function DashboardHome() {
         )}
 
         {/* Recent activity */}
-        <div className={`rounded-2xl border border-gray-200 bg-white p-5 shadow-sm ${isOwner ? '' : 'lg:col-span-3'}`}>
+        <div className={`rounded-2xl border border-slate-200 bg-white p-5 shadow-sm ${isOwner ? '' : 'lg:col-span-3'}`}>
           <h3 className="mb-3 text-base font-extrabold text-gray-900">آخر النشاطات</h3>
           {loading ? (
             <div className="py-10 text-center text-sm text-gray-400">جاري التحميل...</div>

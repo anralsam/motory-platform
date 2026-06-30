@@ -82,7 +82,7 @@ export default function AddInventoryModal({ open, onClose, onSaved, categories, 
         </div>
 
         <div className="mt-5 flex justify-end gap-2">
-          <button onClick={onClose} className="rounded-xl border border-gray-200 px-4 py-2.5 text-sm font-bold text-gray-600 hover:bg-gray-50">إلغاء</button>
+          <button onClick={onClose} className="rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-bold text-gray-600 hover:bg-gray-50">إلغاء</button>
           <button onClick={save} disabled={saving} className="flex items-center gap-2 rounded-xl bg-brand px-5 py-2.5 text-sm font-extrabold text-white hover:bg-brand-dark disabled:opacity-70">
             {saving && <Spinner />}
             حفظ الصنف
@@ -94,7 +94,7 @@ export default function AddInventoryModal({ open, onClose, onSaved, categories, 
 }
 
 const inputCls =
-  'w-full rounded-xl border border-gray-200 bg-gray-50 px-3.5 py-2.5 text-sm font-semibold text-gray-900 outline-none transition focus:border-brand focus:bg-white focus:ring-2 focus:ring-brand/15';
+  'w-full rounded-xl border border-slate-200 bg-gray-50 px-3.5 py-2.5 text-sm font-semibold text-gray-900 outline-none transition focus:border-brand focus:bg-white focus:ring-2 focus:ring-brand/15';
 
 function Field({ label, children, className = '' }) {
   return (

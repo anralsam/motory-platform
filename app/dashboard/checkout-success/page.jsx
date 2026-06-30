@@ -78,7 +78,7 @@ function CheckoutSuccess() {
       <h1 className="mt-5 text-2xl font-extrabold text-gray-900">تم السداد بنجاح 🎉</h1>
       <p className="mt-1 text-sm text-gray-500">شكراً لك — تم تسديد مستحقات منصة VOLD MOTOR.</p>
       {amt ? (
-        <div className="mt-4 rounded-2xl border border-gray-200 bg-white px-6 py-4 text-center shadow-sm">
+        <div className="mt-4 rounded-2xl border border-slate-200 bg-white px-6 py-4 text-center shadow-sm">
           <div className="text-xs font-bold text-gray-500">المبلغ المدفوع</div>
           <div className="mt-1 text-2xl font-extrabold text-emerald-600">{Number(amt).toLocaleString('en')} <span className="text-sm">ر.س</span></div>
           {tx ? <div className="ltr mt-1 font-mono text-[11px] text-gray-400">{tx}</div> : null}

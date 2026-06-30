@@ -46,7 +46,7 @@ export default function DashboardLayout({ children }) {
   return (
     <div className="flex h-screen bg-[var(--app-bg)] text-gray-900">
       {/* 1. Sidebar (desktop, white-labeled) */}
-      <aside className="hidden w-64 flex-col border-l border-gray-200 bg-white md:flex">
+      <aside className="hidden w-64 flex-col border-l border-slate-200 bg-white md:flex">
         <Sidebar />
       </aside>
 
@@ -58,7 +58,7 @@ export default function DashboardLayout({ children }) {
         onClick={() => setDrawerOpen(false)}
       />
       <aside
-        className={`fixed inset-y-0 right-0 z-50 w-64 border-l border-gray-200 bg-white shadow-xl transition-transform md:hidden ${
+        className={`fixed inset-y-0 right-0 z-50 w-64 border-l border-slate-200 bg-white shadow-xl transition-transform md:hidden ${
           drawerOpen ? 'translate-x-0' : 'translate-x-full'
         }`}
       >
@@ -67,7 +67,7 @@ export default function DashboardLayout({ children }) {
 
       <div className="flex flex-1 flex-col overflow-hidden">
         {/* 2. Top header with branch switcher */}
-        <header className="flex items-center justify-between border-b border-gray-200 bg-white p-4 shadow-sm">
+        <header className="flex items-center justify-between border-b border-slate-200 bg-white p-4 shadow-sm">
           <div className="flex items-center gap-3">
             {/* Hamburger (mobile only) — opens the drawer */}
             <button
@@ -105,8 +105,8 @@ export default function DashboardLayout({ children }) {
               </button>
 
               {menuOpen && (
-                <div className="absolute end-0 z-30 mt-2 w-56 overflow-hidden rounded-xl border border-gray-200 bg-white shadow-lg">
-                  <div className="border-b border-gray-100 px-4 py-3">
+                <div className="absolute end-0 z-30 mt-2 w-56 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-lg">
+                  <div className="border-b border-slate-200 px-4 py-3">
                     <div className="text-sm font-extrabold text-gray-900">{centerName}</div>
                     <div className="ltr mt-0.5 truncate text-xs text-gray-500">{email}</div>
                   </div>

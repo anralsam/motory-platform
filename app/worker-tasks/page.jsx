@@ -82,7 +82,7 @@ export default function WorkerTasksPage() {
   return (
     <div className="flex min-h-screen flex-col bg-gray-50">
       {/* Header (stripped — operational only) */}
-      <header className="sticky top-0 z-20 flex items-center justify-between border-b border-gray-200 bg-white px-4 py-3">
+      <header className="sticky top-0 z-20 flex items-center justify-between border-b border-slate-200 bg-white px-4 py-3">
         <div className="flex items-center gap-2.5">
           <span className="grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-br from-brand to-brand-violet text-white">
             <svg width="20" height="20" viewBox="0 0 48 48" fill="none"><path d="M6 10 L24 42 L42 10" stroke="#fff" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round" /></svg>
@@ -93,10 +93,10 @@ export default function WorkerTasksPage() {
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <button onClick={refetch} className="grid h-9 w-9 place-items-center rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50" title="تحديث">
+          <button onClick={refetch} className="grid h-9 w-9 place-items-center rounded-lg border border-slate-200 text-gray-500 hover:bg-gray-50" title="تحديث">
             <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M23 4v6h-6M1 20v-6h6" /><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" /></svg>
           </button>
-          <button onClick={signOut} className="rounded-lg border border-gray-200 px-3 py-1.5 text-sm font-bold text-gray-600 hover:bg-gray-50">خروج</button>
+          <button onClick={signOut} className="rounded-lg border border-slate-200 px-3 py-1.5 text-sm font-bold text-gray-600 hover:bg-gray-50">خروج</button>
         </div>
       </header>
 
@@ -171,7 +171,7 @@ function Card({ order, draggable, mobile, onDragStart, onAction }) {
     <div
       draggable={draggable || undefined}
       onDragStart={onDragStart}
-      className={`rounded-2xl border bg-white p-3.5 shadow-sm ${draggable ? 'cursor-grab active:cursor-grabbing' : ''} ${late ? 'border-red-200' : 'border-gray-200'}`}
+      className={`rounded-2xl border bg-white p-3.5 shadow-sm ${draggable ? 'cursor-grab active:cursor-grabbing' : ''} ${late ? 'border-red-200' : 'border-slate-200'}`}
     >
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0">

@@ -38,7 +38,7 @@ export default function Sidebar({ onNavigate }) {
   return (
     <div className="flex h-full flex-col">
       {/* White-label header */}
-      <div className="flex flex-col items-center gap-2 border-b border-gray-100 p-4">
+      <div className="flex flex-col items-center gap-2 border-b border-slate-200 p-4">
         {logo ? (
           <img src={logo} alt={centerName} className="h-10 max-w-[150px] object-contain" />
         ) : (
@@ -69,7 +69,7 @@ export default function Sidebar({ onNavigate }) {
         })}
       </nav>
 
-      <div className="border-t border-gray-100 p-3 text-center text-[11px] font-semibold text-gray-400">
+      <div className="border-t border-slate-200 p-3 text-center text-[11px] font-semibold text-gray-400">
         مدعوم بواسطة VOLD MOTOR
       </div>
     </div>

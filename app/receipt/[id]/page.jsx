@@ -72,11 +72,11 @@ export default function PublicReceiptPage({ params }) {
 
   return (
     <Shell>
-      <div className="receipt-public overflow-hidden rounded-3xl border border-gray-200 bg-white shadow-xl">
+      <div className="receipt-public overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-xl">
         {/* Header */}
         <div className="flex flex-col items-center gap-2 bg-gradient-to-b from-gray-50 to-white px-6 pt-7 pb-5">
           {r.logo_url ? (
-            <img src={r.logo_url} alt={centerName} className="h-16 w-16 rounded-2xl border border-gray-200 bg-white object-contain p-1.5 shadow-sm" />
+            <img src={r.logo_url} alt={centerName} className="h-16 w-16 rounded-2xl border border-slate-200 bg-white object-contain p-1.5 shadow-sm" />
           ) : (
             <div className="grid h-16 w-16 place-items-center rounded-2xl bg-gradient-to-br from-brand to-brand-violet text-2xl font-extrabold text-white shadow-sm">
               {centerName.charAt(0)}
@@ -98,7 +98,7 @@ export default function PublicReceiptPage({ params }) {
           </div>
 
           {/* Customer + car */}
-          <div className="mt-4 flex items-center justify-between rounded-2xl border border-gray-100 p-4">
+          <div className="mt-4 flex items-center justify-between rounded-2xl border border-slate-200 p-4">
             <div>
               <div className="text-xs text-gray-400">العميل</div>
               <div className="font-bold text-gray-900">{r.customer_name || 'عميل'}</div>
@@ -110,8 +110,8 @@ export default function PublicReceiptPage({ params }) {
           </div>
 
           {/* Line items */}
-          <div className="mt-4 rounded-2xl border border-gray-100">
-            <div className="flex items-center justify-between border-b border-gray-100 px-4 py-3">
+          <div className="mt-4 rounded-2xl border border-slate-200">
+            <div className="flex items-center justify-between border-b border-slate-200 px-4 py-3">
               <div>
                 <div className="font-bold text-gray-900">{r.service_type || 'خدمة'}</div>
                 <div className="text-xs text-gray-400">{car}</div>
@@ -122,7 +122,7 @@ export default function PublicReceiptPage({ params }) {
               <Line k="الإجمالي قبل الضريبة" v={fmtSar(t.net)} />
               <Line k={`ضريبة القيمة المضافة (${Math.round(VAT_RATE * 100)}%)`} v={fmtSar(t.vat)} />
             </div>
-            <div className="flex items-center justify-between border-t border-gray-100 px-4 py-3">
+            <div className="flex items-center justify-between border-t border-slate-200 px-4 py-3">
               <span className="text-base font-extrabold text-gray-900">الإجمالي</span>
               <span className="text-xl font-extrabold text-brand">{fmtSar(t.total)} <span className="text-sm">ر.س</span></span>
             </div>
@@ -130,7 +130,7 @@ export default function PublicReceiptPage({ params }) {
 
           {/* ZATCA QR */}
           <div className="mt-5 flex flex-col items-center gap-2">
-            <div className="rounded-2xl border border-gray-200 p-3">
+            <div className="rounded-2xl border border-slate-200 p-3">
               <FauxQR seed={no} />
             </div>
             <div className="text-[11px] text-gray-400">رمز الاستجابة السريعة — هيئة الزكاة والضريبة (ZATCA)</div>

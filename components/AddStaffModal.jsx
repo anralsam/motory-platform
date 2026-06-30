@@ -62,7 +62,7 @@ export default function AddStaffModal({ open, onClose, onSubmit }) {
               </Field>
             </div>
             <div className="mt-5 flex justify-end gap-2">
-              <button onClick={onClose} className="rounded-xl border border-gray-200 px-4 py-2.5 text-sm font-bold text-gray-600 hover:bg-gray-50">إلغاء</button>
+              <button onClick={onClose} className="rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-bold text-gray-600 hover:bg-gray-50">إلغاء</button>
               <button onClick={save} disabled={saving} className="flex items-center gap-2 rounded-xl bg-brand px-5 py-2.5 text-sm font-extrabold text-white hover:bg-brand-dark disabled:opacity-70">
                 {saving && <Spinner />} إنشاء الحساب
               </button>
@@ -74,13 +74,13 @@ export default function AddStaffModal({ open, onClose, onSubmit }) {
               <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#16a34a" strokeWidth="2.8" strokeLinecap="round"><path d="M20 6 9 17l-5-5" /></svg>
             </div>
             <p className="text-sm text-gray-500">شارك بيانات الدخول مع الموظف:</p>
-            <div className="mt-3 space-y-1.5 rounded-2xl border border-gray-200 bg-gray-50 p-4 text-sm">
+            <div className="mt-3 space-y-1.5 rounded-2xl border border-slate-200 bg-gray-50 p-4 text-sm">
               <Row k="الاسم" v={created.worker.full_name} />
               <Row k="رقم الجوال" v={created.worker.phone} ltr />
               <Row k="الرمز السري" v={created.pin} ltr strong />
             </div>
             <div className="mt-5 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
-              <button onClick={onClose} className="rounded-xl border border-gray-200 px-4 py-2.5 text-sm font-bold text-gray-600 hover:bg-gray-50">تم</button>
+              <button onClick={onClose} className="rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-bold text-gray-600 hover:bg-gray-50">تم</button>
               <a
                 href={whatsappLink(created.worker, created.pin)}
                 target="_blank"
@@ -98,7 +98,7 @@ export default function AddStaffModal({ open, onClose, onSubmit }) {
 }
 
 const inputCls =
-  'w-full rounded-xl border border-gray-200 bg-gray-50 px-3.5 py-2.5 text-sm font-semibold text-gray-900 outline-none transition focus:border-brand focus:bg-white focus:ring-2 focus:ring-brand/15';
+  'w-full rounded-xl border border-slate-200 bg-gray-50 px-3.5 py-2.5 text-sm font-semibold text-gray-900 outline-none transition focus:border-brand focus:bg-white focus:ring-2 focus:ring-brand/15';
 
 function Field({ label, children }) {
   return (

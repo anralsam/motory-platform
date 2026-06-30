@@ -32,8 +32,8 @@ const STRINGS = {
     lockedAction: 'يرجى التواصل مع الدعم الفني لإثبات هويتك وإعادة تفعيل الحساب بعد التأكد من السبب.',
     supportBtn: '✉️ التواصل مع الدعم الفني',
     // ── email 2FA step ──
-    otpTitle: 'التحقق عبر البريد',
-    otpSubPre: 'أرسلنا رمز تحقق مكوّن من ٦ أرقام إلى ',
+    otpTitle: 'رمز التحقق',
+    otpSub: 'أدخل رمز الـ ٦ أرقام الذي أرسلناه إلى بريدك الإلكتروني.',
     otpCodeLabel: 'رمز التحقق',
     otpVerify: 'تأكيد ودخول', otpVerifying: 'جاري التحقق...',
     otpResend: 'إعادة إرسال الرمز', otpResendIn: 'إعادة الإرسال خلال ',
@@ -65,8 +65,8 @@ const STRINGS = {
     lockedAction: 'Please contact technical support to verify your identity and reactivate the account once the cause is confirmed.',
     supportBtn: '✉️ Contact technical support',
     // ── email 2FA step ──
-    otpTitle: 'Email verification',
-    otpSubPre: 'We sent a 6-digit verification code to ',
+    otpTitle: 'Verification code',
+    otpSub: 'Enter the 6-digit code we sent to your email.',
     otpCodeLabel: 'Verification code',
     otpVerify: 'Verify & sign in', otpVerifying: 'Verifying...',
     otpResend: 'Resend code', otpResendIn: 'Resend in ',
@@ -311,7 +311,7 @@ function SignInForm() {
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round"><path d="M6 9l6 6 6-6" /></svg>
             </button>
             {langOpen && (
-              <div className="absolute right-0 z-10 mt-1 w-32 overflow-hidden rounded-xl border border-gray-200 bg-white py-1 shadow-lg">
+              <div className="absolute right-0 z-10 mt-1 w-32 overflow-hidden rounded-xl border border-slate-200 bg-white py-1 shadow-lg">
                 {[['ar', 'العربية'], ['en', 'English']].map(([code, label]) => (
                   <button
                     key={code}
@@ -325,7 +325,7 @@ function SignInForm() {
               </div>
             )}
           </div>
-          <Link href="/auth/signup" className="rounded-lg border border-gray-300 bg-white px-4 py-1.5 text-sm font-bold text-gray-700 transition hover:bg-gray-50">
+          <Link href="/auth/signup" className="rounded-lg border border-slate-200 bg-white px-4 py-1.5 text-sm font-bold text-gray-700 transition hover:bg-gray-50">
             {t.signup}
           </Link>
         </div>
@@ -334,7 +334,7 @@ function SignInForm() {
       {/* centered card */}
       <main className="flex items-start justify-center px-4 pb-16 pt-10 sm:pt-16">
         <div className="w-full max-w-[360px]">
-          <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-[0_1px_3px_rgba(0,0,0,0.06),0_12px_40px_-12px_rgba(0,0,0,0.12)] sm:p-7">
+          <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-[0_1px_3px_rgba(0,0,0,0.06),0_12px_40px_-12px_rgba(0,0,0,0.12)] sm:p-7">
             <h1 className="text-xl font-extrabold tracking-tight text-gray-900">{t.title}</h1>
             <p className="mt-1 text-[13px] text-gray-500">{t.subtitle}</p>
 
@@ -368,46 +368,43 @@ function SignInForm() {
 
             /* ── VIEW 2 · email OTP (second factor) ── */
             ) : step === 'otp' ? (
-              <form onSubmit={onVerifyOtp} className="mt-5 space-y-4">
+              <form onSubmit={onVerifyOtp} className="mt-5">
                 <button type="button" onClick={backToCreds} className="text-[13px] font-bold text-blue-600 hover:underline">{t.otpChange}</button>
-                <div className="rounded-lg bg-blue-50 px-3.5 py-3 text-[13px] leading-relaxed text-gray-700">
-                  <span className="font-bold text-gray-900">{t.otpTitle}</span><br />
-                  {t.otpSubPre}<span dir="ltr" className="font-bold text-gray-900">{maskEmail(otpEmail)}</span>
+
+                <div className="mt-5 text-center">
+                  <h2 className="text-lg font-extrabold text-gray-900">{t.otpTitle}</h2>
+                  <p className="mx-auto mt-2 max-w-xs text-[13px] leading-relaxed text-gray-500">{t.otpSub}</p>
+                  <p dir="ltr" className="mt-1.5 text-[13px] font-bold text-gray-700">{maskEmail(otpEmail)}</p>
                 </div>
 
-                <div>
-                  <label className="mb-2.5 block text-center text-[13px] font-bold text-gray-700">{t.otpCodeLabel}</label>
-                  <div dir="ltr" onPaste={onOtpPaste} className="flex items-center justify-center gap-2.5 sm:gap-3">
-                    {Array.from({ length: 6 }).map((_, i) => {
-                      const filled = Boolean(otpCode[i]);
-                      return (
-                        <input
-                          key={i}
-                          ref={(el) => (otpRefs.current[i] = el)}
-                          type="text"
-                          inputMode="numeric"
-                          autoComplete={i === 0 ? 'one-time-code' : 'off'}
-                          maxLength={1}
-                          value={otpCode[i] || ''}
-                          onChange={(e) => onOtpChange(i, e)}
-                          onKeyDown={(e) => onOtpKeyDown(i, e)}
-                          onFocus={(e) => e.target.select()}
-                          aria-label={`${t.otpCodeLabel} ${i + 1}`}
-                          className={`h-16 w-12 rounded-xl border bg-zinc-900/90 text-center text-2xl font-extrabold text-white caret-blue-400 outline-none transition-all duration-200 sm:w-14 ${
-                            filled
-                              ? 'scale-105 border-blue-500 shadow-lg shadow-blue-500/30 ring-2 ring-blue-500/40'
-                              : 'border-white/10 hover:border-white/25'
-                          } focus:scale-105 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/50`}
-                        />
-                      );
-                    })}
-                  </div>
+                <div dir="ltr" onPaste={onOtpPaste} className="flex items-center justify-center gap-3 py-7 sm:gap-3.5">
+                  {Array.from({ length: 6 }).map((_, i) => {
+                    const filled = Boolean(otpCode[i]);
+                    return (
+                      <input
+                        key={i}
+                        ref={(el) => (otpRefs.current[i] = el)}
+                        type="text"
+                        inputMode="numeric"
+                        autoComplete={i === 0 ? 'one-time-code' : 'off'}
+                        maxLength={1}
+                        value={otpCode[i] || ''}
+                        onChange={(e) => onOtpChange(i, e)}
+                        onKeyDown={(e) => onOtpKeyDown(i, e)}
+                        onFocus={(e) => e.target.select()}
+                        aria-label={`${t.otpCodeLabel} ${i + 1}`}
+                        className={`h-16 w-12 rounded-xl border-2 bg-white text-center text-2xl font-extrabold text-zinc-900 caret-blue-600 outline-none transition-all duration-150 sm:w-14 ${
+                          filled ? 'border-blue-600 ring-4 ring-blue-100' : 'border-zinc-200 hover:border-zinc-300'
+                        } focus:border-blue-600 focus:ring-4 focus:ring-blue-100`}
+                      />
+                    );
+                  })}
                 </div>
 
                 <button
                   type="submit"
                   disabled={loading || otpCode.length !== 6}
-                  className="flex w-full items-center justify-center gap-2 rounded-lg bg-[#2563eb] py-2.5 text-[13px] font-extrabold text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.2)] transition hover:bg-[#1d4ed8] disabled:cursor-not-allowed disabled:opacity-60"
+                  className="flex w-full items-center justify-center gap-2 rounded-lg bg-[#2563eb] py-3 text-[13px] font-extrabold text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.2)] transition hover:bg-[#1d4ed8] disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   {loading ? (
                     <>
@@ -417,7 +414,7 @@ function SignInForm() {
                   ) : t.otpVerify}
                 </button>
 
-                <div className="text-center">
+                <div className="mt-5 text-center">
                   {resendIn > 0 ? (
                     <span className="text-xs font-semibold text-gray-400">{t.otpResendIn}{resendIn}s</span>
                   ) : (
@@ -436,7 +433,7 @@ function SignInForm() {
                       type="text" dir="ltr" autoComplete="username"
                       value={identifier} onChange={(e) => setIdentifier(e.target.value)}
                       placeholder={t.emailPh}
-                      className="w-full rounded-lg border border-gray-300 bg-white px-3.5 py-2 text-left text-[13px] font-medium text-gray-900 outline-none transition placeholder:text-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
+                      className="w-full rounded-lg border border-slate-200 bg-white px-3.5 py-2 text-left text-[13px] font-medium text-gray-900 outline-none transition placeholder:text-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
                     />
                   </div>
 
@@ -447,7 +444,7 @@ function SignInForm() {
                         type={showPw ? 'text' : 'password'} dir="ltr" autoComplete="current-password"
                         value={password} onChange={(e) => setPassword(e.target.value)}
                         placeholder={t.pwPh}
-                        className="w-full rounded-lg border border-gray-300 bg-white py-2 pl-10 pr-3.5 text-left text-[13px] font-medium text-gray-900 outline-none transition placeholder:text-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
+                        className="w-full rounded-lg border border-slate-200 bg-white py-2 pl-10 pr-3.5 text-left text-[13px] font-medium text-gray-900 outline-none transition placeholder:text-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
                       />
                       <button type="button" onClick={() => setShowPw((s) => !s)} className="absolute inset-y-0 left-2 my-auto grid h-8 w-8 place-items-center rounded-md text-gray-400 transition hover:text-gray-700" aria-label="show password">
                         {showPw ? (

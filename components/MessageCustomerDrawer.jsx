@@ -60,7 +60,7 @@ export default function MessageCustomerDrawer({ open, onClose, customer, centerN
     <div className="fixed inset-0 z-50 flex justify-start bg-black/40" onClick={(e) => { if (e.target === e.currentTarget) onClose?.(); }}>
       {/* Slide-over drawer (anchored to the inline-start edge for RTL) */}
       <div className="flex h-full w-full max-w-md flex-col bg-white shadow-2xl">
-        <div className="flex items-center justify-between border-b border-gray-200 px-5 py-4">
+        <div className="flex items-center justify-between border-b border-slate-200 px-5 py-4">
           <div>
             <h3 className="text-lg font-extrabold text-gray-900">مراسلة العميل</h3>
             <p className="text-xs text-gray-500">{customer.full_name || 'عميل'} · <span className="ltr">{customer.phone}</span></p>
@@ -78,7 +78,7 @@ export default function MessageCustomerDrawer({ open, onClose, customer, centerN
                 <button
                   key={t.key}
                   onClick={() => setActiveKey(t.key)}
-                  className={`rounded-xl border p-3 text-start transition ${activeKey === t.key ? 'border-brand ring-2 ring-brand/15' : 'border-gray-200 hover:border-gray-300'}`}
+                  className={`rounded-xl border p-3 text-start transition ${activeKey === t.key ? 'border-brand ring-2 ring-brand/15' : 'border-slate-200 hover:border-slate-200'}`}
                 >
                   <span className={`mb-1 inline-block rounded-full border px-2 py-0.5 text-[10px] font-extrabold ${TONE[t.tone]}`}>{t.tag}</span>
                   <div className="text-sm font-extrabold text-gray-900">{t.label}</div>
@@ -95,20 +95,20 @@ export default function MessageCustomerDrawer({ open, onClose, customer, centerN
                 onChange={(e) => setCustomText(e.target.value)}
                 rows={5}
                 placeholder="اكتب رسالة مخصصة..."
-                className="w-full rounded-xl border border-gray-200 bg-gray-50 px-3.5 py-2.5 text-sm font-semibold text-gray-900 outline-none transition focus:border-brand focus:bg-white focus:ring-2 focus:ring-brand/15"
+                className="w-full rounded-xl border border-slate-200 bg-gray-50 px-3.5 py-2.5 text-sm font-semibold text-gray-900 outline-none transition focus:border-brand focus:bg-white focus:ring-2 focus:ring-brand/15"
               />
             </div>
           )}
 
           <div>
             <span className="mb-1.5 block text-xs font-bold text-gray-600">معاينة الرسالة</span>
-            <div className="min-h-[96px] whitespace-pre-wrap rounded-2xl border border-gray-200 bg-gray-50 p-4 text-sm leading-relaxed text-gray-800">
+            <div className="min-h-[96px] whitespace-pre-wrap rounded-2xl border border-slate-200 bg-gray-50 p-4 text-sm leading-relaxed text-gray-800">
               {finalMessage || <span className="text-gray-400">اختر قالباً أو اكتب رسالة…</span>}
             </div>
           </div>
         </div>
 
-        <div className="border-t border-gray-200 p-4">
+        <div className="border-t border-slate-200 p-4">
           <button
             onClick={send}
             disabled={!finalMessage.trim()}

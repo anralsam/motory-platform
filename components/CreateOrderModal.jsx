@@ -156,7 +156,7 @@ export default function CreateOrderModal({ open, onClose, onCreated, centerId, b
             <div className="flex flex-wrap gap-2">
               {services.map((s) => (
                 <button key={s.id} type="button" onClick={() => { setService(s.name); setServicePrice(s.price); }}
-                  className={`rounded-full border px-3 py-1.5 text-xs font-bold transition ${service === s.name ? 'border-brand bg-brand text-white' : 'border-gray-200 bg-white text-gray-600 hover:border-brand'}`}>
+                  className={`rounded-full border px-3 py-1.5 text-xs font-bold transition ${service === s.name ? 'border-brand bg-brand text-white' : 'border-slate-200 bg-white text-gray-600 hover:border-brand'}`}>
                   {s.name}{s.price != null ? <span className="opacity-70"> · {s.price} ر.س</span> : null}
                 </button>
               ))}
@@ -179,7 +179,7 @@ export default function CreateOrderModal({ open, onClose, onCreated, centerId, b
         </div>
 
         <div className="mt-5 flex justify-end gap-2">
-          <button onClick={onClose} className="rounded-xl border border-gray-200 px-4 py-2.5 text-sm font-bold text-gray-600 hover:bg-gray-50">إلغاء</button>
+          <button onClick={onClose} className="rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-bold text-gray-600 hover:bg-gray-50">إلغاء</button>
           <button onClick={save} disabled={saving || techs.length === 0} className="flex items-center gap-2 rounded-xl bg-brand px-5 py-2.5 text-sm font-extrabold text-white hover:bg-brand-dark disabled:opacity-60">
             {saving && <svg className="animate-spin" width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="#fff" strokeOpacity="0.25" strokeWidth="4" /><path d="M22 12a10 10 0 0 1-10 10" stroke="#fff" strokeWidth="4" strokeLinecap="round" /></svg>}
             إنشاء الطلب
@@ -190,7 +190,7 @@ export default function CreateOrderModal({ open, onClose, onCreated, centerId, b
   );
 }
 
-const inp = 'w-full rounded-xl border border-gray-200 bg-gray-50 px-3.5 py-2.5 text-sm font-semibold text-gray-900 outline-none transition focus:border-brand focus:bg-white focus:ring-2 focus:ring-brand/15';
+const inp = 'w-full rounded-xl border border-slate-200 bg-gray-50 px-3.5 py-2.5 text-sm font-semibold text-gray-900 outline-none transition focus:border-brand focus:bg-white focus:ring-2 focus:ring-brand/15';
 
 function Field({ label, hint, children }) {
   return (

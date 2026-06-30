@@ -11,7 +11,7 @@ export default function Placeholder({ title, note }) {
           الفرع الحالي: {branch?.name || 'كل الفروع'} — تتفاعل هذه الصفحة مع المحوّل العام.
         </p>
       </div>
-      <div className="rounded-2xl border border-dashed border-gray-300 bg-white p-10 text-center text-gray-400">
+      <div className="rounded-2xl border border-dashed border-slate-200 bg-white p-10 text-center text-gray-400">
         {note || 'محتوى هذه الوحدة يُبنى هنا.'}
       </div>
     </div>

@@ -55,7 +55,7 @@ export default function StockMovementModal({ open, item, onClose, onSubmit }) {
             type="button"
             onClick={() => setType('in')}
             className={`flex items-center justify-center gap-2 rounded-xl border-2 px-3 py-3 text-sm font-extrabold transition ${
-              type === 'in' ? 'border-emerald-500 bg-emerald-50 text-emerald-700' : 'border-gray-200 text-gray-500 hover:border-gray-300'
+              type === 'in' ? 'border-emerald-500 bg-emerald-50 text-emerald-700' : 'border-slate-200 text-gray-500 hover:border-slate-200'
             }`}
           >
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round"><path d="M12 5v14M5 12h14" /></svg>
@@ -65,7 +65,7 @@ export default function StockMovementModal({ open, item, onClose, onSubmit }) {
             type="button"
             onClick={() => setType('out')}
             className={`flex items-center justify-center gap-2 rounded-xl border-2 px-3 py-3 text-sm font-extrabold transition ${
-              type === 'out' ? 'border-amber-500 bg-amber-50 text-amber-700' : 'border-gray-200 text-gray-500 hover:border-gray-300'
+              type === 'out' ? 'border-amber-500 bg-amber-50 text-amber-700' : 'border-slate-200 text-gray-500 hover:border-slate-200'
             }`}
           >
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round"><path d="M5 12h14" /></svg>
@@ -78,14 +78,14 @@ export default function StockMovementModal({ open, item, onClose, onSubmit }) {
             <span className="text-xs font-bold text-gray-600">الكمية</span>
             <input
               type="number" min="1" value={qty} onChange={(e) => setQty(e.target.value)} placeholder="1"
-              className="w-full rounded-xl border border-gray-200 bg-gray-50 px-3.5 py-2.5 text-sm font-semibold text-gray-900 outline-none transition focus:border-brand focus:bg-white focus:ring-2 focus:ring-brand/15"
+              className="w-full rounded-xl border border-slate-200 bg-gray-50 px-3.5 py-2.5 text-sm font-semibold text-gray-900 outline-none transition focus:border-brand focus:bg-white focus:ring-2 focus:ring-brand/15"
             />
           </label>
           <label className="flex flex-col gap-1.5">
             <span className="text-xs font-bold text-gray-600">السبب / الملاحظة</span>
             <input
               value={note} onChange={(e) => setNote(e.target.value)} placeholder="مثال: استُخدم في الطلب رقم 124، أو وصول شحنة جديدة"
-              className="w-full rounded-xl border border-gray-200 bg-gray-50 px-3.5 py-2.5 text-sm font-semibold text-gray-900 outline-none transition focus:border-brand focus:bg-white focus:ring-2 focus:ring-brand/15"
+              className="w-full rounded-xl border border-slate-200 bg-gray-50 px-3.5 py-2.5 text-sm font-semibold text-gray-900 outline-none transition focus:border-brand focus:bg-white focus:ring-2 focus:ring-brand/15"
             />
           </label>
 
@@ -97,7 +97,7 @@ export default function StockMovementModal({ open, item, onClose, onSubmit }) {
         </div>
 
         <div className="mt-5 flex justify-end gap-2">
-          <button onClick={onClose} className="rounded-xl border border-gray-200 px-4 py-2.5 text-sm font-bold text-gray-600 hover:bg-gray-50">إلغاء</button>
+          <button onClick={onClose} className="rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-bold text-gray-600 hover:bg-gray-50">إلغاء</button>
           <button
             onClick={submit} disabled={saving}
             className={`flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-extrabold text-white disabled:opacity-70 ${type === 'in' ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-amber-600 hover:bg-amber-700'}`}

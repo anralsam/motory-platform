@@ -6,7 +6,7 @@
  */
 export default function ExecutiveLoading() {
   return (
-    <div dir="rtl" className="min-h-screen bg-[#f9f9f9] font-sans">
+    <div dir="rtl" className="min-h-screen bg-slate-50 font-sans">
       {/* Sidebar */}
       <aside className="fixed top-0 end-0 bottom-0 z-40 hidden w-64 flex-col bg-[#0B0B0B] lg:flex">
         <div className="flex items-center gap-3 border-b border-white/10 px-5 py-5" dir="ltr">

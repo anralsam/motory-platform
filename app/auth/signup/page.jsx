@@ -139,7 +139,7 @@ export default function SignUpPage() {
   }
 
   // Remove hard-coded text-left so RTL parent direction is respected naturally.
-  const inputCls = 'w-full rounded-lg border border-gray-300 bg-white px-3.5 py-2 text-[13px] font-medium text-gray-900 outline-none transition placeholder:text-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20';
+  const inputCls = 'w-full rounded-lg border border-slate-200 bg-white px-3.5 py-2 text-[13px] font-medium text-gray-900 outline-none transition placeholder:text-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20';
   const labelCls = 'mb-1.5 block text-[13px] font-bold text-gray-700';
 
   return (
@@ -160,7 +160,7 @@ export default function SignUpPage() {
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round"><path d="M6 9l6 6 6-6" /></svg>
             </button>
             {langOpen && (
-              <div className="absolute right-0 z-10 mt-1 w-32 overflow-hidden rounded-xl border border-gray-200 bg-white py-1 shadow-lg">
+              <div className="absolute right-0 z-10 mt-1 w-32 overflow-hidden rounded-xl border border-slate-200 bg-white py-1 shadow-lg">
                 {[['ar', 'العربية'], ['en', 'English']].map(([code, label]) => (
                   <button
                     key={code}
@@ -174,7 +174,7 @@ export default function SignUpPage() {
               </div>
             )}
           </div>
-          <Link href="/auth/signin" className="rounded-lg border border-gray-300 bg-white px-4 py-1.5 text-sm font-bold text-gray-700 transition hover:bg-gray-50">
+          <Link href="/auth/signin" className="rounded-lg border border-slate-200 bg-white px-4 py-1.5 text-sm font-bold text-gray-700 transition hover:bg-gray-50">
             {t.signin}
           </Link>
         </div>
@@ -183,7 +183,7 @@ export default function SignUpPage() {
       <main className="flex items-start justify-center px-4 pb-16 pt-8 sm:pt-12">
         <div className="w-full max-w-[360px]">
           {done ? (
-            <div className="rounded-2xl border border-gray-200 bg-white p-8 text-center shadow-[0_1px_3px_rgba(0,0,0,0.06),0_12px_40px_-12px_rgba(0,0,0,0.12)]">
+            <div className="rounded-2xl border border-slate-200 bg-white p-8 text-center shadow-[0_1px_3px_rgba(0,0,0,0.06),0_12px_40px_-12px_rgba(0,0,0,0.12)]">
               <div className="mx-auto grid h-14 w-14 place-items-center rounded-full bg-emerald-50 text-emerald-600">
                 <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6 9 17l-5-5" /></svg>
               </div>
@@ -194,7 +194,7 @@ export default function SignUpPage() {
               </Link>
             </div>
           ) : (
-            <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-[0_1px_3px_rgba(0,0,0,0.06),0_12px_40px_-12px_rgba(0,0,0,0.12)] sm:p-7">
+            <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-[0_1px_3px_rgba(0,0,0,0.06),0_12px_40px_-12px_rgba(0,0,0,0.12)] sm:p-7">
               <h1 className="text-xl font-extrabold tracking-tight text-gray-900">{t.title}</h1>
               <p className="mt-1 text-[13px] text-gray-500">{t.subtitle}</p>
 
@@ -283,7 +283,7 @@ export default function SignUpPage() {
 
                   {/* Live password conditions — appear once the field is touched */}
                   {(pwFocused || form.password) && (
-                    <div className="mt-2 rounded-lg border border-gray-100 bg-gray-50/70 px-3 py-2.5">
+                    <div className="mt-2 rounded-lg border border-slate-200 bg-gray-50/70 px-3 py-2.5">
                       <p className="mb-1.5 text-[11px] font-bold text-gray-500">{t.pwReqTitle}</p>
                       <ul className="grid grid-cols-1 gap-1 sm:grid-cols-2">
                         {[

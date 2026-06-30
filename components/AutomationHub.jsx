@@ -56,6 +56,18 @@ export default function AutomationHub({ centerId, showToast }) {
             </div>
           );
         })}
+
+        {/* Delivery mode — official Cloud API vs manual wa.me safety net */}
+        <div className="flex items-start justify-between gap-4 py-4">
+          <div className="min-w-0">
+            <div className="text-sm font-bold text-slate-900">استخدام الروابط اليدوية (وضع احتياطي)</div>
+            <div className="mt-0.5 text-xs font-medium text-slate-500">عند التفعيل، يعرض النظام زرّ واتساب يدوي للفنّي بدل الإرسال التلقائي من رقم المركز الرسمي.</div>
+          </div>
+          <button onClick={() => toggle('use_fallback_links')} disabled={loading} role="switch" aria-checked={!!flags.use_fallback_links} aria-label="الوضع الاحتياطي"
+            className={`relative mt-0.5 h-6 w-11 flex-none rounded-full transition-colors duration-200 disabled:opacity-50 ${flags.use_fallback_links ? 'bg-blue-600' : 'bg-slate-200'}`}>
+            <span className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow-sm transition-all duration-200 ${flags.use_fallback_links ? 'left-0.5' : 'left-[22px]'}`} />
+          </button>
+        </div>
       </div>
     </div>
   );

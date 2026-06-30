@@ -33,6 +33,7 @@ export default function WorkerDashboard({ userName = 'الفنّي', orders = []
   const [presence, setPresence] = useState('active');
   const [secs, setSecs] = useState(0);
   const [busy, setBusy] = useState(false);
+  const [fbByOrder, setFbByOrder] = useState({}); // per-order: show manual wa.me safety net?
 
   // Live shift timer (runs only while "active").
   useEffect(() => {
@@ -51,6 +52,7 @@ export default function WorkerDashboard({ userName = 'الفنّي', orders = []
     setTasks((t) => t.map((o) => (o.id === active.id ? { ...o, status } : o)));
     const r = await updateOrderStatus(active.id, status);
     if (!r?.ok) setTasks(prev);
+    else setFbByOrder((m) => ({ ...m, [active.id]: r.fallback !== false }));
     setBusy(false);
   }
 
@@ -73,7 +75,7 @@ export default function WorkerDashboard({ userName = 'الفنّي', orders = []
         <AnimatePresence mode="wait">
           {active ? (
             <motion.div key={active.id} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -12 }} transition={{ duration: 0.25, ease: 'easeOut' }}>
-              <CurrentTask order={active} stage={curStage} onStage={setStage} busy={busy} automations={automations} />
+              <CurrentTask order={active} stage={curStage} onStage={setStage} busy={busy} automations={automations} fallback={fbByOrder[active.id] ?? true} />
             </motion.div>
           ) : (
             <motion.div key="empty" initial={{ opacity: 0 }} animate={{ opacity: 1 }}
@@ -110,13 +112,15 @@ function TopBar({ name, presence, onToggle, clock }) {
   );
 }
 
-function CurrentTask({ order, stage, onStage, busy, automations }) {
-  // Gated WhatsApp dispatch — fires on the matching status if the trigger is ON.
+function CurrentTask({ order, stage, onStage, busy, automations, fallback = true }) {
+  // Manual wa.me safety net — only when the server degraded to fallback (Cloud API
+  // unconfigured / center opted in / send failed). Otherwise the official Cloud API
+  // already delivered the message server-side, so no manual button is shown.
   const phone = order.customer_phone;
   const on = (k) => !automations || automations[k] !== false;
   let dispatch = null;
-  if (phone && order.status === 'in_progress' && on('job_start')) dispatch = { text: AUTO_MSG.job_start };
-  else if (phone && order.status === 'completed' && on('job_ready')) {
+  if (fallback && phone && order.status === 'in_progress' && on('job_start')) dispatch = { text: AUTO_MSG.job_start };
+  else if (fallback && phone && order.status === 'completed' && on('job_ready')) {
     const link = typeof window !== 'undefined' ? `${window.location.origin}/receipt/${order.id}` : '';
     dispatch = { text: `${AUTO_MSG.job_ready}${link ? `\n${link}` : ''}` };
   }

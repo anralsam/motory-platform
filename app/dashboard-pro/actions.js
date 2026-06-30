@@ -12,11 +12,15 @@
  */
 import { createServerSupabase } from '@/lib/supabase/server';
 import { getSupabaseAdmin } from '@/lib/supabase/admin';
+import { sendAutomatedWhatsApp } from '@/lib/whatsapp';
 import { revalidatePath } from 'next/cache';
 
 const ALLOWED = ['pending', 'in_progress', 'ready', 'completed'];
 const STAMP = { in_progress: 'started_at', ready: 'ready_at', completed: 'completed_at' };
 const ADMIN_DOMAIN = process.env.ADMIN_EMAIL_DOMAIN || 'voldmotor.com';
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.voldmotor.com';
+// Order status → automation trigger. (ready & completed both notify "ready for pickup".)
+const STATUS_TRIGGER = { in_progress: 'job_start', ready: 'job_ready', completed: 'job_ready' };
 
 async function isAdmin(supabase, user) {
   if (
@@ -54,10 +58,42 @@ export async function updateOrderStatus(orderId, newStatus) {
   const patch = { status: newStatus, updated_at: now };
   if (STAMP[newStatus]) patch[STAMP[newStatus]] = now;
 
+  // Commit the status transition first — this is the critical path, never blocked.
   const { error } = await admin.from('orders').update(patch).eq('id', orderId);
   if (error) return { ok: false, error: error.message };
+
+  // Gated, server-side WhatsApp Cloud API dispatch (best-effort). `fallback:true`
+  // tells the worker screen to render the manual wa.me safety-net button instead.
+  let fallback = true;
+  const trigger = STATUS_TRIGGER[newStatus];
+  if (trigger) {
+    const { data: o } = await admin.from('orders')
+      .select('customer_name, customer_phone, plate, merchant_id').eq('id', orderId).maybeSingle();
+    const { data: auto } = o?.merchant_id
+      ? await admin.from('whatsapp_automations').select('*').eq('merchant_id', o.merchant_id).maybeSingle()
+      : { data: null };
+    const triggerOn = !auto || auto[trigger] !== false; // default ON
+    if (triggerOn && o?.customer_phone) {
+      if (auto?.use_fallback_links === true) {
+        fallback = true; // center opted into manual links
+      } else {
+        const res = await sendAutomatedWhatsApp(o.customer_phone, trigger, {
+          customer_name: o.customer_name || 'عميلنا',
+          vehicle_plate: o.plate || '',
+          short_receipt_url: `${SITE_URL}/receipt/${orderId}`,
+        });
+        fallback = res.fallback !== false; // cloud send failed/unconfigured → manual
+      }
+    } else {
+      fallback = false; // trigger off or no phone → nothing to send, no manual button
+    }
+  } else {
+    fallback = false;
+  }
+
   revalidatePath('/dashboard-pro');
-  return { ok: true };
+  revalidatePath('/dashboard');
+  return { ok: true, fallback };
 }
 
 /**
@@ -327,7 +363,7 @@ export async function deleteService(id) {
 }
 
 // ── WhatsApp automation triggers — merchant toggles their own row ──
-const AUTOMATION_KEYS = ['welcome', 'job_start', 'job_ready', 'invoice', 'campaigns'];
+const AUTOMATION_KEYS = ['welcome', 'job_start', 'job_ready', 'invoice', 'campaigns', 'use_fallback_links'];
 
 export async function setAutomation(key, enabled) {
   if (!AUTOMATION_KEYS.includes(key)) return { ok: false, error: 'مفتاح غير صالح' };

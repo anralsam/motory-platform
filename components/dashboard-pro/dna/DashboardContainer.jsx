@@ -12,7 +12,7 @@
  * Role-agnostic shell, role-aware control bar.
  */
 import { createContext, useContext, useMemo, useState, useCallback } from 'react';
-import { computeDerived, defaultMetricFor } from './engine';
+import { computeDerived } from './engine';
 import GlobalControlBar from './GlobalControlBar';
 
 const DataCtx = createContext(null);
@@ -21,12 +21,14 @@ export const useDashboardData = () => useContext(DataCtx);
 export const useActions = () => useContext(ActionsCtx);
 
 export default function DashboardContainer({ role = 'merchant', orders = [], workers = [], inventory = [], actions = {}, headerActions = null, children }) {
-  const [range, setRange] = useState('30d');
-  const [metric, setMetric] = useState(defaultMetricFor(role));
+  // The UnifiedChart matrix is the master controller: it owns metric + timeline,
+  // and the whole dashboard (cards/tables) re-derives from this single state.
+  const [metric, setMetric] = useState('revenue');
+  const [timeline, setTimeline] = useState('week');
   const [ordersState, setOrders] = useState(orders);
   const [invState, setInv] = useState(inventory);
 
-  const derived = useMemo(() => computeDerived(ordersState, workers, range), [ordersState, workers, range]);
+  const derived = useMemo(() => computeDerived(ordersState, workers, timeline), [ordersState, workers, timeline]);
 
   // ── Centralized optimistic mutators ──
   const updateStatus = useCallback(async (id, status) => {
@@ -64,14 +66,15 @@ export default function DashboardContainer({ role = 'merchant', orders = [], wor
   // Local-only patch (server write already happened elsewhere, e.g. a modal).
   const patchOrder = useCallback((id, patch) => setOrders((o) => o.map((x) => (x.id === id ? { ...x, ...patch } : x))), []);
 
-  const dataValue = useMemo(() => ({ role, range, setRange, metric, setMetric, orders: ordersState, ...derived }), [role, range, metric, ordersState, derived]);
+  const dataValue = useMemo(() => ({ role, metric, setMetric, timeline, setTimeline, orders: ordersState, ...derived }), [role, metric, timeline, ordersState, derived]);
   const actionsValue = useMemo(() => ({ role, orders: ordersState, inventory: invState, workers, updateStatus, assign, deduct, start, patchOrder }), [role, ordersState, invState, workers, updateStatus, assign, deduct, start, patchOrder]);
 
   return (
     <ActionsCtx.Provider value={actionsValue}>
       <DataCtx.Provider value={dataValue}>
         <div className="space-y-6">
-          <GlobalControlBar headerActions={headerActions} />
+          {/* Administrative layout strip — only renders for role-specific actions. */}
+          {headerActions ? <GlobalControlBar headerActions={headerActions} /> : null}
           {children}
         </div>
       </DataCtx.Provider>

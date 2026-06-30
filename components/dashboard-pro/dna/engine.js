@@ -119,57 +119,30 @@ export function computeChartSeries(orders = [], metric = 'revenue', timeline = '
 }
 
 /**
- * Compute every derived dataset for a given raw orders set + time range.
- * Runs client-side (live filter response with zero network round-trips).
+ * Compute the KPI / status / top-services datasets for the active TIMELINE window.
+ * The UnifiedChart matrix is the master controller — it sets the timeline, and this
+ * re-windows every Hero card and table to match. Runs client-side (instant).
+ *   day → today · week → last 7d · month → last 30d · year → current year.
  */
-export function computeDerived(orders = [], workers = [], range = '30d') {
-  const now = new Date();
-  const R = RANGES.find((r) => r.key === range) || RANGES[1];
+export function timelineWindowStart(timeline, now = new Date()) {
+  if (timeline === 'day') return new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  if (timeline === 'week') return new Date(now.getFullYear(), now.getMonth(), now.getDate() - 6);
+  if (timeline === 'month') return new Date(now.getFullYear(), now.getMonth(), now.getDate() - 29);
+  return new Date(now.getFullYear(), 0, 1); // year
+}
 
-  // Build the time buckets (daily for 7/30d, monthly for YTD).
-  const buckets = [];
-  if (R.days) {
-    for (let i = R.days - 1; i >= 0; i--) {
-      const d = new Date(now.getFullYear(), now.getMonth(), now.getDate() - i);
-      buckets.push({ key: d.toISOString().slice(0, 10), label: `${d.getDate()}/${d.getMonth() + 1}` });
-    }
-  } else {
-    for (let m = 0; m <= now.getMonth(); m++) buckets.push({ key: `m${m}`, label: MONTHS[m], month: m });
-  }
-  const indexByKey = Object.fromEntries(buckets.map((b, i) => [b.key, i]));
-  const windowStart = R.days ? new Date(now.getFullYear(), now.getMonth(), now.getDate() - (R.days - 1)) : new Date(now.getFullYear(), 0, 1);
-
-  const acc = buckets.map(() => ({ revenue: 0, orders: 0, completed: 0, total: 0, techs: new Set() }));
-  const inWindow = [];
-  orders.forEach((o) => {
-    if (!o.created_at) return;
-    const dt = new Date(o.created_at);
-    if (dt < windowStart) return;
-    inWindow.push(o);
-    const idx = R.days ? indexByKey[dt.toISOString().slice(0, 10)] : dt.getMonth();
-    if (idx == null || idx < 0 || idx >= acc.length) return;
-    const a = acc[idx];
-    a.orders++; a.total++;
-    if (o.status === 'completed') { a.revenue += Number(o.price) || 0; a.completed++; }
-    if (o.assigned_to) a.techs.add(o.assigned_to);
-  });
-
-  const series = buckets.map((b, i) => ({
-    label: b.label,
-    revenue: acc[i].revenue,
-    orders: acc[i].orders,
-    technicians: acc[i].techs.size,
-    efficiency: acc[i].total ? Math.round((acc[i].completed / acc[i].total) * 100) : 0,
-  }));
-
+export function computeDerived(orders = [], workers = [], timeline = 'week') {
+  const windowStart = timelineWindowStart(timeline);
+  const inWindow = orders.filter((o) => o.created_at && new Date(o.created_at) >= windowStart);
   const completedW = inWindow.filter((o) => o.status === 'completed');
   const live = orders.filter((o) => o.status === 'in_progress' || o.status === 'ready').length;
+
   const kpis = {
     revenue: completedW.reduce((s, o) => s + (Number(o.price) || 0), 0),
     orders: inWindow.length,
     live,
     technicians: new Set(inWindow.filter((o) => o.assigned_to).map((o) => o.assigned_to)).size,
-    techLoad: inWindow.length ? Math.round((live / Math.max(inWindow.length, 1)) * 100) : 0,
+    techLoad: inWindow.length ? Math.min(100, Math.round((live / Math.max(inWindow.length, 1)) * 100)) : 0,
     efficiency: inWindow.length ? Math.round((completedW.length / inWindow.length) * 100) : 0,
     workers: workers.length,
   };
@@ -187,5 +160,5 @@ export function computeDerived(orders = [], workers = [], range = '30d') {
   });
   const topServices = Object.values(svc).sort((a, b) => b.count - a.count).slice(0, 5);
 
-  return { series, kpis, statusDist, topServices, windowCount: inWindow.length };
+  return { kpis, statusDist, topServices, windowCount: inWindow.length };
 }

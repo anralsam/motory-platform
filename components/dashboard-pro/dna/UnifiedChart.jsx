@@ -13,7 +13,7 @@
  * three-stop floating gradient, zero grid/axis lines, a YouTube-Studio dark tooltip,
  * a magnetic active node and a razor dashed vertical guide. RTL shell, LTR canvas.
  */
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { ResponsiveContainer, ComposedChart, Area, Line, XAxis, YAxis, Tooltip } from 'recharts';
 import { useDashboardData } from './DashboardContainer';
@@ -47,11 +47,15 @@ function ChartTooltip({ active, payload, label, unit }) {
   );
 }
 
-export default function UnifiedChart({ initialMetric = 'revenue', initialTimeline = 'week' }) {
+export default function UnifiedChart() {
+  // Master controller: read & WRITE the global metric/timeline so the matrix here
+  // drives the entire dashboard (Hero cards + tables re-window via computeDerived).
   const ctx = useDashboardData() || {};
   const orders = ctx.orders || [];
-  const [metric, setMetric] = useState(initialMetric);
-  const [timeline, setTimeline] = useState(initialTimeline);
+  const metric = ctx.metric || 'revenue';
+  const timeline = ctx.timeline || 'week';
+  const setMetric = ctx.setMetric || (() => {});
+  const setTimeline = ctx.setTimeline || (() => {});
 
   const { series, unit } = useMemo(() => computeChartSeries(orders, metric, timeline), [orders, metric, timeline]);
   const axisTick = { fontSize: 11, fill: '#94a3b8', fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace' };

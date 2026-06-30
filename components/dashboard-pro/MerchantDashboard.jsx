@@ -10,7 +10,7 @@
  */
 import { useState } from 'react';
 import { AnimatePresence } from 'framer-motion';
-import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts';
+import { ResponsiveContainer, BarChart, Bar, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts';
 import { Wallet, Activity, Users, HeartPulse, Clock } from 'lucide-react';
 import StatTile from './StatTile';
 import StatusPill from './StatusPill';
@@ -19,9 +19,10 @@ import NoData from './NoData';
 
 const sar = (n) => `${(Number(n) || 0).toLocaleString('en-US')} ﷼`;
 
-export default function MerchantDashboard({ metrics = {}, orders = [], inventory = [], workers = [], peak = [], lastHour = {} }) {
+export default function MerchantDashboard({ metrics = {}, orders = [], inventory = [], workers = [], peak = [], lastHour = {}, trend = [] }) {
   const [items, setItems] = useState(orders);
   const [modalOrder, setModalOrder] = useState(null);
+  const [trendKey, setTrendKey] = useState('revenue');
   const nameByUser = Object.fromEntries(workers.map((w) => [w.user_id, w.full_name]));
 
   function onStarted(id) {
@@ -36,6 +37,39 @@ export default function MerchantDashboard({ metrics = {}, orders = [], inventory
         <StatTile icon={Activity} tone="blue" label="الطلبات النشطة" value={(metrics.active || 0).toLocaleString('en-US')} sub="جارية الآن" />
         <StatTile icon={Users} tone="blue" label="حمل الفنّيين" value={`${metrics.techLoad || 0}%`} sub="نسبة الانشغال" />
         <StatTile icon={HeartPulse} tone="blue" label="صحة المركز" value={`${metrics.health || 0}%`} sub="معدّل الإنجاز" />
+      </div>
+
+      {/* Performance trend — smooth area chart (revenue ↔ operations) */}
+      <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <div className="text-sm font-semibold text-slate-900">تحليل الأداء</div>
+            <div className="text-xs font-normal text-slate-400">{trendKey === 'revenue' ? 'الإيراد الشهري' : 'عدد العمليات الشهري'} عبر العام</div>
+          </div>
+          <div className="flex gap-1 rounded-lg border border-slate-200 bg-slate-50 p-1">
+            {[['revenue', 'الإيراد'], ['orders', 'العمليات']].map(([k, l]) => (
+              <button key={k} onClick={() => setTrendKey(k)}
+                className={`rounded-md px-3 py-1.5 text-xs font-semibold transition ${trendKey === k ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500'}`}>{l}</button>
+            ))}
+          </div>
+        </div>
+        <div className="h-64" dir="ltr">
+          <ResponsiveContainer width="100%" height="100%">
+            <AreaChart data={trend} margin={{ top: 8, right: 8, left: -8, bottom: 0 }}>
+              <defs>
+                <linearGradient id="mTrend" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#2563eb" stopOpacity={0.3} />
+                  <stop offset="100%" stopColor="#2563eb" stopOpacity={0} />
+                </linearGradient>
+              </defs>
+              <CartesianGrid vertical={false} stroke="#f1f5f9" />
+              <XAxis dataKey="label" tickLine={false} axisLine={false} tick={{ fontSize: 11, fill: '#94a3b8' }} interval={0} />
+              <YAxis tickLine={false} axisLine={false} tick={{ fontSize: 11, fill: '#94a3b8' }} width={42} tickFormatter={(v) => (v >= 1000 ? (v / 1000).toFixed(0) + 'k' : v)} />
+              <Tooltip contentStyle={{ borderRadius: 12, border: '1px solid #e2e8f0', fontSize: 12, boxShadow: 'none' }} formatter={(v) => [trendKey === 'revenue' ? `${Number(v).toLocaleString('en-US')} ﷼` : v, trendKey === 'revenue' ? 'الإيراد' : 'العمليات']} />
+              <Area type="monotone" dataKey={trendKey} stroke="#2563eb" strokeWidth={3} fill="url(#mTrend)" dot={false} activeDot={{ r: 4, fill: '#2563eb', stroke: '#fff', strokeWidth: 2 }} />
+            </AreaChart>
+          </ResponsiveContainer>
+        </div>
       </div>
 
       {/* Last-hour performance + peak times */}

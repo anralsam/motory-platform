@@ -81,8 +81,12 @@ async function merchantContent(merchantId) {
   const peak = DAYS_AR.map((label, i) => ({ label, value: wd[i] }));
   const daysWithData = wd.filter((n) => n > 0).length || 1;
   const lastHour = { inHall: d.perf.live, dailyAvg: Math.round(d.orders.length / daysWithData) };
+  // Monthly performance trend (revenue + operations)
+  const moRev = Array(12).fill(0); const moOps = Array(12).fill(0);
+  d.orders.forEach((o) => { if (o.created_at) { const i = new Date(o.created_at).getMonth(); moOps[i]++; if (o.status === 'completed') moRev[i] += Number(o.price) || 0; } });
+  const trend = MONTHS.map((label, i) => ({ label, revenue: moRev[i], orders: moOps[i] }));
   return {
-    dashboard: <MerchantDashboard metrics={mMetrics} orders={liveOrders} inventory={d.inventory} workers={d.workers} peak={peak} lastHour={lastHour} />,
+    dashboard: <MerchantDashboard metrics={mMetrics} orders={liveOrders} inventory={d.inventory} workers={d.workers} peak={peak} lastHour={lastHour} trend={trend} />,
     operations: (
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         {d.orders.slice(0, 12).map((o) => (

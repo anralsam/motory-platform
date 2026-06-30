@@ -7,11 +7,11 @@ export default function Placeholder({ title, note }) {
     <div className="mx-auto max-w-6xl space-y-4">
       <div>
         <h1 className="text-2xl font-extrabold">{title}</h1>
-        <p className="text-sm text-gray-500">
+        <p className="text-sm text-slate-500">
           الفرع الحالي: {branch?.name || 'كل الفروع'} — تتفاعل هذه الصفحة مع المحوّل العام.
         </p>
       </div>
-      <div className="rounded-2xl border border-dashed border-slate-200 bg-white p-10 text-center text-gray-400">
+      <div className="rounded-2xl border border-dashed border-slate-200 bg-white p-10 text-center text-slate-400">
         {note || 'محتوى هذه الوحدة يُبنى هنا.'}
       </div>
     </div>

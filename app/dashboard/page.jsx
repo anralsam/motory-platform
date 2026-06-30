@@ -44,8 +44,8 @@ export default function DashboardHome() {
   return (
     <div className="mx-auto max-w-6xl space-y-6">
       <div>
-        <h1 className="text-2xl font-extrabold text-gray-900">{greeting} 👋</h1>
-        <p className="mt-1 text-sm text-gray-500">نظرة سريعة على أداء <span className="font-bold text-gray-700">{branchName}</span></p>
+        <h1 className="text-2xl font-extrabold text-slate-900">{greeting} 👋</h1>
+        <p className="mt-1 text-sm text-slate-500">نظرة سريعة على أداء <span className="font-bold text-slate-700">{branchName}</span></p>
       </div>
 
       {/* KPI cards */}
@@ -53,7 +53,7 @@ export default function DashboardHome() {
         {CARDS.map((c) => (
           <div key={c.key} className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-gray-500">{c.label}</span>
+              <span className="text-xs font-bold text-slate-500">{c.label}</span>
               <span className={`grid h-8 w-8 place-items-center rounded-lg ${c.iconBg}`}>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={c.iconColor} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
                   {c.icon.split(' M').map((seg, i) => <path key={i} d={i === 0 ? seg : 'M' + seg} />)}
@@ -61,9 +61,9 @@ export default function DashboardHome() {
               </span>
             </div>
             <div className={`mt-2 text-2xl font-extrabold tabular-nums ${c.accent}`}>
-              {loading ? '—' : c.value}{c.suffix && !loading ? <span className="text-sm font-bold text-gray-400"> {c.suffix}</span> : null}
+              {loading ? '—' : c.value}{c.suffix && !loading ? <span className="text-sm font-bold text-slate-400"> {c.suffix}</span> : null}
             </div>
-            {c.sub && <div className="mt-1 text-[11px] font-semibold text-gray-400">{c.sub}</div>}
+            {c.sub && <div className="mt-1 text-[11px] font-semibold text-slate-400">{c.sub}</div>}
           </div>
         ))}
       </div>
@@ -74,12 +74,12 @@ export default function DashboardHome() {
           <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm lg:col-span-2">
             <div className="mb-2 flex items-center justify-between">
               <div>
-                <h3 className="text-base font-extrabold text-gray-900">أداء آخر 7 أيام</h3>
-                <p className="text-xs text-gray-500">العمليات المنجزة يومياً · {branchName}</p>
+                <h3 className="text-base font-extrabold text-slate-900">أداء آخر 7 أيام</h3>
+                <p className="text-xs text-slate-500">العمليات المنجزة يومياً · {branchName}</p>
               </div>
             </div>
             {loading ? (
-              <div className="grid h-64 place-items-center text-sm text-gray-400">جاري التحميل...</div>
+              <div className="grid h-64 place-items-center text-sm text-slate-400">جاري التحميل...</div>
             ) : (
               <DailyOpsChart data={series} />
             )}
@@ -88,11 +88,11 @@ export default function DashboardHome() {
 
         {/* Recent activity */}
         <div className={`rounded-2xl border border-slate-200 bg-white p-5 shadow-sm ${isOwner ? '' : 'lg:col-span-3'}`}>
-          <h3 className="mb-3 text-base font-extrabold text-gray-900">آخر النشاطات</h3>
+          <h3 className="mb-3 text-base font-extrabold text-slate-900">آخر النشاطات</h3>
           {loading ? (
-            <div className="py-10 text-center text-sm text-gray-400">جاري التحميل...</div>
+            <div className="py-10 text-center text-sm text-slate-400">جاري التحميل...</div>
           ) : activity.length === 0 ? (
-            <div className="py-10 text-center text-sm text-gray-400">لا نشاطات بعد</div>
+            <div className="py-10 text-center text-sm text-slate-400">لا نشاطات بعد</div>
           ) : (
             <ul className="space-y-3">
               {activity.map((a) => (
@@ -101,8 +101,8 @@ export default function DashboardHome() {
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6 9 17l-5-5" /></svg>
                   </span>
                   <div className="min-w-0">
-                    <p className="text-sm font-semibold text-gray-800">{a.text}</p>
-                    <p className="text-[11px] text-gray-400">{timeAgo(a.ts)}</p>
+                    <p className="text-sm font-semibold text-slate-800">{a.text}</p>
+                    <p className="text-[11px] text-slate-400">{timeAgo(a.ts)}</p>
                   </div>
                 </li>
               ))}

@@ -61,8 +61,8 @@ export default function OrdersPage() {
     <div className="mx-auto max-w-6xl space-y-5">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-extrabold text-gray-900">الطلبات</h1>
-          <p className="mt-1 text-sm text-gray-500">{branchName} · {orders.length} طلب</p>
+          <h1 className="text-2xl font-extrabold text-slate-900">الطلبات</h1>
+          <p className="mt-1 text-sm text-slate-500">{branchName} · {orders.length} طلب</p>
         </div>
         <button onClick={() => setOpen(true)} className="flex items-center gap-2 rounded-xl bg-brand px-4 py-2.5 text-sm font-extrabold text-white shadow-lg shadow-brand/25 transition hover:bg-brand-dark">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round"><path d="M12 5v14M5 12h14" /></svg>
@@ -74,7 +74,7 @@ export default function OrdersPage() {
         <div className="overflow-x-auto">
           <table className="w-full text-right">
             <thead>
-              <tr className="border-b border-slate-200 bg-gray-50 text-xs font-bold text-gray-500">
+              <tr className="border-b border-slate-200 bg-slate-50 text-xs font-bold text-slate-500">
                 <th className="px-5 py-3 text-start">السيارة</th>
                 <th className="px-5 py-3 text-start">اللوحة</th>
                 <th className="px-5 py-3 text-start">الخدمة</th>
@@ -86,13 +86,13 @@ export default function OrdersPage() {
             </thead>
             <tbody className="divide-y divide-gray-100">
               {loading ? (
-                <tr><td colSpan={7} className="px-5 py-12 text-center text-sm text-gray-400">جاري التحميل...</td></tr>
+                <tr><td colSpan={7} className="px-5 py-12 text-center text-sm text-slate-400">جاري التحميل...</td></tr>
               ) : error ? (
                 <tr><td colSpan={7} className="px-5 py-12 text-center text-sm text-red-500">تعذّر التحميل: {error}</td></tr>
               ) : orders.length === 0 ? (
                 <tr>
                   <td colSpan={7} className="px-5 py-12 text-center">
-                    <div className="text-sm font-bold text-gray-700">لا توجد طلبات في هذا الفرع بعد</div>
+                    <div className="text-sm font-bold text-slate-700">لا توجد طلبات في هذا الفرع بعد</div>
                     <button onClick={() => setOpen(true)} className="mt-3 text-sm font-extrabold text-brand">+ إنشاء أول طلب</button>
                   </td>
                 </tr>
@@ -101,19 +101,19 @@ export default function OrdersPage() {
                   const m = META[o.status] || META.pending;
                   const car = [o.car_make, o.car_model].filter(Boolean).join(' ') || 'مركبة';
                   return (
-                    <tr key={o.id} className="text-sm transition hover:bg-gray-50/60">
-                      <td className="px-5 py-3.5 font-bold text-gray-900">{car}</td>
+                    <tr key={o.id} className="text-sm transition hover:bg-slate-50/60">
+                      <td className="px-5 py-3.5 font-bold text-slate-900">{car}</td>
                       <td className="px-5 py-3.5">
                         <span className="inline-flex items-center overflow-hidden rounded border-2 border-gray-800 font-mono text-xs">
                           <span className="bg-gray-800 px-1 text-[8px] font-bold text-white">KSA</span>
                           <span className="px-2 py-0.5 font-extrabold tracking-widest">{o.plate || '—'}</span>
                         </span>
                       </td>
-                      <td className="px-5 py-3.5 text-gray-600">{o.service_type || '—'}</td>
-                      <td className="px-5 py-3.5 text-gray-700">{o.customer_name || o.customer_phone || '—'}</td>
+                      <td className="px-5 py-3.5 text-slate-600">{o.service_type || '—'}</td>
+                      <td className="px-5 py-3.5 text-slate-700">{o.customer_name || o.customer_phone || '—'}</td>
                       <td className="px-5 py-3.5">
                         {o.assigned_to ? (
-                          <span className="inline-flex items-center gap-1.5 font-bold text-gray-700">
+                          <span className="inline-flex items-center gap-1.5 font-bold text-slate-700">
                             <span className="grid h-6 w-6 place-items-center rounded-full bg-brand/10 text-[10px] font-extrabold text-brand">{(workerMap[o.assigned_to] || 'ف').charAt(0)}</span>
                             {workerMap[o.assigned_to] || 'فني'}
                           </span>
@@ -124,7 +124,7 @@ export default function OrdersPage() {
                       <td className="px-5 py-3.5">
                         <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-bold ${STATUS_TINT[o.status] || STATUS_TINT.pending}`}>{m.ar}</span>
                       </td>
-                      <td className="px-5 py-3.5 text-gray-500">{fmtDate(o.created_at)}</td>
+                      <td className="px-5 py-3.5 text-slate-500">{fmtDate(o.created_at)}</td>
                     </tr>
                   );
                 })

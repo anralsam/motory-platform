@@ -83,16 +83,16 @@ export default function ReceiptModal({ open, order, centerName, vatNumber, onClo
 
           <div className="flex flex-col items-center gap-1 py-1">
             <FauxQR seed={no} />
-            <div className="text-[10px] text-gray-600">رمز الاستجابة السريعة — ZATCA</div>
+            <div className="text-[10px] text-slate-600">رمز الاستجابة السريعة — ZATCA</div>
           </div>
 
           <div className="mt-2 text-center text-[11px]">شكراً لزيارتكم 🤍</div>
-          <div className="text-center text-[10px] text-gray-500">مدعوم بواسطة VOLD MOTOR</div>
+          <div className="text-center text-[10px] text-slate-500">مدعوم بواسطة VOLD MOTOR</div>
         </div>
 
         {/* Controls (hidden on print) */}
         <div className="mt-4 flex gap-2 print:hidden">
-          <button onClick={onClose} className="flex-1 rounded-xl border border-slate-200 bg-white py-2.5 text-sm font-bold text-gray-600 hover:bg-gray-50">إغلاق</button>
+          <button onClick={onClose} className="flex-1 rounded-xl border border-slate-200 bg-white py-2.5 text-sm font-bold text-slate-600 hover:bg-slate-50">إغلاق</button>
           <button onClick={() => window.print()} className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-brand py-2.5 text-sm font-extrabold text-white hover:bg-brand-dark">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round"><path d="M6 9V2h12v7M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" /><rect x="6" y="14" width="12" height="8" /></svg>
             طباعة الفاتورة
@@ -106,7 +106,7 @@ export default function ReceiptModal({ open, order, centerName, vatNumber, onClo
 function Row({ k, v }) {
   return (
     <div className="flex justify-between gap-2">
-      <span className="text-gray-700">{k}</span>
+      <span className="text-slate-700">{k}</span>
       <span className="font-bold ltr">{v}</span>
     </div>
   );

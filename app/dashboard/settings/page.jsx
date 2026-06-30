@@ -44,13 +44,13 @@ export default function SettingsPage() {
 
   return (
     <div className="mx-auto max-w-5xl space-y-5">
-      <h1 className="text-2xl font-extrabold text-gray-900">الإعدادات</h1>
+      <h1 className="text-2xl font-extrabold text-slate-900">الإعدادات</h1>
 
       {/* Tabs */}
       <div className="flex gap-1 border-b border-slate-200">
         {[['identity', 'هوية المركز'], ['services', 'الخدمات والأسعار']].map(([k, label]) => (
           <button key={k} onClick={() => setTab(k)}
-            className={`-mb-px border-b-2 px-4 py-2.5 text-sm font-extrabold transition ${tab === k ? 'border-brand text-brand' : 'border-transparent text-gray-500 hover:text-gray-800'}`}>
+            className={`-mb-px border-b-2 px-4 py-2.5 text-sm font-extrabold transition ${tab === k ? 'border-brand text-brand' : 'border-transparent text-slate-500 hover:text-slate-800'}`}>
             {label}
           </button>
         ))}
@@ -121,8 +121,8 @@ function IdentityTab({ user, centerId, loadBranches, showToast }) {
   return (
     <div className="space-y-5">
       <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-        <h3 className="text-base font-extrabold text-gray-900">بيانات المركز والامتثال الضريبي</h3>
-        <p className="mt-1 text-sm text-gray-500">تظهر في الفواتير الضريبية ورمز ZATCA.</p>
+        <h3 className="text-base font-extrabold text-slate-900">بيانات المركز والامتثال الضريبي</h3>
+        <p className="mt-1 text-sm text-slate-500">تظهر في الفواتير الضريبية ورمز ZATCA.</p>
         <div className="mt-4 grid gap-4 sm:grid-cols-2">
           <Field label="اسم المركز"><input value={name} onChange={(e) => setName(e.target.value)} placeholder="مركز فولد" className={inp} /></Field>
           <Field label="الرقم الضريبي (VAT)"><input value={vat} onChange={(e) => setVat(e.target.value)} dir="ltr" placeholder="3XXXXXXXXXXXXX3" className={`${inp} text-right`} /></Field>
@@ -134,13 +134,13 @@ function IdentityTab({ user, centerId, loadBranches, showToast }) {
       </section>
 
       <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-        <h3 className="text-base font-extrabold text-gray-900">شعار المركز (White-Label)</h3>
-        <p className="mt-1 text-sm text-gray-500">يُرفع إلى التخزين السحابي ويحل محل شعار VOLD في الشريط الجانبي والفواتير.</p>
+        <h3 className="text-base font-extrabold text-slate-900">شعار المركز (White-Label)</h3>
+        <p className="mt-1 text-sm text-slate-500">يُرفع إلى التخزين السحابي ويحل محل شعار VOLD في الشريط الجانبي والفواتير.</p>
         <div className="mt-4 flex flex-wrap items-center gap-5">
-          <label className="flex-1 cursor-pointer rounded-2xl border-2 border-dashed border-slate-200 bg-gray-50 p-6 text-center transition hover:border-brand">
+          <label className="flex-1 cursor-pointer rounded-2xl border-2 border-dashed border-slate-200 bg-slate-50 p-6 text-center transition hover:border-brand">
             <input type="file" accept="image/*" className="hidden" onChange={onLogo} disabled={uploading} />
-            <div className="font-bold text-gray-800">{uploading ? 'جارٍ الرفع...' : 'اضغط لرفع الشعار'}</div>
-            <div className="text-xs text-gray-500">PNG / SVG / JPG — أقل من 2MB</div>
+            <div className="font-bold text-slate-800">{uploading ? 'جارٍ الرفع...' : 'اضغط لرفع الشعار'}</div>
+            <div className="text-xs text-slate-500">PNG / SVG / JPG — أقل من 2MB</div>
           </label>
           <div className="grid h-20 w-36 place-items-center overflow-hidden rounded-xl border border-slate-200 bg-slate-900">
             {logo ? <img src={logo} alt="" className="max-h-14 max-w-[120px] object-contain" /> : <span className="text-xs text-slate-400">لا شعار</span>}
@@ -149,8 +149,8 @@ function IdentityTab({ user, centerId, loadBranches, showToast }) {
       </section>
 
       <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-        <h3 className="text-base font-extrabold text-gray-900">مظهر اللوحة</h3>
-        <p className="mt-1 text-sm text-gray-500">يُطبّق على كل صفحات لوحتك.</p>
+        <h3 className="text-base font-extrabold text-slate-900">مظهر اللوحة</h3>
+        <p className="mt-1 text-sm text-slate-500">يُطبّق على كل صفحات لوحتك.</p>
         <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">
           {THEMES.map((t) => (
             <button key={t.key} onClick={() => applyTheme(t.key)} className={`overflow-hidden rounded-2xl border-2 text-start transition ${theme === t.key ? 'border-brand' : 'border-slate-200'}`}>
@@ -158,7 +158,7 @@ function IdentityTab({ user, centerId, loadBranches, showToast }) {
                 <span className="h-6 w-6 rounded-md border border-black/5 bg-white" />
                 {theme === t.key && <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="3" strokeLinecap="round" className="ms-auto"><path d="M20 6 9 17l-5-5" /></svg>}
               </div>
-              <div className="bg-white px-3 py-2 text-xs font-extrabold text-gray-800">{t.label}</div>
+              <div className="bg-white px-3 py-2 text-xs font-extrabold text-slate-800">{t.label}</div>
             </button>
           ))}
         </div>
@@ -183,7 +183,7 @@ function ServicesTab({ centerId, branchId, centerType, showToast }) {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <p className="text-sm text-gray-500">قائمة الخدمات والأسعار للفرع الحالي — تُستخدم في إنشاء الطلبات والفواتير.</p>
+        <p className="text-sm text-slate-500">قائمة الخدمات والأسعار للفرع الحالي — تُستخدم في إنشاء الطلبات والفواتير.</p>
         <button onClick={() => setModal({ open: true, editing: null })} className="flex items-center gap-2 rounded-xl bg-brand px-4 py-2.5 text-sm font-extrabold text-white hover:bg-brand-dark">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round"><path d="M12 5v14M5 12h14" /></svg>
           إضافة خدمة
@@ -193,7 +193,7 @@ function ServicesTab({ centerId, branchId, centerType, showToast }) {
       <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
         <table className="w-full text-right">
           <thead>
-            <tr className="border-b border-slate-200 bg-gray-50 text-xs font-bold text-gray-500">
+            <tr className="border-b border-slate-200 bg-slate-50 text-xs font-bold text-slate-500">
               <th className="px-5 py-3 text-start">اسم الخدمة</th>
               <th className="px-5 py-3 text-start">الفئة</th>
               <th className="px-5 py-3 text-start">السعر</th>
@@ -202,20 +202,20 @@ function ServicesTab({ centerId, branchId, centerType, showToast }) {
           </thead>
           <tbody className="divide-y divide-gray-100">
             {loading ? (
-              <tr><td colSpan={4} className="px-5 py-10 text-center text-sm text-gray-400">جاري التحميل...</td></tr>
+              <tr><td colSpan={4} className="px-5 py-10 text-center text-sm text-slate-400">جاري التحميل...</td></tr>
             ) : error ? (
               <tr><td colSpan={4} className="px-5 py-10 text-center text-sm text-red-500">تعذّر التحميل: {error}</td></tr>
             ) : services.length === 0 ? (
-              <tr><td colSpan={4} className="px-5 py-10 text-center text-sm text-gray-500">لا توجد خدمات بعد — أضف أول خدمة</td></tr>
+              <tr><td colSpan={4} className="px-5 py-10 text-center text-sm text-slate-500">لا توجد خدمات بعد — أضف أول خدمة</td></tr>
             ) : (
               services.map((s) => (
-                <tr key={s.id} className="text-sm transition hover:bg-gray-50/60">
-                  <td className="px-5 py-3.5 font-bold text-gray-900">{s.name}</td>
-                  <td className="px-5 py-3.5"><span className="rounded-full bg-gray-100 px-2.5 py-1 text-xs font-bold text-gray-600">{s.category || '—'}</span></td>
+                <tr key={s.id} className="text-sm transition hover:bg-slate-50/60">
+                  <td className="px-5 py-3.5 font-bold text-slate-900">{s.name}</td>
+                  <td className="px-5 py-3.5"><span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-bold text-slate-600">{s.category || '—'}</span></td>
                   <td className="px-5 py-3.5 font-extrabold text-brand">{fmtSar(s.price)} ر.س</td>
                   <td className="px-5 py-3.5">
                     <div className="flex gap-2">
-                      <button onClick={() => setModal({ open: true, editing: s })} className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-bold text-gray-600 hover:border-brand hover:text-brand">تعديل</button>
+                      <button onClick={() => setModal({ open: true, editing: s })} className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-bold text-slate-600 hover:border-brand hover:text-brand">تعديل</button>
                       <button onClick={() => remove(s.id)} className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-bold text-red-600 hover:border-red-300">حذف</button>
                     </div>
                   </td>
@@ -239,7 +239,7 @@ function ServicesTab({ centerId, branchId, centerType, showToast }) {
   );
 }
 
-const inp = 'w-full rounded-xl border border-slate-200 bg-gray-50 px-3.5 py-2.5 text-sm font-semibold text-gray-900 outline-none transition focus:border-brand focus:bg-white focus:ring-2 focus:ring-brand/15';
+const inp = 'w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-sm font-semibold text-slate-900 outline-none transition focus:border-brand focus:bg-white focus:ring-2 focus:ring-brand/15';
 function Field({ label, children }) {
-  return (<label className="flex flex-col gap-1.5"><span className="text-xs font-bold text-gray-600">{label}</span>{children}</label>);
+  return (<label className="flex flex-col gap-1.5"><span className="text-xs font-bold text-slate-600">{label}</span>{children}</label>);
 }

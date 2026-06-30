@@ -35,22 +35,22 @@ export default function CustomersPage() {
     <div className="mx-auto max-w-6xl space-y-5">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-extrabold text-gray-900">العملاء</h1>
-          <p className="mt-1 text-sm text-gray-500">{branchName} · {customers.length} عميل</p>
+          <h1 className="text-2xl font-extrabold text-slate-900">العملاء</h1>
+          <p className="mt-1 text-sm text-slate-500">{branchName} · {customers.length} عميل</p>
         </div>
       </div>
 
       <div className="relative max-w-sm">
-        <svg className="pointer-events-none absolute end-3 top-1/2 -translate-y-1/2 text-gray-400" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" /></svg>
+        <svg className="pointer-events-none absolute end-3 top-1/2 -translate-y-1/2 text-slate-400" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" /></svg>
         <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="ابحث بالاسم أو الجوال أو السيارة..."
-          className="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 pe-10 text-sm font-semibold text-gray-900 outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/15" />
+          className="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 pe-10 text-sm font-semibold text-slate-900 outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/15" />
       </div>
 
       <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
         <div className="overflow-x-auto">
           <table className="w-full text-right">
             <thead>
-              <tr className="border-b border-slate-200 bg-gray-50 text-xs font-bold text-gray-500">
+              <tr className="border-b border-slate-200 bg-slate-50 text-xs font-bold text-slate-500">
                 <th className="px-5 py-3 text-start">العميل</th>
                 <th className="px-5 py-3 text-start">رقم الجوال</th>
                 <th className="px-5 py-3 text-start">السيارة</th>
@@ -60,24 +60,24 @@ export default function CustomersPage() {
             </thead>
             <tbody className="divide-y divide-gray-100">
               {loading ? (
-                <tr><td colSpan={5} className="px-5 py-12 text-center text-sm text-gray-400">جاري التحميل...</td></tr>
+                <tr><td colSpan={5} className="px-5 py-12 text-center text-sm text-slate-400">جاري التحميل...</td></tr>
               ) : error ? (
                 <tr><td colSpan={5} className="px-5 py-12 text-center text-sm text-red-500">تعذّر التحميل: {error}</td></tr>
               ) : filtered.length === 0 ? (
-                <tr><td colSpan={5} className="px-5 py-12 text-center text-sm text-gray-500">{search ? 'لا نتائج مطابقة' : 'لا يوجد عملاء في هذا الفرع بعد'}</td></tr>
+                <tr><td colSpan={5} className="px-5 py-12 text-center text-sm text-slate-500">{search ? 'لا نتائج مطابقة' : 'لا يوجد عملاء في هذا الفرع بعد'}</td></tr>
               ) : (
                 filtered.map((c) => {
                   const car = [c.car_make, c.car_model].filter(Boolean).join(' ') || '—';
                   return (
-                    <tr key={c.id} className="text-sm transition hover:bg-gray-50/60">
+                    <tr key={c.id} className="text-sm transition hover:bg-slate-50/60">
                       <td className="px-5 py-3.5">
                         <div className="flex items-center gap-3">
                           <span className="grid h-9 w-9 place-items-center rounded-full bg-gradient-to-br from-brand to-brand-violet text-sm font-extrabold text-white">{(c.full_name || 'ع').charAt(0)}</span>
-                          <span className="font-bold text-gray-900">{c.full_name || '—'}</span>
+                          <span className="font-bold text-slate-900">{c.full_name || '—'}</span>
                         </div>
                       </td>
-                      <td className="px-5 py-3.5 font-semibold text-gray-700 ltr text-start">{c.phone || '—'}</td>
-                      <td className="px-5 py-3.5 text-gray-600">{car}</td>
+                      <td className="px-5 py-3.5 font-semibold text-slate-700 ltr text-start">{c.phone || '—'}</td>
+                      <td className="px-5 py-3.5 text-slate-600">{car}</td>
                       <td className="px-5 py-3.5">
                         <span className="inline-flex items-center gap-1 rounded-full bg-brand/10 px-2.5 py-1 text-xs font-extrabold text-brand">
                           {(c.total_visits ?? 0).toLocaleString('en')} زيارة

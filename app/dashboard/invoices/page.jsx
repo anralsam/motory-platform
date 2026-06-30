@@ -59,11 +59,11 @@ export default function InvoicesPage() {
   if (myRole !== 'owner') {
     return (
       <div className="mx-auto grid max-w-md place-items-center py-24 text-center">
-        <div className="grid h-14 w-14 place-items-center rounded-2xl bg-gray-100 text-gray-400">
+        <div className="grid h-14 w-14 place-items-center rounded-2xl bg-slate-100 text-slate-400">
           <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" /></svg>
         </div>
-        <h1 className="mt-4 text-xl font-extrabold text-gray-900">صفحة مالية محظورة</h1>
-        <p className="mt-1 text-sm text-gray-500">هذه الصفحة متاحة لمالك المركز فقط.</p>
+        <h1 className="mt-4 text-xl font-extrabold text-slate-900">صفحة مالية محظورة</h1>
+        <p className="mt-1 text-sm text-slate-500">هذه الصفحة متاحة لمالك المركز فقط.</p>
       </div>
     );
   }
@@ -71,8 +71,8 @@ export default function InvoicesPage() {
   return (
     <div className="mx-auto max-w-6xl space-y-6">
       <div>
-        <h1 className="text-2xl font-extrabold text-gray-900">الفواتير</h1>
-        <p className="mt-1 text-sm text-gray-500">{branchName} · {invoices.length} فاتورة</p>
+        <h1 className="text-2xl font-extrabold text-slate-900">الفواتير</h1>
+        <p className="mt-1 text-sm text-slate-500">{branchName} · {invoices.length} فاتورة</p>
       </div>
 
       {/* ── Platform commission banner ── */}
@@ -119,7 +119,7 @@ export default function InvoicesPage() {
         <div className="overflow-x-auto">
           <table className="w-full text-right">
             <thead>
-              <tr className="border-b border-slate-200 bg-gray-50 text-xs font-bold text-gray-500">
+              <tr className="border-b border-slate-200 bg-slate-50 text-xs font-bold text-slate-500">
                 <th className="px-5 py-3 text-start">رقم الفاتورة</th>
                 <th className="px-5 py-3 text-start">التاريخ</th>
                 <th className="px-5 py-3 text-start">العميل</th>
@@ -130,24 +130,24 @@ export default function InvoicesPage() {
             </thead>
             <tbody className="divide-y divide-gray-100">
               {loading ? (
-                <tr><td colSpan={6} className="px-5 py-12 text-center text-sm text-gray-400">جاري التحميل...</td></tr>
+                <tr><td colSpan={6} className="px-5 py-12 text-center text-sm text-slate-400">جاري التحميل...</td></tr>
               ) : error ? (
                 <tr><td colSpan={6} className="px-5 py-12 text-center text-sm text-red-500">تعذّر التحميل: {error}</td></tr>
               ) : invoices.length === 0 ? (
-                <tr><td colSpan={6} className="px-5 py-12 text-center text-sm text-gray-500">لا توجد فواتير (طلبات مكتملة) في هذا الفرع بعد</td></tr>
+                <tr><td colSpan={6} className="px-5 py-12 text-center text-sm text-slate-500">لا توجد فواتير (طلبات مكتملة) في هذا الفرع بعد</td></tr>
               ) : (
                 invoices.map((o) => {
                   const t = invoiceTotals(o);
                   return (
-                    <tr key={o.id} className="text-sm transition hover:bg-gray-50/60">
-                      <td className="px-5 py-3.5 font-mono text-xs font-bold text-gray-700">{invoiceNo(o)}</td>
-                      <td className="px-5 py-3.5 text-gray-500">{fmtDate(o.created_at)}</td>
-                      <td className="px-5 py-3.5 font-bold text-gray-900">{o.customer_name || o.customer_phone || '—'}</td>
-                      <td className="px-5 py-3.5 text-gray-600">{o.service_type || '—'}</td>
+                    <tr key={o.id} className="text-sm transition hover:bg-slate-50/60">
+                      <td className="px-5 py-3.5 font-mono text-xs font-bold text-slate-700">{invoiceNo(o)}</td>
+                      <td className="px-5 py-3.5 text-slate-500">{fmtDate(o.created_at)}</td>
+                      <td className="px-5 py-3.5 font-bold text-slate-900">{o.customer_name || o.customer_phone || '—'}</td>
+                      <td className="px-5 py-3.5 text-slate-600">{o.service_type || '—'}</td>
                       <td className="px-5 py-3.5 font-extrabold text-brand">{fmtSar(t.total)} ر.س</td>
                       <td className="px-5 py-3.5">
                         <div className="flex items-center gap-2">
-                          <button onClick={() => setReceipt(o)} className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-bold text-gray-600 transition hover:border-brand hover:text-brand">
+                          <button onClick={() => setReceipt(o)} className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-bold text-slate-600 transition hover:border-brand hover:text-brand">
                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 9V2h12v7M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" /><rect x="6" y="14" width="12" height="8" /></svg>
                             طباعة الفاتورة
                           </button>

@@ -46,7 +46,7 @@ export default function PublicReceiptPage({ params }) {
   }, [id]);
 
   if (state.loading) {
-    return <Shell><div className="py-20 text-center text-sm text-gray-400">جاري تحميل الفاتورة...</div></Shell>;
+    return <Shell><div className="py-20 text-center text-sm text-slate-400">جاري تحميل الفاتورة...</div></Shell>;
   }
 
   if (state.error || !state.row) {
@@ -56,8 +56,8 @@ export default function PublicReceiptPage({ params }) {
           <div className="mx-auto grid h-14 w-14 place-items-center rounded-2xl bg-red-50 text-red-500">
             <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><circle cx="12" cy="12" r="10" /><path d="M12 8v4M12 16h.01" /></svg>
           </div>
-          <h1 className="mt-4 text-lg font-extrabold text-gray-900">الفاتورة غير موجودة</h1>
-          <p className="mt-1 text-sm text-gray-500">تأكد من صحة الرابط أو تواصل مع المركز.</p>
+          <h1 className="mt-4 text-lg font-extrabold text-slate-900">الفاتورة غير موجودة</h1>
+          <p className="mt-1 text-sm text-slate-500">تأكد من صحة الرابط أو تواصل مع المركز.</p>
         </div>
       </Shell>
     );
@@ -82,14 +82,14 @@ export default function PublicReceiptPage({ params }) {
               {centerName.charAt(0)}
             </div>
           )}
-          <div className="text-lg font-extrabold text-gray-900">{centerName}</div>
-          {r.contact_phone && <div className="ltr text-xs text-gray-400">{r.contact_phone}</div>}
+          <div className="text-lg font-extrabold text-slate-900">{centerName}</div>
+          {r.contact_phone && <div className="ltr text-xs text-slate-400">{r.contact_phone}</div>}
           <div className="mt-1 rounded-full bg-gray-900 px-3 py-1 text-[11px] font-bold text-white">فاتورة ضريبية مبسطة</div>
         </div>
 
         <div className="px-6 pb-6">
           {/* Meta */}
-          <div className="grid grid-cols-2 gap-y-2 rounded-2xl bg-gray-50 p-4 text-sm">
+          <div className="grid grid-cols-2 gap-y-2 rounded-2xl bg-slate-50 p-4 text-sm">
             <Meta k="رقم الفاتورة" v={no} mono />
             <Meta k="الحالة" v="مدفوعة" green />
             <Meta k="التاريخ" v={d.toLocaleDateString('en-GB')} />
@@ -100,12 +100,12 @@ export default function PublicReceiptPage({ params }) {
           {/* Customer + car */}
           <div className="mt-4 flex items-center justify-between rounded-2xl border border-slate-200 p-4">
             <div>
-              <div className="text-xs text-gray-400">العميل</div>
-              <div className="font-bold text-gray-900">{r.customer_name || 'عميل'}</div>
+              <div className="text-xs text-slate-400">العميل</div>
+              <div className="font-bold text-slate-900">{r.customer_name || 'عميل'}</div>
             </div>
             <div className="flex items-stretch overflow-hidden rounded-md border-2 border-gray-800 font-mono ltr">
               <span className="flex items-center bg-gray-800 px-1 text-[8px] font-bold leading-none text-white">KSA</span>
-              <span className="px-2 py-1 text-sm font-extrabold tracking-widest text-gray-900">{r.plate || '—'}</span>
+              <span className="px-2 py-1 text-sm font-extrabold tracking-widest text-slate-900">{r.plate || '—'}</span>
             </div>
           </div>
 
@@ -113,17 +113,17 @@ export default function PublicReceiptPage({ params }) {
           <div className="mt-4 rounded-2xl border border-slate-200">
             <div className="flex items-center justify-between border-b border-slate-200 px-4 py-3">
               <div>
-                <div className="font-bold text-gray-900">{r.service_type || 'خدمة'}</div>
-                <div className="text-xs text-gray-400">{car}</div>
+                <div className="font-bold text-slate-900">{r.service_type || 'خدمة'}</div>
+                <div className="text-xs text-slate-400">{car}</div>
               </div>
-              <div className="font-extrabold text-gray-900">{fmtSar(t.net)} ر.س</div>
+              <div className="font-extrabold text-slate-900">{fmtSar(t.net)} ر.س</div>
             </div>
             <div className="space-y-1.5 px-4 py-3 text-sm">
               <Line k="الإجمالي قبل الضريبة" v={fmtSar(t.net)} />
               <Line k={`ضريبة القيمة المضافة (${Math.round(VAT_RATE * 100)}%)`} v={fmtSar(t.vat)} />
             </div>
             <div className="flex items-center justify-between border-t border-slate-200 px-4 py-3">
-              <span className="text-base font-extrabold text-gray-900">الإجمالي</span>
+              <span className="text-base font-extrabold text-slate-900">الإجمالي</span>
               <span className="text-xl font-extrabold text-brand">{fmtSar(t.total)} <span className="text-sm">ر.س</span></span>
             </div>
           </div>
@@ -133,11 +133,11 @@ export default function PublicReceiptPage({ params }) {
             <div className="rounded-2xl border border-slate-200 p-3">
               <FauxQR seed={no} />
             </div>
-            <div className="text-[11px] text-gray-400">رمز الاستجابة السريعة — هيئة الزكاة والضريبة (ZATCA)</div>
+            <div className="text-[11px] text-slate-400">رمز الاستجابة السريعة — هيئة الزكاة والضريبة (ZATCA)</div>
           </div>
 
-          <div className="mt-5 text-center text-sm font-semibold text-gray-500">شكراً لزيارتكم 🤍</div>
-          <div className="text-center text-[11px] text-gray-400">مدعوم بواسطة VOLD MOTOR</div>
+          <div className="mt-5 text-center text-sm font-semibold text-slate-500">شكراً لزيارتكم 🤍</div>
+          <div className="text-center text-[11px] text-slate-400">مدعوم بواسطة VOLD MOTOR</div>
         </div>
       </div>
 
@@ -157,7 +157,7 @@ export default function PublicReceiptPage({ params }) {
 
 function Shell({ children }) {
   return (
-    <div className="min-h-screen bg-gray-50 px-4 py-6 print:bg-white print:p-0">
+    <div className="min-h-screen bg-slate-50 px-4 py-6 print:bg-white print:p-0">
       <div className="mx-auto w-full max-w-md">{children}</div>
     </div>
   );
@@ -165,14 +165,14 @@ function Shell({ children }) {
 function Meta({ k, v, mono, green, full }) {
   return (
     <div className={full ? 'col-span-2 flex items-center justify-between' : 'flex items-center justify-between'}>
-      <span className="text-gray-500">{k}</span>
-      <span className={`font-bold ${green ? 'text-emerald-600' : 'text-gray-900'} ${mono ? 'font-mono ltr' : ''}`}>{v}</span>
+      <span className="text-slate-500">{k}</span>
+      <span className={`font-bold ${green ? 'text-emerald-600' : 'text-slate-900'} ${mono ? 'font-mono ltr' : ''}`}>{v}</span>
     </div>
   );
 }
 function Line({ k, v }) {
   return (
-    <div className="flex items-center justify-between text-gray-600">
+    <div className="flex items-center justify-between text-slate-600">
       <span>{k}</span><span className="font-bold ltr">{v} ر.س</span>
     </div>
   );

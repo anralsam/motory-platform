@@ -31,7 +31,7 @@ export default function BranchSwitcherDropdown() {
   // Hide the switcher entirely when there's only one branch (nothing to switch).
   if (branches.length < 2) {
     return (
-      <div className="flex items-center gap-2 text-sm font-bold text-gray-700">
+      <div className="flex items-center gap-2 text-sm font-bold text-slate-700">
         <BranchIcon />
         <span>{branches[0]?.name || 'مركزي'}</span>
       </div>
@@ -42,7 +42,7 @@ export default function BranchSwitcherDropdown() {
     <div className="relative" ref={ref}>
       <button
         onClick={() => setOpen((o) => !o)}
-        className="flex items-center gap-2 rounded-xl border border-slate-200 bg-gray-50 px-3 py-2 text-sm font-bold text-gray-800 transition hover:border-brand hover:bg-white"
+        className="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-bold text-slate-800 transition hover:border-brand hover:bg-white"
       >
         <BranchIcon />
         <span className="max-w-[140px] truncate">{current.name}</span>
@@ -55,17 +55,17 @@ export default function BranchSwitcherDropdown() {
         <div className="absolute z-30 mt-2 w-60 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-lg">
           <button
             onClick={() => { setSelectedBranch('all'); setOpen(false); }}
-            className={`flex w-full items-center gap-2 px-4 py-3 text-sm font-bold transition hover:bg-gray-50 ${selectedId === 'all' ? 'text-brand' : 'text-gray-700'}`}
+            className={`flex w-full items-center gap-2 px-4 py-3 text-sm font-bold transition hover:bg-slate-50 ${selectedId === 'all' ? 'text-brand' : 'text-slate-700'}`}
           >
             🏢 كل الفروع
             {selectedId === 'all' && <Check />}
           </button>
-          <div className="h-px bg-gray-100" />
+          <div className="h-px bg-slate-100" />
           {branches.map((b) => (
             <button
               key={b.id}
               onClick={() => { setSelectedBranch(b.id); setOpen(false); }}
-              className={`flex w-full items-center justify-between gap-2 px-4 py-3 text-sm font-bold transition hover:bg-gray-50 ${selectedId === b.id ? 'text-brand' : 'text-gray-700'}`}
+              className={`flex w-full items-center justify-between gap-2 px-4 py-3 text-sm font-bold transition hover:bg-slate-50 ${selectedId === b.id ? 'text-brand' : 'text-slate-700'}`}
             >
               <span className="flex items-center gap-2 truncate">
                 {b.is_primary ? '⭐' : '•'} <span className="truncate">{b.name}</span>

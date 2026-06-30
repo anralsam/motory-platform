@@ -42,8 +42,8 @@ export default function TeamPage() {
         <div className="grid h-14 w-14 place-items-center rounded-2xl bg-red-50 text-red-500">
           <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" /></svg>
         </div>
-        <h1 className="mt-4 text-xl font-extrabold text-gray-900">الوصول مرفوض</h1>
-        <p className="mt-1 text-sm text-gray-500">إدارة الفريق متاحة لمالك المركز فقط.</p>
+        <h1 className="mt-4 text-xl font-extrabold text-slate-900">الوصول مرفوض</h1>
+        <p className="mt-1 text-sm text-slate-500">إدارة الفريق متاحة لمالك المركز فقط.</p>
         <Link href="/dashboard" className="mt-5 rounded-xl bg-brand px-5 py-2.5 text-sm font-extrabold text-white hover:bg-brand-dark">العودة للرئيسية</Link>
       </div>
     );
@@ -84,8 +84,8 @@ export default function TeamPage() {
       {/* Header */}
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-extrabold text-gray-900">إدارة الفريق</h1>
-          <p className="mt-1 text-sm text-gray-500">{branchName} · {members.length} موظف</p>
+          <h1 className="text-2xl font-extrabold text-slate-900">إدارة الفريق</h1>
+          <p className="mt-1 text-sm text-slate-500">{branchName} · {members.length} موظف</p>
         </div>
         <button onClick={() => setOpen(true)} className="flex items-center gap-2 rounded-xl bg-brand px-4 py-2.5 text-sm font-extrabold text-white shadow-lg shadow-brand/25 transition hover:bg-brand-dark">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round"><path d="M12 5v14M5 12h14" /></svg>
@@ -98,7 +98,7 @@ export default function TeamPage() {
         <div className="overflow-x-auto">
           <table className="w-full text-right">
             <thead>
-              <tr className="border-b border-slate-200 bg-gray-50 text-xs font-bold text-gray-500">
+              <tr className="border-b border-slate-200 bg-slate-50 text-xs font-bold text-slate-500">
                 <th className="px-5 py-3 text-start">الاسم</th>
                 <th className="px-5 py-3 text-start">المنصب</th>
                 <th className="px-5 py-3 text-start">رقم الجوال</th>
@@ -108,13 +108,13 @@ export default function TeamPage() {
             </thead>
             <tbody className="divide-y divide-gray-100">
               {loading ? (
-                <tr><td colSpan={5} className="px-5 py-12 text-center text-sm text-gray-400">جاري التحميل...</td></tr>
+                <tr><td colSpan={5} className="px-5 py-12 text-center text-sm text-slate-400">جاري التحميل...</td></tr>
               ) : error ? (
                 <tr><td colSpan={5} className="px-5 py-12 text-center text-sm text-red-500">تعذّر التحميل: {error}</td></tr>
               ) : members.length === 0 ? (
                 <tr>
                   <td colSpan={5} className="px-5 py-12 text-center">
-                    <div className="text-sm font-bold text-gray-700">لا يوجد موظفون في هذا الفرع بعد</div>
+                    <div className="text-sm font-bold text-slate-700">لا يوجد موظفون في هذا الفرع بعد</div>
                     <button onClick={() => setOpen(true)} className="mt-3 text-sm font-extrabold text-brand">+ إضافة أول موظف</button>
                   </td>
                 </tr>
@@ -122,13 +122,13 @@ export default function TeamPage() {
                 members.map((m) => {
                   const active = m.status === 'active';
                   return (
-                    <tr key={m.id} className="text-sm transition hover:bg-gray-50/60">
+                    <tr key={m.id} className="text-sm transition hover:bg-slate-50/60">
                       <td className="px-5 py-3.5">
                         <div className="flex items-center gap-3">
                           <span className="grid h-9 w-9 place-items-center rounded-full bg-gradient-to-br from-brand to-brand-violet text-sm font-extrabold text-white">
                             {(m.full_name || 'ع').charAt(0)}
                           </span>
-                          <span className="font-bold text-gray-900">{m.full_name || '—'}</span>
+                          <span className="font-bold text-slate-900">{m.full_name || '—'}</span>
                         </div>
                       </td>
                       <td className="px-5 py-3.5">
@@ -136,7 +136,7 @@ export default function TeamPage() {
                           {ROLE_LABEL[m.role] || 'فني'}
                         </span>
                       </td>
-                      <td className="px-5 py-3.5 font-semibold text-gray-700 ltr text-start">{m.phone || '—'}</td>
+                      <td className="px-5 py-3.5 font-semibold text-slate-700 ltr text-start">{m.phone || '—'}</td>
                       <td className="px-5 py-3.5">
                         <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-bold ${active ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-100 text-slate-600'}`}>
                           <span className={`h-1.5 w-1.5 rounded-full ${active ? 'bg-emerald-500' : 'bg-slate-400'}`} />
@@ -154,7 +154,7 @@ export default function TeamPage() {
                           </button>
                           <button
                             onClick={() => toggleStatus(m)}
-                            className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-bold text-gray-600 transition hover:border-slate-200"
+                            className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-bold text-slate-600 transition hover:border-slate-200"
                           >
                             {active ? 'إيقاف' : 'تفعيل'}
                           </button>

@@ -46,7 +46,7 @@ export default function Sidebar({ onNavigate }) {
             {(centerName || 'م').charAt(0)}
           </div>
         )}
-        <span className="text-sm font-extrabold text-gray-800">{centerName}</span>
+        <span className="text-sm font-extrabold text-slate-700">{centerName}</span>
       </div>
 
       {/* Canonical nav */}
@@ -59,7 +59,7 @@ export default function Sidebar({ onNavigate }) {
               href={item.href}
               onClick={onNavigate}
               className={`flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-bold transition ${
-                active ? 'bg-brand/10 text-brand' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'
+                active ? 'bg-brand/10 text-brand' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
               }`}
             >
               <NavIcon name={item.icon} />
@@ -69,7 +69,7 @@ export default function Sidebar({ onNavigate }) {
         })}
       </nav>
 
-      <div className="border-t border-slate-200 p-3 text-center text-[11px] font-semibold text-gray-400">
+      <div className="border-t border-slate-200 p-3 text-center text-[11px] font-semibold text-slate-400">
         مدعوم بواسطة VOLD MOTOR
       </div>
     </div>

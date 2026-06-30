@@ -42,8 +42,8 @@ export default function BankTransferModal({ open, billing, onClose, onConfirmed 
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" onClick={(e) => { if (e.target === e.currentTarget) onClose?.(); }}>
       <div className="w-full max-w-md rounded-3xl bg-white p-6 shadow-2xl">
         <div className="mb-1 flex items-center justify-between">
-          <h3 className="text-lg font-extrabold text-gray-900">سداد عبر تحويل بنكي</h3>
-          <button onClick={onClose} className="grid h-9 w-9 place-items-center rounded-lg text-gray-400 hover:bg-gray-100">
+          <h3 className="text-lg font-extrabold text-slate-900">سداد عبر تحويل بنكي</h3>
+          <button onClick={onClose} className="grid h-9 w-9 place-items-center rounded-lg text-slate-400 hover:bg-slate-100">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round"><path d="M18 6 6 18M6 6l12 12" /></svg>
           </button>
         </div>
@@ -58,26 +58,26 @@ export default function BankTransferModal({ open, billing, onClose, onConfirmed 
         {/* Bank details */}
         <div className="space-y-2">
           {rows.map((r) => (
-            <div key={r.key} className="flex items-center justify-between gap-2 rounded-xl border border-slate-200 bg-gray-50 px-3.5 py-2.5">
+            <div key={r.key} className="flex items-center justify-between gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5">
               <div className="min-w-0">
-                <div className="text-[11px] font-bold text-gray-500">{r.k}</div>
-                <div className={`truncate text-sm font-extrabold text-gray-900 ${r.mono ? 'font-mono ltr' : ''}`}>{r.v}</div>
+                <div className="text-[11px] font-bold text-slate-500">{r.k}</div>
+                <div className={`truncate text-sm font-extrabold text-slate-900 ${r.mono ? 'font-mono ltr' : ''}`}>{r.v}</div>
               </div>
-              <button onClick={() => copy(r.v, r.key)} className="flex-none rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-bold text-gray-600 transition hover:border-brand hover:text-brand">
+              <button onClick={() => copy(r.v, r.key)} className="flex-none rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-bold text-slate-600 transition hover:border-brand hover:text-brand">
                 {copied === r.key ? 'تم النسخ ✓' : 'نسخ'}
               </button>
             </div>
           ))}
         </div>
 
-        <p className="mt-3 text-xs leading-relaxed text-gray-500">
+        <p className="mt-3 text-xs leading-relaxed text-slate-500">
           حوّل المبلغ إلى الحساب أعلاه ثم اضغط «تم التحويل». ستُراجع الحوالة ويتم تحديث الحالة إلى «مدفوعة» خلال يوم عمل.
         </p>
 
         {error && <div className="mt-3 rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-sm font-semibold text-red-700">{error}</div>}
 
         <div className="mt-5 flex justify-end gap-2">
-          <button onClick={onClose} className="rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-bold text-gray-600 hover:bg-gray-50">إلغاء</button>
+          <button onClick={onClose} className="rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-bold text-slate-600 hover:bg-slate-50">إلغاء</button>
           <button onClick={confirmTransfer} disabled={submitting} className="flex items-center gap-2 rounded-xl bg-brand px-5 py-2.5 text-sm font-extrabold text-white hover:bg-brand-dark disabled:opacity-70">
             {submitting && <svg className="animate-spin" width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="#fff" strokeOpacity="0.25" strokeWidth="4" /><path d="M22 12a10 10 0 0 1-10 10" stroke="#fff" strokeWidth="4" strokeLinecap="round" /></svg>}
             تم التحويل

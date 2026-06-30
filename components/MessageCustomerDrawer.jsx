@@ -62,17 +62,17 @@ export default function MessageCustomerDrawer({ open, onClose, customer, centerN
       <div className="flex h-full w-full max-w-md flex-col bg-white shadow-2xl">
         <div className="flex items-center justify-between border-b border-slate-200 px-5 py-4">
           <div>
-            <h3 className="text-lg font-extrabold text-gray-900">مراسلة العميل</h3>
-            <p className="text-xs text-gray-500">{customer.full_name || 'عميل'} · <span className="ltr">{customer.phone}</span></p>
+            <h3 className="text-lg font-extrabold text-slate-900">مراسلة العميل</h3>
+            <p className="text-xs text-slate-500">{customer.full_name || 'عميل'} · <span className="ltr">{customer.phone}</span></p>
           </div>
-          <button onClick={onClose} className="grid h-9 w-9 place-items-center rounded-lg text-gray-400 hover:bg-gray-100">
+          <button onClick={onClose} className="grid h-9 w-9 place-items-center rounded-lg text-slate-400 hover:bg-slate-100">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round"><path d="M18 6 6 18M6 6l12 12" /></svg>
           </button>
         </div>
 
         <div className="flex-1 space-y-4 overflow-y-auto p-5">
           <div>
-            <span className="mb-2 block text-xs font-bold text-gray-600">قوالب الرسائل</span>
+            <span className="mb-2 block text-xs font-bold text-slate-600">قوالب الرسائل</span>
             <div className="grid grid-cols-2 gap-2">
               {TEMPLATES.map((t) => (
                 <button
@@ -81,7 +81,7 @@ export default function MessageCustomerDrawer({ open, onClose, customer, centerN
                   className={`rounded-xl border p-3 text-start transition ${activeKey === t.key ? 'border-brand ring-2 ring-brand/15' : 'border-slate-200 hover:border-slate-200'}`}
                 >
                   <span className={`mb-1 inline-block rounded-full border px-2 py-0.5 text-[10px] font-extrabold ${TONE[t.tone]}`}>{t.tag}</span>
-                  <div className="text-sm font-extrabold text-gray-900">{t.label}</div>
+                  <div className="text-sm font-extrabold text-slate-900">{t.label}</div>
                 </button>
               ))}
             </div>
@@ -89,21 +89,21 @@ export default function MessageCustomerDrawer({ open, onClose, customer, centerN
 
           {activeKey === 'custom' && (
             <div>
-              <span className="mb-1.5 block text-xs font-bold text-gray-600">اكتب رسالتك</span>
+              <span className="mb-1.5 block text-xs font-bold text-slate-600">اكتب رسالتك</span>
               <textarea
                 value={customText}
                 onChange={(e) => setCustomText(e.target.value)}
                 rows={5}
                 placeholder="اكتب رسالة مخصصة..."
-                className="w-full rounded-xl border border-slate-200 bg-gray-50 px-3.5 py-2.5 text-sm font-semibold text-gray-900 outline-none transition focus:border-brand focus:bg-white focus:ring-2 focus:ring-brand/15"
+                className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-sm font-semibold text-slate-900 outline-none transition focus:border-brand focus:bg-white focus:ring-2 focus:ring-brand/15"
               />
             </div>
           )}
 
           <div>
-            <span className="mb-1.5 block text-xs font-bold text-gray-600">معاينة الرسالة</span>
-            <div className="min-h-[96px] whitespace-pre-wrap rounded-2xl border border-slate-200 bg-gray-50 p-4 text-sm leading-relaxed text-gray-800">
-              {finalMessage || <span className="text-gray-400">اختر قالباً أو اكتب رسالة…</span>}
+            <span className="mb-1.5 block text-xs font-bold text-slate-600">معاينة الرسالة</span>
+            <div className="min-h-[96px] whitespace-pre-wrap rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm leading-relaxed text-slate-800">
+              {finalMessage || <span className="text-slate-400">اختر قالباً أو اكتب رسالة…</span>}
             </div>
           </div>
         </div>

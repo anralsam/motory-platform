@@ -7,7 +7,7 @@ import { SUPABASE_URL, SUPABASE_ANON_KEY } from '@/lib/supabase/config';
 
 export default function CheckoutSuccessPage() {
   return (
-    <Suspense fallback={<Centered><div className="text-sm text-gray-400">…</div></Centered>}>
+    <Suspense fallback={<Centered><div className="text-sm text-slate-400">…</div></Centered>}>
       <CheckoutSuccess />
     </Suspense>
   );
@@ -51,8 +51,8 @@ function CheckoutSuccess() {
     return (
       <Centered>
         <svg className="animate-spin text-violet-600" width="40" height="40" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" strokeOpacity="0.2" strokeWidth="4" /><path d="M22 12a10 10 0 0 1-10 10" stroke="currentColor" strokeWidth="4" strokeLinecap="round" /></svg>
-        <h1 className="mt-5 text-xl font-extrabold text-gray-900">جارٍ تأكيد عملية الدفع…</h1>
-        <p className="mt-1 text-sm text-gray-500">لحظات ونؤكد سداد مستحقاتك.</p>
+        <h1 className="mt-5 text-xl font-extrabold text-slate-900">جارٍ تأكيد عملية الدفع…</h1>
+        <p className="mt-1 text-sm text-slate-500">لحظات ونؤكد سداد مستحقاتك.</p>
       </Centered>
     );
   }
@@ -63,8 +63,8 @@ function CheckoutSuccess() {
         <div className="grid h-16 w-16 place-items-center rounded-full bg-red-50 text-red-500">
           <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round"><circle cx="12" cy="12" r="10" /><path d="M15 9l-6 6M9 9l6 6" /></svg>
         </div>
-        <h1 className="mt-5 text-xl font-extrabold text-gray-900">تعذّر تأكيد الدفع</h1>
-        <p className="mt-1 text-sm text-gray-500">لم نتمكن من تأكيد العملية. حاول مرة أخرى من صفحة الفواتير.</p>
+        <h1 className="mt-5 text-xl font-extrabold text-slate-900">تعذّر تأكيد الدفع</h1>
+        <p className="mt-1 text-sm text-slate-500">لم نتمكن من تأكيد العملية. حاول مرة أخرى من صفحة الفواتير.</p>
         <Link href="/dashboard/invoices" className="mt-6 rounded-xl bg-brand px-5 py-2.5 text-sm font-extrabold text-white hover:bg-brand-dark">العودة للفواتير</Link>
       </Centered>
     );
@@ -75,13 +75,13 @@ function CheckoutSuccess() {
       <div className="grid h-16 w-16 place-items-center rounded-full bg-emerald-100 text-emerald-600">
         <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.8" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6 9 17l-5-5" /></svg>
       </div>
-      <h1 className="mt-5 text-2xl font-extrabold text-gray-900">تم السداد بنجاح 🎉</h1>
-      <p className="mt-1 text-sm text-gray-500">شكراً لك — تم تسديد مستحقات منصة VOLD MOTOR.</p>
+      <h1 className="mt-5 text-2xl font-extrabold text-slate-900">تم السداد بنجاح 🎉</h1>
+      <p className="mt-1 text-sm text-slate-500">شكراً لك — تم تسديد مستحقات منصة VOLD MOTOR.</p>
       {amt ? (
         <div className="mt-4 rounded-2xl border border-slate-200 bg-white px-6 py-4 text-center shadow-sm">
-          <div className="text-xs font-bold text-gray-500">المبلغ المدفوع</div>
+          <div className="text-xs font-bold text-slate-500">المبلغ المدفوع</div>
           <div className="mt-1 text-2xl font-extrabold text-emerald-600">{Number(amt).toLocaleString('en')} <span className="text-sm">ر.س</span></div>
-          {tx ? <div className="ltr mt-1 font-mono text-[11px] text-gray-400">{tx}</div> : null}
+          {tx ? <div className="ltr mt-1 font-mono text-[11px] text-slate-400">{tx}</div> : null}
         </div>
       ) : null}
       <Link href="/dashboard/invoices" className="mt-6 rounded-xl bg-brand px-6 py-3 text-sm font-extrabold text-white shadow-lg shadow-brand/25 hover:bg-brand-dark">العودة للفواتير</Link>

@@ -84,11 +84,11 @@ export default function ReportsPage() {
   if (roleOf(user?.user_metadata?.role) !== 'owner') {
     return (
       <div className="mx-auto grid max-w-md place-items-center py-24 text-center">
-        <div className="grid h-14 w-14 place-items-center rounded-2xl bg-gray-100 text-gray-400">
+        <div className="grid h-14 w-14 place-items-center rounded-2xl bg-slate-100 text-slate-400">
           <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" /></svg>
         </div>
-        <h1 className="mt-4 text-xl font-extrabold text-gray-900">صفحة مالية محظورة</h1>
-        <p className="mt-1 text-sm text-gray-500">هذه الصفحة متاحة لمالك المركز فقط.</p>
+        <h1 className="mt-4 text-xl font-extrabold text-slate-900">صفحة مالية محظورة</h1>
+        <p className="mt-1 text-sm text-slate-500">هذه الصفحة متاحة لمالك المركز فقط.</p>
       </div>
     );
   }
@@ -97,8 +97,8 @@ export default function ReportsPage() {
     <div className="mx-auto max-w-6xl space-y-6">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-extrabold text-gray-900">التقارير وتحليل الذكاء الاصطناعي</h1>
-          <p className="mt-1 text-sm text-gray-500">نطاق التحليل: <span className="font-bold text-gray-700">{branchName}</span></p>
+          <h1 className="text-2xl font-extrabold text-slate-900">التقارير وتحليل الذكاء الاصطناعي</h1>
+          <p className="mt-1 text-sm text-slate-500">نطاق التحليل: <span className="font-bold text-slate-700">{branchName}</span></p>
         </div>
       </div>
 
@@ -106,18 +106,18 @@ export default function ReportsPage() {
       <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
         <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
           <div>
-            <h3 className="text-base font-extrabold text-gray-900">حجم المبيعات مقابل الطلبات المنجزة</h3>
-            <p className="text-xs text-gray-500">{branchName} · الشهر الحالي</p>
+            <h3 className="text-base font-extrabold text-slate-900">حجم المبيعات مقابل الطلبات المنجزة</h3>
+            <p className="text-xs text-slate-500">{branchName} · الشهر الحالي</p>
           </div>
           <div className="flex items-center gap-4 text-xs font-bold">
-            <span className="flex items-center gap-1.5 text-gray-600"><span className="h-2.5 w-2.5 rounded-full bg-blue-600" /> حجم المبيعات</span>
-            <span className="flex items-center gap-1.5 text-gray-600"><span className="h-2.5 w-2.5 rounded-full bg-slate-500" /> الطلبات المنجزة</span>
+            <span className="flex items-center gap-1.5 text-slate-600"><span className="h-2.5 w-2.5 rounded-full bg-blue-600" /> حجم المبيعات</span>
+            <span className="flex items-center gap-1.5 text-slate-600"><span className="h-2.5 w-2.5 rounded-full bg-slate-500" /> الطلبات المنجزة</span>
           </div>
         </div>
         {metricsLoading ? (
-          <div className="grid h-72 place-items-center text-sm text-gray-400">جاري تحميل المخطط...</div>
+          <div className="grid h-72 place-items-center text-sm text-slate-400">جاري تحميل المخطط...</div>
         ) : series.length === 0 ? (
-          <div className="grid h-72 place-items-center text-sm text-gray-400">لا توجد بيانات لهذا الشهر</div>
+          <div className="grid h-72 place-items-center text-sm text-slate-400">لا توجد بيانات لهذا الشهر</div>
         ) : (
           <SalesOpsChart data={series} />
         )}
@@ -133,8 +133,8 @@ export default function ReportsPage() {
                 <Sparkle />
               </span>
               <div>
-                <h2 className="text-lg font-extrabold text-gray-900">تقرير الأداء الشهري — تحليل النظام الذكي</h2>
-                <p className="text-xs text-gray-500">مستشارك الافتراضي · تحليل مقارن لأداء {branchName}</p>
+                <h2 className="text-lg font-extrabold text-slate-900">تقرير الأداء الشهري — تحليل النظام الذكي</h2>
+                <p className="text-xs text-slate-500">مستشارك الافتراضي · تحليل مقارن لأداء {branchName}</p>
               </div>
             </div>
 
@@ -152,7 +152,7 @@ export default function ReportsPage() {
                 إصدار تقرير الذكاء الاصطناعي الشهري
               </button>
               {!isReportDay && (
-                <p className="text-center text-xs font-semibold text-gray-500 lg:text-end">
+                <p className="text-center text-xs font-semibold text-slate-500 lg:text-end">
                   ⏳ يتاح إصدار التقرير الشهري المفصل في يوم 25 من كل شهر ميلادي
                 </p>
               )}
@@ -164,17 +164,17 @@ export default function ReportsPage() {
           <div className="mb-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {metricsLoading ? (
               Array.from({ length: 3 }).map((_, i) => (
-                <div key={i} className="h-[92px] animate-pulse rounded-2xl border border-slate-200 bg-gray-50" />
+                <div key={i} className="h-[92px] animate-pulse rounded-2xl border border-slate-200 bg-slate-50" />
               ))
             ) : metrics.length === 0 ? (
-              <div className="col-span-full rounded-2xl border border-dashed border-slate-200 p-6 text-center text-sm text-gray-400">
+              <div className="col-span-full rounded-2xl border border-dashed border-slate-200 p-6 text-center text-sm text-slate-400">
                 لا توجد بيانات كافية لهذا الفرع لحساب المقارنة الشهرية بعد.
               </div>
             ) : (
               metrics.map((m, i) => (
                 <div key={i} className="rounded-2xl border border-slate-200 bg-white p-4">
-                  <div className="text-xs font-bold text-gray-500">{m.label}</div>
-                  <div className="mt-1.5 text-xl font-extrabold text-gray-900">{m.value}</div>
+                  <div className="text-xs font-bold text-slate-500">{m.label}</div>
+                  <div className="mt-1.5 text-xl font-extrabold text-slate-900">{m.value}</div>
                   <TrendBadge tone={m.tone} dir={m.dir} text={m.delta} />
                 </div>
               ))
@@ -191,8 +191,8 @@ export default function ReportsPage() {
                   <span className={`grid h-9 w-9 place-items-center rounded-lg ${t.ic}`}>
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" /><path d="M12 9v4M12 17h.01" /></svg>
                   </span>
-                  <div className="text-sm font-extrabold text-gray-900">{o.title}</div>
-                  <p className="text-sm leading-relaxed text-gray-600">{o.text}</p>
+                  <div className="text-sm font-extrabold text-slate-900">{o.title}</div>
+                  <p className="text-sm leading-relaxed text-slate-600">{o.text}</p>
                 </div>
               );
             })}
@@ -204,7 +204,7 @@ export default function ReportsPage() {
             {RECOMMENDATIONS.map((r, i) => (
               <div key={i} className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white p-3.5">
                 <span className="grid h-8 w-8 flex-none place-items-center rounded-full bg-violet-100 text-sm font-extrabold text-violet-700">{i + 1}</span>
-                <p className="flex-1 text-sm font-semibold text-gray-700">{r.text}</p>
+                <p className="flex-1 text-sm font-semibold text-slate-700">{r.text}</p>
                 <button className="flex-none rounded-lg border border-violet-200 px-3 py-1.5 text-xs font-extrabold text-violet-700 transition hover:bg-violet-50">{r.cta}</button>
               </div>
             ))}
@@ -223,8 +223,8 @@ export default function ReportsPage() {
       <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 px-5 py-4">
           <div>
-            <h3 className="text-base font-extrabold text-gray-900">الفواتير والعمليات المنجزة</h3>
-            <p className="text-xs text-gray-500">{branchName} · آخر 100 عملية</p>
+            <h3 className="text-base font-extrabold text-slate-900">الفواتير والعمليات المنجزة</h3>
+            <p className="text-xs text-slate-500">{branchName} · آخر 100 عملية</p>
           </div>
           <div className="relative">
             <button onClick={() => setExportOpen((o) => !o)} className="flex items-center gap-2 rounded-xl bg-brand px-4 py-2.5 text-sm font-extrabold text-white shadow-lg shadow-brand/25 transition hover:bg-brand-dark">
@@ -234,8 +234,8 @@ export default function ReportsPage() {
             </button>
             {exportOpen && (
               <div className="absolute end-0 z-20 mt-2 w-40 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-lg">
-                <button onClick={() => { setExportOpen(false); exportCSV(); }} className="block w-full px-4 py-2.5 text-start text-sm font-bold text-gray-700 hover:bg-gray-50">تصدير CSV</button>
-                <button onClick={() => { setExportOpen(false); exportPDF(); }} className="block w-full px-4 py-2.5 text-start text-sm font-bold text-gray-700 hover:bg-gray-50">تصدير PDF</button>
+                <button onClick={() => { setExportOpen(false); exportCSV(); }} className="block w-full px-4 py-2.5 text-start text-sm font-bold text-slate-700 hover:bg-slate-50">تصدير CSV</button>
+                <button onClick={() => { setExportOpen(false); exportPDF(); }} className="block w-full px-4 py-2.5 text-start text-sm font-bold text-slate-700 hover:bg-slate-50">تصدير PDF</button>
               </div>
             )}
           </div>
@@ -244,7 +244,7 @@ export default function ReportsPage() {
         <div className="overflow-x-auto">
           <table className="w-full text-right">
             <thead>
-              <tr className="border-b border-slate-200 bg-gray-50 text-xs font-bold text-gray-500">
+              <tr className="border-b border-slate-200 bg-slate-50 text-xs font-bold text-slate-500">
                 <th className="px-5 py-3 text-start">التاريخ</th>
                 <th className="px-5 py-3 text-start">رقم العملية</th>
                 <th className="px-5 py-3 text-start">العميل</th>
@@ -254,18 +254,18 @@ export default function ReportsPage() {
             </thead>
             <tbody className="divide-y divide-gray-100">
               {loading ? (
-                <tr><td colSpan={5} className="px-5 py-12 text-center text-sm text-gray-400">جاري التحميل...</td></tr>
+                <tr><td colSpan={5} className="px-5 py-12 text-center text-sm text-slate-400">جاري التحميل...</td></tr>
               ) : error ? (
                 <tr><td colSpan={5} className="px-5 py-12 text-center text-sm text-red-500">تعذّر التحميل: {error}</td></tr>
               ) : rows.length === 0 ? (
-                <tr><td colSpan={5} className="px-5 py-12 text-center text-sm text-gray-500">لا توجد عمليات في هذا الفرع بعد</td></tr>
+                <tr><td colSpan={5} className="px-5 py-12 text-center text-sm text-slate-500">لا توجد عمليات في هذا الفرع بعد</td></tr>
               ) : (
                 rows.map((r) => (
-                  <tr key={r.id} className="text-sm transition hover:bg-gray-50/60">
-                    <td className="px-5 py-3 text-gray-500">{fmtDate(r.date)}</td>
-                    <td className="px-5 py-3 font-mono text-xs font-bold text-gray-700">#{r.ref}</td>
-                    <td className="px-5 py-3 font-bold text-gray-900">{r.customer}</td>
-                    <td className="px-5 py-3 text-gray-600">{r.service}</td>
+                  <tr key={r.id} className="text-sm transition hover:bg-slate-50/60">
+                    <td className="px-5 py-3 text-slate-500">{fmtDate(r.date)}</td>
+                    <td className="px-5 py-3 font-mono text-xs font-bold text-slate-700">#{r.ref}</td>
+                    <td className="px-5 py-3 font-bold text-slate-900">{r.customer}</td>
+                    <td className="px-5 py-3 text-slate-600">{r.service}</td>
                     <td className="px-5 py-3 font-extrabold text-brand">{fmt(r.total)} ر.س</td>
                   </tr>
                 ))
@@ -285,8 +285,8 @@ function TierLabel({ n, title, sub }) {
     <div className="mb-3 flex items-center gap-2.5">
       <span className="grid h-6 w-6 place-items-center rounded-md bg-violet-600 text-xs font-extrabold text-white">{n}</span>
       <div>
-        <span className="text-sm font-extrabold text-gray-900">{title}</span>
-        {sub && <span className="ms-2 text-xs text-gray-400">{sub}</span>}
+        <span className="text-sm font-extrabold text-slate-900">{title}</span>
+        {sub && <span className="ms-2 text-xs text-slate-400">{sub}</span>}
       </div>
     </div>
   );
@@ -296,7 +296,7 @@ function TrendBadge({ tone, dir, text }) {
   const cls =
     tone === 'good' ? 'bg-emerald-50 text-emerald-700'
     : tone === 'bad' ? 'bg-rose-50 text-rose-700'
-    : 'bg-gray-100 text-gray-600';
+    : 'bg-slate-100 text-slate-600';
   const arrow =
     dir === 'up' ? 'M12 19V5M5 12l7-7 7 7'
     : dir === 'down' ? 'M12 5v14M5 12l7 7 7-7'
@@ -309,12 +309,12 @@ function TrendBadge({ tone, dir, text }) {
   );
 }
 
-function KPI({ label, value, suffix, accent = 'text-gray-900' }) {
+function KPI({ label, value, suffix, accent = 'text-slate-900' }) {
   return (
     <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-      <div className="text-xs font-bold text-gray-500">{label}</div>
+      <div className="text-xs font-bold text-slate-500">{label}</div>
       <div className={`mt-2 text-2xl font-extrabold tabular-nums ${accent}`}>
-        {value}{suffix ? <span className="text-sm font-bold text-gray-400"> {suffix}</span> : null}
+        {value}{suffix ? <span className="text-sm font-bold text-slate-400"> {suffix}</span> : null}
       </div>
     </div>
   );

@@ -7,7 +7,7 @@ function TooltipBox({ active, payload, label }) {
   if (!active || !payload?.length) return null;
   return (
     <div dir="rtl" className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs shadow-lg">
-      <div className="font-extrabold text-gray-900">{label}</div>
+      <div className="font-extrabold text-slate-900">{label}</div>
       <div className="mt-0.5 flex items-center gap-1.5 font-bold" style={{ color: BLUE }}>
         <span className="h-2 w-2 rounded-full" style={{ background: BLUE }} /> {Number(payload[0].value).toLocaleString('en')} عملية
       </div>

@@ -37,15 +37,15 @@ export default function AddStaffModal({ open, onClose, onSubmit }) {
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" onClick={(e) => { if (e.target === e.currentTarget) onClose?.(); }}>
       <div className="w-full max-w-lg rounded-3xl bg-white p-6 shadow-2xl">
         <div className="mb-1 flex items-center justify-between">
-          <h3 className="text-lg font-extrabold text-gray-900">{created ? 'تم إنشاء حساب الموظف' : 'إضافة موظف جديد'}</h3>
-          <button onClick={onClose} className="grid h-9 w-9 place-items-center rounded-lg text-gray-400 hover:bg-gray-100">
+          <h3 className="text-lg font-extrabold text-slate-900">{created ? 'تم إنشاء حساب الموظف' : 'إضافة موظف جديد'}</h3>
+          <button onClick={onClose} className="grid h-9 w-9 place-items-center rounded-lg text-slate-400 hover:bg-slate-100">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round"><path d="M18 6 6 18M6 6l12 12" /></svg>
           </button>
         </div>
 
         {!created ? (
           <>
-            <p className="mb-4 text-xs text-gray-500">يُضاف للفرع الحالي ويحصل على رمز سري للدخول.</p>
+            <p className="mb-4 text-xs text-slate-500">يُضاف للفرع الحالي ويحصل على رمز سري للدخول.</p>
             {error && <div className="mb-3 rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-sm font-semibold text-red-700">{error}</div>}
             <div className="space-y-4">
               <Field label="الاسم الكامل">
@@ -62,7 +62,7 @@ export default function AddStaffModal({ open, onClose, onSubmit }) {
               </Field>
             </div>
             <div className="mt-5 flex justify-end gap-2">
-              <button onClick={onClose} className="rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-bold text-gray-600 hover:bg-gray-50">إلغاء</button>
+              <button onClick={onClose} className="rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-bold text-slate-600 hover:bg-slate-50">إلغاء</button>
               <button onClick={save} disabled={saving} className="flex items-center gap-2 rounded-xl bg-brand px-5 py-2.5 text-sm font-extrabold text-white hover:bg-brand-dark disabled:opacity-70">
                 {saving && <Spinner />} إنشاء الحساب
               </button>
@@ -73,14 +73,14 @@ export default function AddStaffModal({ open, onClose, onSubmit }) {
             <div className="mb-4 grid h-12 w-12 place-items-center rounded-full bg-emerald-100">
               <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#16a34a" strokeWidth="2.8" strokeLinecap="round"><path d="M20 6 9 17l-5-5" /></svg>
             </div>
-            <p className="text-sm text-gray-500">شارك بيانات الدخول مع الموظف:</p>
-            <div className="mt-3 space-y-1.5 rounded-2xl border border-slate-200 bg-gray-50 p-4 text-sm">
+            <p className="text-sm text-slate-500">شارك بيانات الدخول مع الموظف:</p>
+            <div className="mt-3 space-y-1.5 rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm">
               <Row k="الاسم" v={created.worker.full_name} />
               <Row k="رقم الجوال" v={created.worker.phone} ltr />
               <Row k="الرمز السري" v={created.pin} ltr strong />
             </div>
             <div className="mt-5 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
-              <button onClick={onClose} className="rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-bold text-gray-600 hover:bg-gray-50">تم</button>
+              <button onClick={onClose} className="rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-bold text-slate-600 hover:bg-slate-50">تم</button>
               <a
                 href={whatsappLink(created.worker, created.pin)}
                 target="_blank"
@@ -98,12 +98,12 @@ export default function AddStaffModal({ open, onClose, onSubmit }) {
 }
 
 const inputCls =
-  'w-full rounded-xl border border-slate-200 bg-gray-50 px-3.5 py-2.5 text-sm font-semibold text-gray-900 outline-none transition focus:border-brand focus:bg-white focus:ring-2 focus:ring-brand/15';
+  'w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-sm font-semibold text-slate-900 outline-none transition focus:border-brand focus:bg-white focus:ring-2 focus:ring-brand/15';
 
 function Field({ label, children }) {
   return (
     <label className="flex flex-col gap-1.5">
-      <span className="text-xs font-bold text-gray-600">{label}</span>
+      <span className="text-xs font-bold text-slate-600">{label}</span>
       {children}
     </label>
   );
@@ -111,8 +111,8 @@ function Field({ label, children }) {
 function Row({ k, v, ltr, strong }) {
   return (
     <div className="flex items-center justify-between">
-      <span className="text-gray-500">{k}</span>
-      <span className={`font-bold text-gray-900 ${ltr ? 'ltr' : ''} ${strong ? 'text-base tracking-widest' : ''}`}>{v}</span>
+      <span className="text-slate-500">{k}</span>
+      <span className={`font-bold text-slate-900 ${ltr ? 'ltr' : ''} ${strong ? 'text-base tracking-widest' : ''}`}>{v}</span>
     </div>
   );
 }

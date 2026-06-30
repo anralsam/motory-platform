@@ -80,7 +80,7 @@ export default function WorkerTasksPage() {
   async function signOut() { await supabase.auth.signOut(); router.replace('/auth/signin'); router.refresh(); }
 
   return (
-    <div className="flex min-h-screen flex-col bg-gray-50">
+    <div className="flex min-h-screen flex-col bg-slate-50">
       {/* Header (stripped — operational only) */}
       <header className="sticky top-0 z-20 flex items-center justify-between border-b border-slate-200 bg-white px-4 py-3">
         <div className="flex items-center gap-2.5">
@@ -88,27 +88,27 @@ export default function WorkerTasksPage() {
             <svg width="20" height="20" viewBox="0 0 48 48" fill="none"><path d="M6 10 L24 42 L42 10" stroke="#fff" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round" /></svg>
           </span>
           <div>
-            <div className="text-sm font-extrabold text-gray-900">مهامي</div>
-            <div className="text-[11px] text-gray-500">{ctx.name}{ctx.center ? ' · ' + ctx.center : ''}</div>
+            <div className="text-sm font-extrabold text-slate-900">مهامي</div>
+            <div className="text-[11px] text-slate-500">{ctx.name}{ctx.center ? ' · ' + ctx.center : ''}</div>
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <button onClick={refetch} className="grid h-9 w-9 place-items-center rounded-lg border border-slate-200 text-gray-500 hover:bg-gray-50" title="تحديث">
+          <button onClick={refetch} className="grid h-9 w-9 place-items-center rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50" title="تحديث">
             <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M23 4v6h-6M1 20v-6h6" /><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" /></svg>
           </button>
-          <button onClick={signOut} className="rounded-lg border border-slate-200 px-3 py-1.5 text-sm font-bold text-gray-600 hover:bg-gray-50">خروج</button>
+          <button onClick={signOut} className="rounded-lg border border-slate-200 px-3 py-1.5 text-sm font-bold text-slate-600 hover:bg-slate-50">خروج</button>
         </div>
       </header>
 
       <main className="flex-1 p-3 sm:p-4">
         {loading ? (
-          <div className="grid place-items-center py-24 text-sm text-gray-400">جاري تحميل المهام...</div>
+          <div className="grid place-items-center py-24 text-sm text-slate-400">جاري تحميل المهام...</div>
         ) : error ? (
           <div className="grid place-items-center py-24 text-sm text-red-500">تعذّر التحميل: {error}</div>
         ) : tasks.length === 0 ? (
           <div className="grid place-items-center py-24 text-center">
-            <div className="text-base font-bold text-gray-700">لا توجد مهام موكلة إليك حالياً ✅</div>
-            <div className="mt-1 text-sm text-gray-500">ستظهر السيارات الجديدة هنا فور إسنادها لك.</div>
+            <div className="text-base font-bold text-slate-700">لا توجد مهام موكلة إليك حالياً ✅</div>
+            <div className="mt-1 text-sm text-slate-500">ستظهر السيارات الجديدة هنا فور إسنادها لك.</div>
           </div>
         ) : (
           <>
@@ -117,7 +117,7 @@ export default function WorkerTasksPage() {
               {FLOW.map((status) => {
                 const m = META[status];
                 return (
-                  <div key={status} onDragOver={(e) => e.preventDefault()} onDrop={(e) => onDrop(e, status)} className="flex flex-col rounded-2xl bg-gray-100/70 p-2">
+                  <div key={status} onDragOver={(e) => e.preventDefault()} onDrop={(e) => onDrop(e, status)} className="flex flex-col rounded-2xl bg-slate-100/70 p-2">
                     <div className={`mb-2 flex items-center justify-between rounded-xl px-3 py-2 text-sm font-extrabold ring-1 ring-inset ${COL_TINT[m.col]}`}>
                       <span>{m.ar}</span>
                       <span className="rounded-full bg-white/70 px-2 text-xs">{grouped[status].length}</span>
@@ -175,21 +175,21 @@ function Card({ order, draggable, mobile, onDragStart, onAction }) {
     >
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0">
-          <div className="truncate text-sm font-extrabold text-gray-900">{car}</div>
-          {order.customer_name && <div className="truncate text-xs text-gray-500">{order.customer_name}</div>}
+          <div className="truncate text-sm font-extrabold text-slate-900">{car}</div>
+          {order.customer_name && <div className="truncate text-xs text-slate-500">{order.customer_name}</div>}
         </div>
         <Plate plate={order.plate} />
       </div>
 
       {order.service_type && (
-        <div className="mt-2.5 inline-flex items-center gap-1.5 rounded-lg bg-gray-50 px-2.5 py-1 text-xs font-bold text-gray-700">
+        <div className="mt-2.5 inline-flex items-center gap-1.5 rounded-lg bg-slate-50 px-2.5 py-1 text-xs font-bold text-slate-700">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94z" /></svg>
           {order.service_type}
         </div>
       )}
 
       <div className="mt-2.5 flex items-center justify-between">
-        <span className={`inline-flex items-center gap-1.5 text-xs font-bold ${late ? 'text-red-600' : 'text-gray-400'}`}>
+        <span className={`inline-flex items-center gap-1.5 text-xs font-bold ${late ? 'text-red-600' : 'text-slate-400'}`}>
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><circle cx="12" cy="12" r="10" /><path d="M12 6v6l4 2" /></svg>
           {elapsedLabel(mins)} {late && <span className="rounded bg-red-100 px-1.5 py-0.5 text-[10px] font-extrabold text-red-600">متأخرة</span>}
         </span>
@@ -215,7 +215,7 @@ function Plate({ plate }) {
   return (
     <div className="flex flex-none items-stretch overflow-hidden rounded-md border-2 border-gray-800 bg-white font-mono ltr">
       <span className="flex items-center bg-gray-800 px-1 text-[8px] font-bold leading-none text-white">KSA</span>
-      <span className="px-2 py-1 text-sm font-extrabold tracking-widest text-gray-900">{plate || '—'}</span>
+      <span className="px-2 py-1 text-sm font-extrabold tracking-widest text-slate-900">{plate || '—'}</span>
     </div>
   );
 }

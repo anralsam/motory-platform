@@ -16,12 +16,12 @@ import StatusPill from './StatusPill';
 import StartTaskModal from './StartTaskModal';
 import AssignControl from './AssignControl';
 import NoData from './NoData';
-import { updateOrderStatus, assignOrderToWorker, startOrderWithParts, deductParts } from '@/app/dashboard-pro/actions';
+import { updateOrderStatus, assignOrderToWorker, startOrderWithParts, deductParts, transferWorkerBranch } from '@/app/dashboard-pro/actions';
 
 export default function MerchantDashboard({ orders = [], workers = [], inventory = [] }) {
   return (
     <DashboardContainer role="merchant" orders={orders} workers={workers} inventory={inventory}
-      actions={{ updateOrderStatus, assignOrderToWorker, startOrderWithParts, deductParts }}>
+      actions={{ updateOrderStatus, assignOrderToWorker, startOrderWithParts, deductParts, transferWorkerBranch }}>
       <AnalyticsPanel />
       <MerchantLiveOps />
     </DashboardContainer>

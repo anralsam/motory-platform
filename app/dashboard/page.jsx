@@ -5,6 +5,7 @@ import { roleOf } from '@/lib/roles';
 import { useDashboard } from '@/lib/useDashboard';
 import DashboardContainer from '@/components/dashboard-pro/dna/DashboardContainer';
 import AnalyticsPanel from '@/components/dashboard-pro/dna/AnalyticsPanel';
+import { transferWorkerBranch } from '@/app/dashboard-pro/actions';
 
 function fmt(n) { return Number(n || 0).toLocaleString('en'); }
 
@@ -25,7 +26,7 @@ export default function DashboardHome() {
   const primary = branches.find((b) => b.is_primary) || branches[0];
   const branchName = selectedId === 'all' ? (branches.length > 1 ? 'كل الفروع' : (primary?.name || 'مركزي')) : (branches.find((b) => b.id === selectedId)?.name || 'فرع');
 
-  const { loading, kpis, activity, orders } = useDashboard(centerId, selectedId);
+  const { loading, kpis, activity, orders, workers } = useDashboard(centerId, selectedId);
 
   const isOwner = myRole === 'owner';
   // W-2: revenue + customer financials are owner-only; managers see operational KPIs only.
@@ -45,7 +46,7 @@ export default function DashboardHome() {
       {isOwner ? (
         /* Owner → full Unified DNA analytics (premium cards + master chart + donut +
            top services). Financial → owner-only per W-2. */
-        <DashboardContainer role="merchant" orders={orders || []} workers={[]} inventory={[]} actions={{}}>
+        <DashboardContainer role="merchant" orders={orders || []} workers={workers || []} inventory={[]} actions={{ transferWorkerBranch }}>
           <AnalyticsPanel />
         </DashboardContainer>
       ) : (

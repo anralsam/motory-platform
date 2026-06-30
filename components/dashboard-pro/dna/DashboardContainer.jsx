@@ -29,23 +29,32 @@ export default function DashboardContainer({ role = 'merchant', orders = [], wor
   const [ordersState, setOrders] = useState(orders);
   const [invState, setInv] = useState(inventory);
 
+  const [workersState, setWorkers] = useState(workers);
+
   // Global branch state (shared zustand brain) → mirrored into this context so the
   // header switcher and every consumer agree. Branch filtering is 100% client-side.
   const currentBranchId = useBranchStore((s) => s.selectedBranchId);
   const setCurrentBranchId = useBranchStore((s) => s.setSelectedBranch);
   const branches = useBranchStore((s) => s.branches);
+  const loadBranches = useBranchStore((s) => s.loadBranches);
+  useEffect(() => { loadBranches(); }, [loadBranches]);
 
   // Keep local state in sync with the pre-fetched matrix as it arrives/refreshes.
   useEffect(() => { setOrders(orders); }, [orders]);
   useEffect(() => { setInv(inventory); }, [inventory]);
+  useEffect(() => { setWorkers(workers); }, [workers]);
 
-  // Instant, zero-latency branch slice over the in-memory matrix (no refetch).
+  // Instant, zero-latency branch slices over the in-memory matrices (no refetch).
   const branchOrders = useMemo(
     () => (currentBranchId && currentBranchId !== 'all' ? ordersState.filter((o) => o.branch_id === currentBranchId) : ordersState),
     [ordersState, currentBranchId],
   );
+  const branchWorkers = useMemo(
+    () => (currentBranchId && currentBranchId !== 'all' ? workersState.filter((w) => w.branch_id === currentBranchId) : workersState),
+    [workersState, currentBranchId],
+  );
 
-  const derived = useMemo(() => computeDerived(branchOrders, workers, timeline), [branchOrders, workers, timeline]);
+  const derived = useMemo(() => computeDerived(branchOrders, branchWorkers, timeline), [branchOrders, branchWorkers, timeline]);
 
   // ── Centralized optimistic mutators ──
   const updateStatus = useCallback(async (id, status) => {
@@ -83,11 +92,20 @@ export default function DashboardContainer({ role = 'merchant', orders = [], wor
   // Local-only patch (server write already happened elsewhere, e.g. a modal).
   const patchOrder = useCallback((id, patch) => setOrders((o) => o.map((x) => (x.id === id ? { ...x, ...patch } : x))), []);
 
+  // Optimistic technician branch transfer — sub-100ms; reverts on server failure.
+  const transferWorker = useCallback(async (userId, branchId) => {
+    const prev = workersState;
+    setWorkers((ws) => ws.map((w) => (w.user_id === userId ? { ...w, branch_id: branchId } : w)));
+    const r = await actions.transferWorkerBranch?.(userId, branchId);
+    if (!r?.ok) setWorkers(prev);
+    return r;
+  }, [workersState, actions]);
+
   const dataValue = useMemo(
-    () => ({ role, metric, setMetric, timeline, setTimeline, orders: branchOrders, currentBranchId, setCurrentBranchId, branches, ...derived }),
-    [role, metric, timeline, branchOrders, currentBranchId, setCurrentBranchId, branches, derived],
+    () => ({ role, metric, setMetric, timeline, setTimeline, orders: branchOrders, workers: branchWorkers, currentBranchId, setCurrentBranchId, branches, ...derived }),
+    [role, metric, timeline, branchOrders, branchWorkers, currentBranchId, setCurrentBranchId, branches, derived],
   );
-  const actionsValue = useMemo(() => ({ role, orders: ordersState, inventory: invState, workers, updateStatus, assign, deduct, start, patchOrder }), [role, ordersState, invState, workers, updateStatus, assign, deduct, start, patchOrder]);
+  const actionsValue = useMemo(() => ({ role, orders: ordersState, inventory: invState, workers: workersState, updateStatus, assign, deduct, start, patchOrder, transferWorker }), [role, ordersState, invState, workersState, updateStatus, assign, deduct, start, patchOrder, transferWorker]);
 
   return (
     <ActionsCtx.Provider value={actionsValue}>

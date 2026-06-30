@@ -14,6 +14,7 @@ import { ResponsiveContainer, PieChart, Pie, Cell, Tooltip } from 'recharts';
 import { ArrowUpRight, ArrowDownRight } from 'lucide-react';
 import { useDashboardData } from './DashboardContainer';
 import UnifiedChart from './UnifiedChart';
+import WorkforcePanel from './WorkforcePanel';
 import { fmtValue, computeComparisons, CHART_TIMELINES } from './engine';
 
 const TABS = [['overview', 'نظرة عامة'], ['content', 'المحتوى'], ['audience', 'الجمهور'], ['revenue', 'الإيرادات']];
@@ -178,6 +179,9 @@ export default function AnalyticsPanel() {
                 )}
               </div>
             </div>
+
+            {/* Workforce & technician analytics */}
+            <WorkforcePanel />
           </motion.div>
         ) : (
           <div className="grid place-items-center rounded-2xl border border-slate-200 bg-white py-24 text-center shadow-sm">

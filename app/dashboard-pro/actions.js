@@ -217,6 +217,38 @@ export async function deductParts(orderId, parts) {
   return { ok: true, deducted: toDeduct.length };
 }
 
+/**
+ * Transfer a technician to another branch. Allowed callers: admin, or the merchant
+ * who owns the worker's center. The target branch must belong to that same merchant.
+ */
+export async function transferWorkerBranch(workerUserId, branchId) {
+  if (!workerUserId || !branchId) return { ok: false, error: 'مدخلات ناقصة' };
+
+  const supabase = createServerSupabase();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { ok: false, error: 'غير مصرّح — سجّل الدخول' };
+
+  const admin = getSupabaseAdmin();
+  if (!admin) return { ok: false, error: 'مفتاح الخدمة غير مهيّأ' };
+
+  const { data: w } = await admin.from('workers').select('id, center_id').eq('user_id', workerUserId).maybeSingle();
+  if (!w) return { ok: false, error: 'الفنّي غير موجود' };
+  if (!(await isAdmin(supabase, user)) && w.center_id !== user.id) {
+    return { ok: false, error: 'هذا الفنّي لا يتبع مركزك' };
+  }
+
+  // The target branch must belong to the worker's center (org isolation).
+  const { data: b } = await admin.from('branches').select('id').eq('id', branchId).eq('owner_id', w.center_id).maybeSingle();
+  if (!b) return { ok: false, error: 'الفرع غير صالح لهذا المركز' };
+
+  const { error } = await admin.from('workers').update({ branch_id: branchId }).eq('user_id', workerUserId);
+  if (error) return { ok: false, error: error.message };
+
+  revalidatePath('/dashboard');
+  revalidatePath('/dashboard-pro');
+  return { ok: true };
+}
+
 // ── Service CRUD (pricing engine) — merchant manages their own service_menu ──
 async function ownsServiceOrAdmin(supabase, admin, user, serviceId) {
   if (await isAdmin(supabase, user)) return true;

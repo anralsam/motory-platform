@@ -44,7 +44,7 @@ export default function SettingsPage() {
 
   return (
     <div className="mx-auto max-w-5xl space-y-5">
-      <h1 className="text-2xl font-extrabold text-slate-900">الإعدادات</h1>
+      <h1 className="text-xl font-bold tracking-tight text-slate-900">الإعدادات</h1>
 
       {/* Tabs */}
       <div className="flex gap-1 border-b border-slate-200">

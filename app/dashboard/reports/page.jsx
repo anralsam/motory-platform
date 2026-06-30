@@ -97,7 +97,7 @@ export default function ReportsPage() {
     <div className="mx-auto max-w-6xl space-y-6">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-extrabold text-slate-900">التقارير وتحليل الذكاء الاصطناعي</h1>
+          <h1 className="text-xl font-bold tracking-tight text-slate-900">التقارير وتحليل الذكاء الاصطناعي</h1>
           <p className="mt-1 text-sm text-slate-500">نطاق التحليل: <span className="font-bold text-slate-700">{branchName}</span></p>
         </div>
       </div>

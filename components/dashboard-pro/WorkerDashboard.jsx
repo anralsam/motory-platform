@@ -76,8 +76,8 @@ export default function WorkerDashboard({ userName = 'الفنّي', orders = []
             <motion.div key="empty" initial={{ opacity: 0 }} animate={{ opacity: 1 }}
               className="rounded-2xl border border-slate-200 bg-white p-12 text-center shadow-sm">
               <CheckCircle2 className="mx-auto mb-3 text-emerald-500" size={40} />
-              <div className="text-lg font-bold">لا توجد مهام الآن</div>
-              <div className="mt-1 text-sm text-slate-400">استمتع باستراحتك ☕️</div>
+              <div className="text-lg font-bold">لا توجد مهام موكّلة</div>
+              <div className="mt-1 text-sm text-slate-400">لا توجد مهام نشطة على حسابك حالياً</div>
             </motion.div>
           )}
         </AnimatePresence>

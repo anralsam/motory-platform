@@ -103,7 +103,7 @@ export default function InventoryPage() {
       {/* Header */}
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-extrabold text-slate-900">المخزون</h1>
+          <h1 className="text-xl font-bold tracking-tight text-slate-900">المخزون</h1>
           <p className="mt-1 text-sm text-slate-500">
             {branchName} · نوع النشاط: <span className="font-bold text-slate-700">{centerType}</span>
           </p>

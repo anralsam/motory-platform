@@ -16,6 +16,11 @@ module.exports = {
           dark: '#1d4ed8',
           violet: '#7c3aed',
         },
+        // Grand Unified DNA tokens — single source of truth for the dashboards.
+        accent: '#2563eb', // buttons / active states
+        secondary: '#64748b', // secondary labels
+        surface: '#f8fafc', // global background
+        line: '#e2e8f0', // all borders
       },
       // Global Style Guide — the ONLY two elevations across the whole app.
       // shadow-sm → flat cards · shadow-lg → interactive/raised elements.

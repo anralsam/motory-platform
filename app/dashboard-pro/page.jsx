@@ -66,52 +66,10 @@ async function merchantContent(merchantId) {
     return { dashboard: <NoData title="لا توجد طلبات" hint="لا توجد طلبات ورشة على حسابك بعد." />, operations: <NoData title="لا توجد طلبات" />, services: servicesView };
   }
   const nameByUser = Object.fromEntries(d.workers.map((w) => [w.user_id, w.full_name]));
-  const completed = d.orders.filter((o) => o.status === 'completed').length;
-  const mMetrics = {
-    revenue: d.perf.revenue,
-    active: d.perf.live,
-    techLoad: d.perf.utilization,
-    health: d.orders.length ? Math.round((completed / d.orders.length) * 100) : 0,
-  };
-  const liveOrders = d.orders.filter((o) => o.status !== 'completed').slice(0, 12);
-  // Peak times by weekday + last-hour snapshot
-  const DAYS_AR = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
-  const wd = Array(7).fill(0);
-  d.orders.forEach((o) => { if (o.created_at) wd[new Date(o.created_at).getDay()]++; });
-  const peak = DAYS_AR.map((label, i) => ({ label, value: wd[i] }));
-  const daysWithData = wd.filter((n) => n > 0).length || 1;
-  const lastHour = { inHall: d.perf.live, dailyAvg: Math.round(d.orders.length / daysWithData) };
-  // Monthly performance trend (revenue + operations)
-  const moRev = Array(12).fill(0); const moOps = Array(12).fill(0);
-  d.orders.forEach((o) => { if (o.created_at) { const i = new Date(o.created_at).getMonth(); moOps[i]++; if (o.status === 'completed') moRev[i] += Number(o.price) || 0; } });
-  const trend = MONTHS.map((label, i) => ({ label, revenue: moRev[i], orders: moOps[i] }));
-  // Month-over-month growth (current vs previous month)
-  const nowM = new Date().getMonth();
-  const prevM = (nowM + 11) % 12;
-  const pctGrow = (cur, prev) => (prev > 0 ? ((cur - prev) / prev) * 100 : cur > 0 ? 100 : 0);
-  const revGrowth = pctGrow(moRev[nowM], moRev[prevM]);
-  const ordGrowth = pctGrow(moOps[nowM], moOps[prevM]);
-  // Status distribution (donut)
-  const STATUS_META = [
-    { key: 'pending', name: 'انتظار', color: '#f59e0b' },
-    { key: 'in_progress', name: 'جاري', color: '#2563eb' },
-    { key: 'ready', name: 'جاهز', color: '#7c3aed' },
-    { key: 'completed', name: 'مكتمل', color: '#10b981' },
-  ];
-  const statusDist = STATUS_META
-    .map((s) => ({ name: s.name, value: d.orders.filter((o) => o.status === s.key).length, color: s.color }))
-    .filter((s) => s.value > 0);
-  // Top services (by order count + revenue)
-  const svcMap = {};
-  d.orders.forEach((o) => {
-    const k = o.service_type || 'أخرى';
-    if (!svcMap[k]) svcMap[k] = { name: k, count: 0, revenue: 0 };
-    svcMap[k].count++;
-    if (o.status === 'completed') svcMap[k].revenue += Number(o.price) || 0;
-  });
-  const topServices = Object.values(svcMap).sort((a, b) => b.count - a.count).slice(0, 5);
+  // Hand the RAW orders to the Grand Unified DNA — the client engine derives every
+  // dataset reactively from the Global Control Bar (range + metric). No precompute.
   return {
-    dashboard: <MerchantDashboard metrics={mMetrics} orders={liveOrders} inventory={d.inventory} workers={d.workers} peak={peak} lastHour={lastHour} trend={trend} statusDist={statusDist} topServices={topServices} totalOrders={d.orders.length} revGrowth={revGrowth} ordGrowth={ordGrowth} />,
+    dashboard: <MerchantDashboard orders={d.orders} workers={d.workers} inventory={d.inventory} />,
     operations: (
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         {d.orders.slice(0, 12).map((o) => (

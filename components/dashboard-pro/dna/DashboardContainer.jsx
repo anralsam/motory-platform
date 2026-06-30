@@ -1,0 +1,80 @@
+'use client';
+
+/**
+ * DashboardContainer — the mother-shell of the Grand Unified DNA.
+ * Provides TWO contexts to every surface that lives inside it:
+ *   • DataContext   — the global filter brain (range + metric) + every derived
+ *                     dataset (series / kpis / statusDist / topServices), recomputed
+ *                     by the pure engine whenever the filter or the orders change.
+ *   • ActionsContext — centralized OPTIMISTIC mutators (status / assign / deduct /
+ *                      start) for the sub-100ms feel; each reverts on server failure.
+ * Renders the role-aware GlobalControlBar at the top, then the consuming children.
+ * Role-agnostic shell, role-aware control bar.
+ */
+import { createContext, useContext, useMemo, useState, useCallback } from 'react';
+import { computeDerived, defaultMetricFor } from './engine';
+import GlobalControlBar from './GlobalControlBar';
+
+const DataCtx = createContext(null);
+const ActionsCtx = createContext(null);
+export const useDashboardData = () => useContext(DataCtx);
+export const useActions = () => useContext(ActionsCtx);
+
+export default function DashboardContainer({ role = 'merchant', orders = [], workers = [], inventory = [], actions = {}, headerActions = null, children }) {
+  const [range, setRange] = useState('30d');
+  const [metric, setMetric] = useState(defaultMetricFor(role));
+  const [ordersState, setOrders] = useState(orders);
+  const [invState, setInv] = useState(inventory);
+
+  const derived = useMemo(() => computeDerived(ordersState, workers, range), [ordersState, workers, range]);
+
+  // ── Centralized optimistic mutators ──
+  const updateStatus = useCallback(async (id, status) => {
+    const prev = ordersState;
+    setOrders((o) => o.map((x) => (x.id === id ? { ...x, status } : x)));
+    const r = await actions.updateOrderStatus?.(id, status);
+    if (!r?.ok) setOrders(prev);
+    return r;
+  }, [ordersState, actions]);
+
+  const assign = useCallback(async (id, userId) => {
+    const prev = ordersState;
+    setOrders((o) => o.map((x) => (x.id === id ? { ...x, assigned_to: userId } : x)));
+    const r = await actions.assignOrderToWorker?.(id, userId);
+    if (!r?.ok) setOrders(prev);
+    return r;
+  }, [ordersState, actions]);
+
+  const deduct = useCallback(async (orderId, parts) => {
+    const prev = invState;
+    setInv((v) => v.map((i) => { const p = parts.find((q) => q.itemId === i.id); return p ? { ...i, quantity: Math.max(0, (i.quantity || 0) - Number(p.qty)) } : i; }));
+    const r = await actions.deductParts?.(orderId, parts);
+    if (!r?.ok) setInv(prev);
+    return r;
+  }, [invState, actions]);
+
+  const start = useCallback(async (id, payload) => {
+    const prev = ordersState;
+    setOrders((o) => o.map((x) => (x.id === id ? { ...x, status: 'in_progress', plate: payload?.plate ?? x.plate, service_type: payload?.serviceType ?? x.service_type } : x)));
+    const r = await actions.startOrderWithParts?.(id, payload);
+    if (!r?.ok) setOrders(prev);
+    return r;
+  }, [ordersState, actions]);
+
+  // Local-only patch (server write already happened elsewhere, e.g. a modal).
+  const patchOrder = useCallback((id, patch) => setOrders((o) => o.map((x) => (x.id === id ? { ...x, ...patch } : x))), []);
+
+  const dataValue = useMemo(() => ({ role, range, setRange, metric, setMetric, ...derived }), [role, range, metric, derived]);
+  const actionsValue = useMemo(() => ({ role, orders: ordersState, inventory: invState, workers, updateStatus, assign, deduct, start, patchOrder }), [role, ordersState, invState, workers, updateStatus, assign, deduct, start, patchOrder]);
+
+  return (
+    <ActionsCtx.Provider value={actionsValue}>
+      <DataCtx.Provider value={dataValue}>
+        <div className="space-y-6">
+          <GlobalControlBar headerActions={headerActions} />
+          {children}
+        </div>
+      </DataCtx.Provider>
+    </ActionsCtx.Provider>
+  );
+}

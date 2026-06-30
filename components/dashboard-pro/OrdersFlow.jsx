@@ -104,7 +104,7 @@ export default function OrdersFlow({ orders = [], inventory = [] }) {
   const counts = items.reduce((a, o) => ((a[o.status] = (a[o.status] || 0) + 1), a), {});
   const visible = filter === 'all' ? items : items.filter((o) => o.status === filter);
 
-  if (!items.length) return <NoData title="لا توجد مهام نشطة" hint="أنجزت كل مهامك — عمل رائع 🎉" />;
+  if (!items.length) return <NoData title="لا توجد مهام نشطة" hint="لا توجد مهام موكّلة على حسابك حالياً." />;
 
   return (
     <div className="space-y-3">

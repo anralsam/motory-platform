@@ -75,7 +75,7 @@ function CheckoutSuccess() {
       <div className="grid h-16 w-16 place-items-center rounded-full bg-emerald-100 text-emerald-600">
         <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.8" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6 9 17l-5-5" /></svg>
       </div>
-      <h1 className="mt-5 text-xl font-bold tracking-tight text-slate-900">تم السداد بنجاح 🎉</h1>
+      <h1 className="mt-5 text-xl font-bold tracking-tight text-slate-900">تم السداد بنجاح</h1>
       <p className="mt-1 text-sm text-slate-500">شكراً لك — تم تسديد مستحقات منصة VOLD MOTOR.</p>
       {amt ? (
         <div className="mt-4 rounded-2xl border border-slate-200 bg-white px-6 py-4 text-center shadow-sm">

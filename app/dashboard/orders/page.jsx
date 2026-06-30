@@ -137,7 +137,7 @@ export default function OrdersPage() {
       <CreateOrderModal
         open={open}
         onClose={() => setOpen(false)}
-        onCreated={() => { refetch(); showToast('✅ تم إنشاء الطلب وإسناده للفني'); }}
+        onCreated={() => { refetch(); showToast('تم إنشاء الطلب وإسناده للفني'); }}
         centerId={centerId}
         branchId={effBranchId}
         centerType={centerType}

@@ -171,7 +171,7 @@ export default function InvoicesPage() {
         open={bankOpen}
         billing={billing}
         onClose={() => setBankOpen(false)}
-        onConfirmed={() => { refetchBilling(); showToast('✅ تم استلام إشعار التحويل — قيد المراجعة'); }}
+        onConfirmed={() => { refetchBilling(); showToast('تم استلام إشعار التحويل — قيد المراجعة'); }}
       />
 
       <ReceiptModal

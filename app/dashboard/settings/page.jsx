@@ -90,7 +90,7 @@ function IdentityTab({ user, centerId, loadBranches, showToast }) {
     const { error } = await supabase.auth.updateUser({ data: { center_name: name.trim(), vat_number: vat.trim(), contact_phone: phone.trim() } });
     setSaving(false);
     if (error) { showToast('تعذّر الحفظ: ' + error.message, 'error'); return; }
-    showToast('✅ تم حفظ بيانات المركز');
+    showToast('تم حفظ بيانات المركز');
   }
 
   async function onLogo(e) {
@@ -109,7 +109,7 @@ function IdentityTab({ user, centerId, loadBranches, showToast }) {
     window.dispatchEvent(new CustomEvent('vm:logo-change', { detail: { url: publicUrl } }));
     if (loadBranches) await loadBranches();
     setLogo(publicUrl); setUploading(false);
-    showToast('✅ تم تحديث الشعار (يظهر في الشريط الجانبي والفواتير)');
+    showToast('تم تحديث الشعار (يظهر في الشريط الجانبي والفواتير)');
   }
 
   function applyTheme(key) {
@@ -177,7 +177,7 @@ function ServicesTab({ centerId, branchId, centerType, showToast }) {
     const { error: err } = await supabase.from('service_menu').delete().eq('id', id);
     if (err) { showToast('تعذّر الحذف', 'error'); return; }
     await refetch();
-    showToast('🗑️ تم حذف الخدمة');
+    showToast('تم حذف الخدمة');
   }
 
   return (
@@ -230,7 +230,7 @@ function ServicesTab({ centerId, branchId, centerType, showToast }) {
         open={modal.open}
         editing={modal.editing}
         onClose={() => setModal({ open: false, editing: null })}
-        onSaved={() => { refetch(); showToast('✅ تم حفظ الخدمة'); }}
+        onSaved={() => { refetch(); showToast('تم حفظ الخدمة'); }}
         centerId={centerId}
         branchId={branchId}
         centerType={centerType}

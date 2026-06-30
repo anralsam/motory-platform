@@ -63,7 +63,7 @@ export default function TeamPage() {
     if (err) return { error: err };
     setPin(worker.id, pin);
     await refetch();
-    showToast('✅ تم إنشاء حساب الموظف');
+    showToast('تم إنشاء حساب الموظف');
     return { worker, pin };
   }
 
@@ -72,7 +72,7 @@ export default function TeamPage() {
     const { error: err } = await supabase.from('workers').update({ status: next }).eq('id', m.id);
     if (err) { showToast('تعذّر التحديث', 'error'); return; }
     await refetch();
-    showToast(next === 'active' ? '✅ تم تفعيل الحساب' : '🚫 تم إيقاف الحساب');
+    showToast(next === 'active' ? 'تم تفعيل الحساب' : 'تم إيقاف الحساب');
   }
 
   function sendLink(m) {

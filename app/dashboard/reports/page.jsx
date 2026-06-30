@@ -60,7 +60,7 @@ export default function ReportsPage() {
   const isReportDay = today.getDate() === 25;
   function exportMonthlyReport() {
     if (!isReportDay) return;
-    showToast('✅ تم إصدار تقرير الذكاء الاصطناعي الشهري');
+    showToast('تم إصدار تقرير الذكاء الاصطناعي الشهري');
     setTimeout(() => window.print(), 350);
   }
 
@@ -76,7 +76,7 @@ export default function ReportsPage() {
     a.href = URL.createObjectURL(new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8' }));
     a.download = `voldmotor-report-${new Date().toISOString().slice(0, 10)}.csv`;
     a.click();
-    showToast('✅ تم تصدير CSV');
+    showToast('تم تصدير CSV');
   }
   function exportPDF() { showToast('جارٍ تجهيز PDF…', 'info'); setTimeout(() => window.print(), 350); }
 

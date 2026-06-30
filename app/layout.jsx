@@ -17,7 +17,7 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="ar" dir="rtl" className={`${tajawal.variable} ${inter.variable}`} suppressHydrationWarning>
-      <body className="font-sans text-gray-900">{children}</body>
+      <body className="font-sans text-slate-900">{children}</body>
     </html>
   );
 }

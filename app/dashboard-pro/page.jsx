@@ -17,7 +17,7 @@ import FinancePanel from '@/components/dashboard-pro/FinancePanel';
 import GovernancePanel from '@/components/dashboard-pro/GovernancePanel';
 import AssignControl from '@/components/dashboard-pro/AssignControl';
 import StatusPill from '@/components/dashboard-pro/StatusPill';
-import WorkerModule from '@/components/dashboard-pro/WorkerModule';
+import WorkerDashboard from '@/components/dashboard-pro/WorkerDashboard';
 import ServicesManager from '@/components/dashboard-pro/ServicesManager';
 import NoData from '@/components/dashboard-pro/NoData';
 
@@ -165,13 +165,12 @@ export default async function DashboardProPage() {
     return <AdminConsole data={await adminConsoleData()} userName={userName} />;
   }
 
-  let content;
+  // Technician → dedicated mobile-first full-screen console (its own shell)
   if (role === 'worker') {
     const { orders, inventory } = await getWorkerData(user?.id);
-    content = { tasks: <WorkerModule orders={orders} inventory={inventory} /> };
-  } else {
-    content = await merchantContent(user?.id);
+    return <WorkerDashboard userName={userName} orders={orders} inventory={inventory} />;
   }
 
+  const content = await merchantContent(user?.id);
   return <DashboardLayout role={role} userName={userName} content={content} />;
 }

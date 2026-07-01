@@ -1,21 +1,24 @@
 'use client';
 
 /**
- * CentersLive — «المراكز لايف» (admin console).
- * Deep real-time drill-down over every center on the platform:
- *   • right rail: centers ranked by live load, with pulsing live counters.
- *   • main area: the selected center's three live streams — العمليات المباشرة،
- *     تسجيل العمال، الحوالات (platform_billing settlements).
- * Polls the admin-gated getCentersLive() server action every REFRESH_MS and
- * renders a per-second "آخر تحديث قبل N ث" ticker — YouTube-Studio realtime
- * card parity ("يتم التحديث مباشرة").
+ * CentersLive — «المتابعة الحية» (الإدارة العليا) — v2 عالمية النمط.
+ * الترتيب من الأعلى للأسفل:
+ *   ① تبويبات النشاط: الكل · مراكز تغيير الزيت · مغاسل السيارات · … (تُشتق
+ *     تلقائياً من أنشطة المراكز الفعلية) — كل ما تحتها يُفلتَر بها.
+ *   ② إحصاءات اليوم للنشاط المختار: بالانتظار الآن · تحت الخدمة · اكتملت
+ *     اليوم · إيرادات اليوم · عمولة المنصة اليوم.
+ *   ③ رسم بياني نظيف (عمليات اليوم بالساعة) — بدل الحوسة.
+ *   ④ قائمة المراكز بنبض حي → تفاصيل المركز المختار (عمليات · توظيف · حوالات).
+ * تحديث تلقائي كل 8 ثوانٍ + عدّاد بالثواني. متوافق مع الجوال بالكامل.
  */
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { ResponsiveContainer, ComposedChart, Area, Line, CartesianGrid, XAxis, YAxis, Tooltip } from 'recharts';
 import { Activity, UserPlus, Banknote, RefreshCw } from 'lucide-react';
 import { getCentersLive } from '@/app/dashboard-pro/actions';
 import StatusPill from './StatusPill';
 
 const REFRESH_MS = 8000;
+const COMMISSION = 0.10;
 const sar = (n) => `${(Number(n) || 0).toLocaleString('en-US')} ﷼`;
 
 function timeAgo(iso) {
@@ -52,11 +55,21 @@ function StreamCard({ icon: Icon, title, children, empty }) {
   );
 }
 
+function HourlyTooltip({ active, payload, label }) {
+  if (!active || !payload?.length) return null;
+  return (
+    <div dir="rtl" className="rounded-xl border border-slate-800 bg-slate-900 px-3 py-2 text-xs font-semibold text-white shadow-xl">
+      <span dir="ltr">{label}</span> · {payload[0].value} عملية
+    </div>
+  );
+}
+
 export default function CentersLive() {
-  const [snap, setSnap] = useState(null);      // { at, centers }
+  const [snap, setSnap] = useState(null);           // { at, centers, todayOrders }
+  const [typeTab, setTypeTab] = useState('all');
   const [selected, setSelected] = useState(null);
   const [error, setError] = useState(null);
-  const [, forceTick] = useState(0);           // 1s re-render for the "قبل N ث" ticker
+  const [, forceTick] = useState(0);
   const timerRef = useRef(null);
 
   const load = useCallback(async () => {
@@ -74,7 +87,42 @@ export default function CentersLive() {
     return () => { clearInterval(timerRef.current); clearInterval(tick); };
   }, [load]);
 
-  const centers = snap?.centers || [];
+  const allCenters = snap?.centers || [];
+
+  // ── ① تبويبات النشاط (مشتقة من الواقع) ──
+  const typeTabs = useMemo(() => {
+    const counts = {};
+    allCenters.forEach((c) => { counts[c.type] = (counts[c.type] || 0) + 1; });
+    return [{ key: 'all', label: 'كل الأنشطة', count: allCenters.length },
+      ...Object.entries(counts).map(([k, n]) => ({ key: k, label: k, count: n }))];
+  }, [allCenters]);
+
+  const centers = useMemo(
+    () => (typeTab === 'all' ? allCenters : allCenters.filter((c) => c.type === typeTab)),
+    [allCenters, typeTab],
+  );
+  const centerIds = useMemo(() => new Set(centers.map((c) => c.id)), [centers]);
+
+  // ── ② إحصاءات اليوم للنشاط المختار ──
+  const stats = useMemo(() => {
+    const pending = centers.reduce((s, c) => s + c.pending, 0);
+    const live = centers.reduce((s, c) => s + c.live, 0);
+    const done = centers.reduce((s, c) => s + c.todayOps, 0);           // عمليات اليوم (منشأة)
+    const completedToday = centers.reduce((s, c) => s + (c.completedToday || 0), 0);
+    const revenue = centers.reduce((s, c) => s + c.todayRevenue, 0);
+    return { pending, live, done, completedToday, revenue, commission: Math.round(revenue * COMMISSION) };
+  }, [centers]);
+
+  // ── ③ سلسلة اليوم بالساعات (مفلترة بالنشاط) ──
+  const hourly = useMemo(() => {
+    const arr = Array.from({ length: 24 }, (_, h) => ({ label: `${String(h).padStart(2, '0')}:00`, value: 0 }));
+    (snap?.todayOrders || []).forEach((o) => {
+      if (typeTab !== 'all' && !centerIds.has(o.merchant_id)) return;
+      if (o.hour >= 0 && o.hour < 24) arr[o.hour].value += 1;
+    });
+    return arr;
+  }, [snap, typeTab, centerIds]);
+
   const active = useMemo(
     () => centers.find((c) => c.id === selected) || centers[0] || null,
     [centers, selected],
@@ -92,62 +140,110 @@ export default function CentersLive() {
   }
 
   return (
-    <div className="space-y-4">
-      {/* Live status strip */}
-      <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-white px-5 py-3.5 shadow-sm">
-        <div className="flex items-center gap-2.5">
-          <LiveDot />
-          <span className="text-sm font-bold text-slate-900">يتم التحديث مباشرة</span>
-          <span className="text-xs font-medium text-slate-400" dir="rtl">آخر تحديث {timeAgo(snap.at)}</span>
+    <div className="space-y-5">
+      {/* ① Activity tabs */}
+      <div className="flex items-center gap-6 overflow-x-auto border-b border-slate-200 no-scrollbar">
+        {typeTabs.map((t) => {
+          const on = typeTab === t.key;
+          return (
+            <button key={t.key} onClick={() => { setTypeTab(t.key); setSelected(null); }} className="relative -mb-px flex-none pb-3 pt-1">
+              <span className={`whitespace-nowrap text-sm transition-colors ${on ? 'font-bold text-slate-900' : 'font-semibold text-slate-500 hover:text-slate-800'}`}>
+                {t.label} <span className="font-medium text-slate-400" dir="ltr">({t.count})</span>
+              </span>
+              {on && <span className="absolute inset-x-0 bottom-0 h-[3px] rounded-full bg-slate-900" />}
+            </button>
+          );
+        })}
+        <span className="ms-auto hidden flex-none items-center gap-2 pb-2 sm:flex">
+          <LiveDot /><span className="text-xs font-semibold text-slate-400">آخر تحديث {timeAgo(snap.at)}</span>
+        </span>
+      </div>
+
+      {/* ② Today stats — للنشاط المختار */}
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-5">
+        {[
+          ['بالانتظار الآن', stats.pending.toLocaleString('en-US'), 'text-amber-600'],
+          ['تحت الخدمة الآن', stats.live.toLocaleString('en-US'), 'text-blue-600'],
+          ['اكتملت اليوم', stats.completedToday.toLocaleString('en-US'), 'text-emerald-600'],
+          ['إيرادات اليوم', sar(stats.revenue), 'text-slate-900'],
+          ['عمولة المنصة اليوم', sar(stats.commission), 'text-slate-900'],
+        ].map(([l, v, tone]) => (
+          <div key={l} className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+            <div className="text-[11px] font-semibold text-slate-400">{l}</div>
+            <div className={`mt-1.5 truncate text-xl font-bold tabular-nums sm:text-2xl ${tone}`} dir="ltr">{v}</div>
+          </div>
+        ))}
+      </div>
+
+      {/* ③ Hourly chart — عمليات اليوم بالساعة */}
+      <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+        <div className="flex items-center justify-between">
+          <div>
+            <div className="text-sm font-bold text-slate-900">إيقاع اليوم</div>
+            <div className="mt-0.5 text-xs font-medium text-slate-400">العمليات الجديدة لكل ساعة{typeTab !== 'all' ? ` — ${typeTab}` : ' — كل الأنشطة'}</div>
+          </div>
+          <span className="text-xs font-bold text-slate-500"><span className="tabular-nums" dir="ltr">{stats.done}</span> عملية اليوم</span>
         </div>
-        <div className="flex items-center gap-4 text-xs font-semibold text-slate-500">
-          <span>مراكز نشطة: <span className="font-mono tabular-nums text-slate-900" dir="ltr">{centers.length}</span></span>
-          <span>عمليات حيّة الآن: <span className="font-mono tabular-nums text-emerald-600" dir="ltr">{centers.reduce((s, c) => s + c.live, 0)}</span></span>
-          <span>بالانتظار: <span className="font-mono tabular-nums text-amber-600" dir="ltr">{centers.reduce((s, c) => s + c.pending, 0)}</span></span>
+        <div className="mt-4 h-48 w-full" dir="ltr">
+          <ResponsiveContainer width="100%" height="100%">
+            <ComposedChart data={hourly} margin={{ top: 6, right: 8, left: -24, bottom: 0 }}>
+              <defs>
+                <linearGradient id="liveGrad" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#0f172a" stopOpacity={0.10} />
+                  <stop offset="100%" stopColor="#0f172a" stopOpacity={0} />
+                </linearGradient>
+              </defs>
+              <CartesianGrid vertical={false} horizontal stroke="#eceef1" />
+              <XAxis dataKey="label" axisLine={false} tickLine={false} tickMargin={8} tick={{ fill: '#606060', fontSize: 11, fontWeight: 500 }} minTickGap={26} />
+              <YAxis axisLine={false} tickLine={false} tickCount={4} tick={{ fill: '#606060', fontSize: 11, fontWeight: 500 }} allowDecimals={false} domain={[0, (m) => (m > 0 ? m : 4)]} />
+              <Tooltip cursor={{ stroke: '#e2e8f0', strokeWidth: 1.5 }} content={<HourlyTooltip />} />
+              <Area type="monotone" dataKey="value" stroke="none" fill="url(#liveGrad)" isAnimationActive animationDuration={350} />
+              <Line type="monotone" dataKey="value" stroke="#0f172a" strokeWidth={2} dot={false} activeDot={{ r: 4, fill: '#0f172a', stroke: '#fff', strokeWidth: 2 }} isAnimationActive animationDuration={350} />
+            </ComposedChart>
+          </ResponsiveContainer>
         </div>
       </div>
 
+      {/* ④ Centers rail + selected center streams */}
       <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-4">
-        {/* ── Centers rail ── */}
         <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm lg:col-span-1">
           <div className="border-b border-slate-100 px-4 py-3 text-xs font-bold uppercase tracking-wider text-slate-400">المراكز حسب الضغط الحيّ</div>
-          <div className="max-h-[560px] divide-y divide-slate-100 overflow-y-auto">
+          <div className="flex max-h-[220px] flex-row divide-x divide-x-reverse divide-slate-100 overflow-x-auto lg:max-h-[560px] lg:flex-col lg:divide-x-0 lg:divide-y lg:overflow-y-auto">
             {centers.map((c) => {
               const on = active?.id === c.id;
               return (
                 <button key={c.id} onClick={() => setSelected(c.id)}
-                  className={`flex w-full items-center gap-3 px-4 py-3 text-start transition-colors ${on ? 'bg-blue-50/70' : 'hover:bg-slate-50'}`}>
+                  className={`flex w-56 flex-none items-center gap-3 px-4 py-3 text-start transition-colors lg:w-full ${on ? 'bg-slate-100' : 'hover:bg-slate-50'}`}>
                   <div className="min-w-0 flex-1">
-                    <div className={`truncate text-sm ${on ? 'font-bold text-blue-700' : 'font-semibold text-slate-900'}`}>{c.name}</div>
+                    <div className={`truncate text-sm ${on ? 'font-bold text-slate-900' : 'font-semibold text-slate-700'}`}>{c.name}</div>
                     <div className="mt-0.5 flex items-center gap-2 text-[11px] font-medium text-slate-400">
-                      <span className="font-mono tabular-nums" dir="ltr">{c.todayOps}</span> عملية اليوم
-                      {c.frozen && <span className="rounded-full bg-rose-50 px-1.5 text-[10px] font-bold text-rose-600">مجمّد</span>}
-                      {c.audit && <span className="rounded-full bg-amber-50 px-1.5 text-[10px] font-bold text-amber-600">تدقيق</span>}
+                      <span className="truncate">{c.type}</span>
+                      {c.branchCount > 1 && <span className="flex-none rounded-full bg-slate-100 px-1.5 text-[10px] font-bold text-slate-500">{c.branchCount} فروع</span>}
+                      {c.frozen && <span className="flex-none rounded-full bg-rose-50 px-1.5 text-[10px] font-bold text-rose-600">مجمّد</span>}
                     </div>
                   </div>
                   {c.live > 0
-                    ? <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2 py-0.5 font-mono text-xs font-bold tabular-nums text-emerald-600" dir="ltr"><LiveDot />{c.live}</span>
-                    : <span className="font-mono text-xs tabular-nums text-slate-300" dir="ltr">0</span>}
+                    ? <span className="inline-flex flex-none items-center gap-1.5 rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-bold tabular-nums text-emerald-600" dir="ltr"><LiveDot />{c.live}</span>
+                    : <span className="flex-none text-xs tabular-nums text-slate-300" dir="ltr">0</span>}
                 </button>
               );
             })}
-            {!centers.length && <div className="grid place-items-center py-12 text-xs text-slate-400">لا توجد مراكز بعد</div>}
+            {!centers.length && <div className="grid w-full place-items-center py-12 text-xs text-slate-400">لا توجد مراكز في هذا النشاط</div>}
           </div>
         </div>
 
-        {/* ── Selected center streams ── */}
         <div className="space-y-4 lg:col-span-3">
           {active ? (
             <>
-              <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-white px-5 py-4 shadow-sm">
-                <div>
-                  <div className="text-base font-bold text-slate-900">{active.name}</div>
-                  <div className="mt-0.5 text-xs font-medium text-slate-400">تفاصيل المركز الحيّة — عمليات · توظيف · حوالات</div>
+              <div className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-slate-200 bg-white px-5 py-4 shadow-sm">
+                <div className="min-w-0">
+                  <div className="truncate text-base font-bold text-slate-900">{active.name}</div>
+                  <div className="mt-0.5 text-xs font-medium text-slate-400">{active.type} · تفاصيل حيّة — عمليات · توظيف · حوالات</div>
                 </div>
-                <div className="flex items-center gap-5">
+                <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
                   {[['حيّة الآن', active.live, 'text-emerald-600'], ['بالانتظار', active.pending, 'text-amber-600'], ['عمليات اليوم', active.todayOps, 'text-slate-900'], ['إيراد اليوم', sar(active.todayRevenue), 'text-slate-900']].map(([l, v, tone]) => (
                     <div key={l} className="text-center">
-                      <div className={`font-mono text-lg font-bold tabular-nums ${tone}`} dir="ltr">{v}</div>
+                      <div className={`text-lg font-bold tabular-nums ${tone}`} dir="ltr">{v}</div>
                       <div className="text-[10px] font-semibold text-slate-400">{l}</div>
                     </div>
                   ))}
@@ -155,7 +251,6 @@ export default function CentersLive() {
               </div>
 
               <div className="grid grid-cols-1 gap-4 xl:grid-cols-3">
-                {/* Operations stream */}
                 <StreamCard icon={Activity} title="العمليات المباشرة" empty="لا توجد عمليات">
                   {active.ops.map((o) => (
                     <div key={o.id} className="flex items-center gap-3 px-5 py-3">
@@ -173,7 +268,6 @@ export default function CentersLive() {
                   ))}
                 </StreamCard>
 
-                {/* Hires stream */}
                 <StreamCard icon={UserPlus} title="تسجيل العمال" empty="لا يوجد عمال مسجّلون">
                   {active.hires.map((h, i) => (
                     <div key={i} className="flex items-center gap-3 px-5 py-3">
@@ -182,22 +276,21 @@ export default function CentersLive() {
                         <div className="truncate text-sm font-semibold text-slate-900">{h.name}</div>
                         <div className="text-[11px] font-medium text-slate-400">{timeAgo(h.at)}</div>
                       </div>
-                      <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${h.status === 'active' ? 'bg-emerald-50 text-emerald-600' : 'bg-slate-100 text-slate-500'}`}>
+                      <span className={`flex-none rounded-full px-2 py-0.5 text-[10px] font-bold ${h.status === 'active' ? 'bg-emerald-50 text-emerald-600' : 'bg-slate-100 text-slate-500'}`}>
                         {h.status === 'active' ? 'نشط' : h.status}
                       </span>
                     </div>
                   ))}
                 </StreamCard>
 
-                {/* Transfers / settlements stream */}
                 <StreamCard icon={Banknote} title="الحوالات والتسويات" empty="لا توجد حوالات مسجّلة">
                   {active.transfers.map((t, i) => (
                     <div key={i} className="flex items-center gap-3 px-5 py-3">
                       <div className="min-w-0 flex-1">
-                        <div className="font-mono text-sm font-bold tabular-nums text-slate-900" dir="ltr">{sar(t.amount)}</div>
+                        <div className="text-sm font-bold tabular-nums text-slate-900" dir="ltr">{sar(t.amount)}</div>
                         <div className="text-[11px] font-medium text-slate-400" dir="ltr">{t.period}</div>
                       </div>
-                      <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${t.status === 'paid' ? 'bg-emerald-50 text-emerald-600' : 'bg-amber-50 text-amber-600'}`}>
+                      <span className={`flex-none rounded-full px-2 py-0.5 text-[10px] font-bold ${t.status === 'paid' ? 'bg-emerald-50 text-emerald-600' : 'bg-amber-50 text-amber-600'}`}>
                         {t.status === 'paid' ? 'تمّت' : 'بانتظار التحويل'}
                       </span>
                     </div>

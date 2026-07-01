@@ -156,7 +156,7 @@ async function adminConsoleData() {
     .sort((a, b) => b.revenue - a.revenue)
     .map((m) => ({ ...m, share: totalRev ? Math.round((m.revenue / totalRev) * 100) : 0 }));
 
-  const macro = { revenue: totalRev, activeCenters: merchantIds.length, totalOps: total };
+  const macro = { revenue: totalRev, activeCenters: merchantIds.length, totalOps: total, branches: (intel.branches || []).length };
 
   return { metrics, centers, requests: rows, orders: intel.orders || [], workers: intel.workers || [], macro, leaderboard };
 }

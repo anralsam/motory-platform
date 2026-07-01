@@ -26,16 +26,16 @@ import CentersLive from './CentersLive';
 const EDGE = `${SUPABASE_URL}/functions/v1/admin-merchants`;
 const sar = (n) => `${(Number(n) || 0).toLocaleString('en-US')} ﷼`;
 
-// ── Flat, concise nav — Studio parity ──
+// ── Flat, concise nav — الترتيب المعتمد: الرئيسية ← طلبات الانضمام ← المالية
+//    ← المتابعة الحية ← الحوكمة ← الإعدادات (آخر شيء دائماً). ثنائي اللغة. ──
 const PAGES = [
-  { k: 'dashboard', label: 'لوحة البيانات', Icon: LayoutDashboard },
-  { k: 'live', label: 'المراكز لايف', Icon: RadioTower },
-  { k: 'requests', label: 'طلبات الانضمام', Icon: Inbox },
-  { k: 'finance', label: 'المالية', Icon: Wallet },
-  { k: 'governance', label: 'الحوكمة والأمان', Icon: ShieldCheck },
-  { k: 'settings', label: 'إعدادات المنصة', Icon: Settings },
+  { k: 'dashboard', label: 'الرئيسية', en: 'Home', Icon: LayoutDashboard },
+  { k: 'requests', label: 'طلبات الانضمام', en: 'Join Requests', Icon: Inbox },
+  { k: 'finance', label: 'المالية', en: 'Finance', Icon: Wallet },
+  { k: 'live', label: 'المتابعة الحية', en: 'Live Monitor', Icon: RadioTower },
+  { k: 'governance', label: 'الحوكمة والأمان', en: 'Governance', Icon: ShieldCheck },
+  { k: 'settings', label: 'الإعدادات', en: 'Settings', Icon: Settings },
 ];
-const TITLE = Object.fromEntries(PAGES.map((p) => [p.k, p.label]));
 
 // surfaces
 const CARD = 'rounded-2xl border border-slate-200 bg-white shadow-sm';
@@ -213,24 +213,6 @@ function GovernanceView() {
   );
 }
 
-function MacroSummary({ macro = {} }) {
-  const cells = [
-    { label: 'إجمالي الإيرادات المنصية', value: sar(macro.revenue) },
-    { label: 'المراكز النشطة', value: (macro.activeCenters || 0).toLocaleString('en-US') },
-    { label: 'حجم العمليات الكلي', value: (macro.totalOps || 0).toLocaleString('en-US') },
-  ];
-  return (
-    <div className="grid grid-cols-1 overflow-hidden rounded-2xl border border-slate-200 bg-[#fafafa]/50 md:grid-cols-3">
-      {cells.map((c, i) => (
-        <div key={c.label} className={`p-6 ${i > 0 ? 'border-slate-200 md:border-e' : ''}`}>
-          <div className="text-sm font-medium text-slate-500">{c.label}</div>
-          <div className="mt-2 font-mono text-3xl font-bold tracking-tight text-slate-900 tabular-nums" dir="ltr">{c.value}</div>
-        </div>
-      ))}
-    </div>
-  );
-}
-
 function MerchantLeaderboard({ rows = [], onManage }) {
   if (!rows.length) return <Empty label="لا توجد مراكز نشطة بعد" />;
   return (
@@ -329,6 +311,11 @@ function ManageSheet({ row, onFreeze, onAudit, onTier, onClose }) {
 export default function AdminConsole({ data = {}, userName = 'المدير' }) {
   const { metrics = {}, requests = [], orders = [], workers = [], macro = {}, leaderboard = [] } = data;
   const [active, setActive] = useState('dashboard');
+  const [lang, setLang] = useState('ar');
+  const isAr = lang === 'ar';
+  const dir = isAr ? 'rtl' : 'ltr';
+  const labelOf = (p) => (isAr ? p.label : p.en);
+  const TITLE = Object.fromEntries(PAGES.map((p) => [p.k, labelOf(p)]));
   const [lbRows, setLbRows] = useState(leaderboard);
   const [manageId, setManageId] = useState(null);
   const [toast, setToast] = useState(null);
@@ -352,19 +339,24 @@ export default function AdminConsole({ data = {}, userName = 'المدير' }) {
     switch (active) {
       case 'dashboard': return (
         <DashboardContainer role="admin" orders={orders} workers={workers}>
-          {/* Multi-tenant macro summary — consolidated across all centers */}
-          <MacroSummary macro={macro} />
-
-          {/* platform governance KPI strip — clean Studio cards, no icon chips */}
-          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4">
-            <StatCard label="صافي عمولات المنصة" value={sar(metrics.commissions)} delta="12%" hint="مقارنةً بالشهر الماضي" />
-            <StatCard label="نجاح الالتزام SLA" value={`${metrics.slaPct || 0}%`} hint="نسبة العمليات المكتملة" />
-            <StatCard label="ورش تحت الفحص" value={(metrics.underInspection || 0).toLocaleString('en-US')} hint="طلبات بانتظار التدقيق" />
-            <StatCard label="سيارات داخل الصالات" value={(metrics.carsInOps || 0).toLocaleString('en-US')} hint="عمليات جارية الآن" />
-          </div>
-
-          {/* Master chart — dropdown filters, Studio headline */}
+          {/* الرسم أولاً — Studio parity مع فلاتره المنسدلة */}
           <UnifiedChart showControls />
+
+          {/* جداول الأرقام المختصرة — تشمل المراكز + الفروع كاملة */}
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-5">
+            {[
+              ['المراكز النشطة', (macro.activeCenters || 0).toLocaleString('en-US')],
+              ['إجمالي الفروع', (macro.branches || 0).toLocaleString('en-US')],
+              ['حجم العمليات الكلي', (macro.totalOps || 0).toLocaleString('en-US')],
+              ['إجمالي الإيرادات', sar(macro.revenue)],
+              ['صافي عمولات المنصة', sar(metrics.commissions)],
+            ].map(([l, v]) => (
+              <div key={l} className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+                <div className="text-[11px] font-semibold text-slate-400">{l}</div>
+                <div className="mt-1.5 truncate text-xl font-bold tabular-nums text-slate-900 sm:text-2xl" dir="ltr">{v}</div>
+              </div>
+            ))}
+          </div>
 
           {/* Merchant leaderboard / ranking matrix */}
           <MerchantLeaderboard rows={lbRows} onManage={setManageId} />
@@ -380,7 +372,7 @@ export default function AdminConsole({ data = {}, userName = 'المدير' }) {
   }
 
   return (
-    <div dir="rtl" className="min-h-screen bg-slate-50 font-sans text-slate-900">
+    <div dir={dir} className="min-h-screen bg-slate-50 font-sans text-slate-900">
       {/* Sidebar — desktop */}
       <aside className="fixed inset-y-0 end-0 z-40 hidden w-64 flex-col border-s border-slate-200 bg-slate-50 md:flex">
         {/* Brand — same wordmark as the public landing */}
@@ -394,7 +386,7 @@ export default function AdminConsole({ data = {}, userName = 'المدير' }) {
             return (
               <button key={it.k} onClick={() => setActive(it.k)}
                 className={`flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-start text-sm font-medium transition-colors ${on ? 'bg-blue-50 font-semibold text-blue-600' : 'text-slate-700 hover:bg-slate-100'}`}>
-                <it.Icon size={18} className="flex-none" /><span className="truncate">{it.label}</span>
+                <it.Icon size={18} className="flex-none" /><span className="truncate">{labelOf(it)}</span>
               </button>
             );
           })}
@@ -409,6 +401,15 @@ export default function AdminConsole({ data = {}, userName = 'المدير' }) {
       <div className="flex min-h-screen flex-col md:me-64">
         <header className="sticky top-0 z-20 flex h-16 items-center justify-between border-b border-slate-200 bg-white/80 px-4 backdrop-blur-xl md:px-8">
           <h1 className="text-[15px] font-bold">{TITLE[active]}</h1>
+          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 rounded-xl bg-slate-100 p-1">
+            {[['ar', 'AR'], ['en', 'EN']].map(([k, l]) => (
+              <button key={k} onClick={() => setLang(k)}
+                className={`rounded-lg px-3 py-1.5 text-xs font-bold transition-all ${lang === k ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-800'}`}>
+                {l}
+              </button>
+            ))}
+          </div>
           {active === 'live' ? (
             <span className="inline-flex items-center gap-2 rounded-full bg-emerald-50 px-3 py-1.5 text-xs font-bold text-emerald-600">
               <span className="relative flex h-2 w-2">
@@ -420,6 +421,7 @@ export default function AdminConsole({ data = {}, userName = 'المدير' }) {
           ) : (
             <div className="grid h-9 w-9 place-items-center rounded-full bg-blue-600 text-sm font-black text-white md:hidden">{(userName || 'A').charAt(0).toUpperCase()}</div>
           )}
+          </div>
         </header>
 
         <main className="flex-1 p-4 pb-24 md:p-8 md:pb-8">
@@ -429,7 +431,7 @@ export default function AdminConsole({ data = {}, userName = 'المدير' }) {
 
       {/* Mobile bottom nav — key sections */}
       <nav className="fixed inset-x-0 bottom-0 z-40 flex items-stretch border-t border-slate-200 bg-slate-50 md:hidden">
-        {[['dashboard', LayoutDashboard], ['live', RadioTower], ['requests', Inbox], ['finance', Wallet]].map(([k, Icon]) => {
+        {[['dashboard', LayoutDashboard], ['requests', Inbox], ['finance', Wallet], ['live', RadioTower]].map(([k, Icon]) => {
           const on = active === k;
           return (
             <button key={k} onClick={() => setActive(k)} className={`flex flex-1 flex-col items-center gap-1 py-2.5 text-[10px] font-semibold transition-colors ${on ? 'text-blue-600' : 'text-slate-400'}`}>

@@ -459,16 +459,25 @@ export async function getCentersLive() {
   const admin = getSupabaseAdmin();
   if (!admin) return { ok: false, error: 'مفتاح الخدمة غير مهيّأ' };
 
-  const [{ data: orders }, { data: workers }, { data: users }, billingRes] = await Promise.all([
+  const [{ data: orders }, { data: workers }, { data: users }, billingRes, { data: branchRows }] = await Promise.all([
     admin.from('orders')
       .select('id, merchant_id, customer_name, plate, service_type, status, price, created_at, started_at, completed_at, assigned_to')
-      .order('created_at', { ascending: false }).limit(400),
+      .order('created_at', { ascending: false }).limit(600),
     admin.from('workers').select('*').order('created_at', { ascending: false }).limit(200)
       .then((r) => (r.error ? admin.from('workers').select('*').limit(200) : r)),
     admin.from('users').select('id, shop_name, is_frozen, under_audit').eq('role', 'merchant'),
     admin.from('platform_billing').select('*').limit(120)
       .then((r) => (r.error ? { data: [] } : r)),
+    admin.from('branches').select('id, owner_id, center_type, is_primary'),
   ]);
+
+  // نوع النشاط لكل مركز — من فرعه الرئيسي (أو أول فرع)
+  const typeByOwner = {};
+  const branchCountByOwner = {};
+  (branchRows || []).forEach((b) => {
+    branchCountByOwner[b.owner_id] = (branchCountByOwner[b.owner_id] || 0) + 1;
+    if (!typeByOwner[b.owner_id] || b.is_primary) typeByOwner[b.owner_id] = b.center_type || 'أخرى';
+  });
 
   const nameById = Object.fromEntries((users || []).map((u) => [u.id, u.shop_name || 'مركز']));
   const workerName = Object.fromEntries((workers || []).filter((w) => w.user_id).map((w) => [w.user_id, w.full_name]));
@@ -479,9 +488,11 @@ export async function getCentersLive() {
     if (!centers[id]) {
       centers[id] = {
         id, name: nameById[id] || 'مركز',
+        type: typeByOwner[id] || 'أخرى',
+        branchCount: branchCountByOwner[id] || 0,
         frozen: !!(users || []).find((u) => u.id === id)?.is_frozen,
         audit: !!(users || []).find((u) => u.id === id)?.under_audit,
-        live: 0, pending: 0, todayOps: 0, todayRevenue: 0,
+        live: 0, pending: 0, todayOps: 0, todayRevenue: 0, completedToday: 0,
         ops: [], hires: [], transfers: [],
       };
     }
@@ -499,6 +510,10 @@ export async function getCentersLive() {
     if (t && t >= dayStart) {
       c.todayOps += 1;
       if (o.status === 'completed') c.todayRevenue += Number(o.price) || 0;
+    }
+    if (o.status === 'completed') {
+      const ct = o.completed_at || o.created_at;
+      if (ct && new Date(ct) >= dayStart) c.completedToday += 1;
     }
     if (c.ops.length < 8) c.ops.push({
       id: o.id, customer: o.customer_name || 'عميل', plate: o.plate || null,
@@ -529,5 +544,8 @@ export async function getCentersLive() {
   });
 
   const rows = Object.values(centers).sort((a, b) => (b.live + b.pending) - (a.live + a.pending) || b.todayOps - a.todayOps);
-  return { ok: true, at: new Date().toISOString(), centers: rows };
+  const todayOrders = (orders || [])
+    .filter((o) => o.created_at && new Date(o.created_at) >= dayStart)
+    .map((o) => ({ merchant_id: o.merchant_id, status: o.status, price: Number(o.price) || 0, hour: new Date(o.created_at).getHours() }));
+  return { ok: true, at: new Date().toISOString(), centers: rows, todayOrders };
 }

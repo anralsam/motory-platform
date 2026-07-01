@@ -7,7 +7,8 @@
  */
 import { createServerSupabase } from '@/lib/supabase/server';
 import { getSupabaseAdmin } from '@/lib/supabase/admin';
-import { getAdminData, getMerchantData, getWorkerData, getIntelligenceData, getOperationsData, getMerchantServices } from '@/lib/dashboard-pro/queries';
+import { getAdminData, getMerchantData, getWorkerData, getIntelligenceData, getOperationsData, getMerchantServices, getMerchantGovernance } from '@/lib/dashboard-pro/queries';
+import Lockdown from '@/components/Lockdown';
 import DashboardLayout from '@/components/dashboard-pro/DashboardLayout';
 import AdminConsole from '@/components/dashboard-pro/AdminConsole';
 import AdminDashboard from '@/components/dashboard-pro/AdminDashboard';
@@ -129,14 +130,26 @@ async function adminConsoleData() {
 
   const merchantIds = [...new Set([...Object.keys(byMerchant), ...Object.keys(brByOwner)])];
   const totalRev = merchantIds.reduce((s, id) => s + (byMerchant[id]?.revenue || 0), 0);
+
+  // Governance + profile names for every ranked merchant (single batched read).
+  const admin = getSupabaseAdmin();
+  let govById = {};
+  if (admin && merchantIds.length) {
+    const { data: us } = await admin.from('users').select('id, shop_name, is_frozen, under_audit, tier_plan').in('id', merchantIds);
+    govById = Object.fromEntries((us || []).map((u) => [u.id, u]));
+  }
+
   const leaderboard = merchantIds
     .map((id) => ({
       id,
-      name: brByOwner[id]?.name || 'مركز',
+      name: govById[id]?.shop_name || brByOwner[id]?.name || 'مركز',
       branches: brByOwner[id]?.count || 0,
       orders: byMerchant[id]?.orders || 0,
       staff: staffByCenter[id] || 0,
       revenue: byMerchant[id]?.revenue || 0,
+      is_frozen: !!govById[id]?.is_frozen,
+      under_audit: !!govById[id]?.under_audit,
+      tier_plan: govById[id]?.tier_plan || 'standard',
     }))
     .sort((a, b) => b.revenue - a.revenue)
     .map((m) => ({ ...m, share: totalRev ? Math.round((m.revenue / totalRev) * 100) : 0 }));
@@ -152,10 +165,25 @@ export default async function DashboardProPage() {
   const role = await detectRole(supabase, user);
   const userName = (user?.email || '').split('@')[0] || 'المستخدم';
 
-  // Super Admin → dedicated dark console (its own shell)
+  // Super Admin → dedicated dark console (its own shell). Admins bypass governance.
   if (role === 'admin') {
     return <AdminConsole data={await adminConsoleData()} userName={userName} />;
   }
+
+  // ── Platform governance gate (merchant + worker) ──
+  let centerId = user?.id;
+  if (role === 'worker') {
+    const admin = getSupabaseAdmin();
+    if (admin) {
+      const { data: w } = await admin.from('workers').select('center_id').eq('user_id', user?.id).maybeSingle();
+      centerId = w?.center_id || user?.id;
+    }
+  }
+  const gov = await getMerchantGovernance(centerId);
+  // Render the wall (don't redirect) — the user is still authed and middleware
+  // bounces authed users off /auth/*, which would create a redirect loop.
+  const blocked = gov.is_frozen ? 'frozen' : (gov.under_audit ? 'audit' : null);
+  if (blocked) return <Lockdown variant={blocked} />;
 
   // Technician → dedicated mobile-first full-screen console (its own shell)
   if (role === 'worker') {

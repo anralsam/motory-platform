@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { supabase } from '@/lib/supabaseClient';
 import { SUPABASE_URL } from '@/lib/supabase/config';
+import { toggleMerchantFreeze, toggleMerchantAudit, resetMerchantTier } from '@/app/dashboard-pro/actions';
 import DashboardContainer from './dna/DashboardContainer';
 import UnifiedChart from './dna/UnifiedChart';
 
@@ -229,7 +230,12 @@ function MerchantLeaderboard({ rows = [], onManage }) {
             <span className="grid h-7 w-7 flex-none place-items-center rounded-lg bg-slate-100 font-mono text-xs font-bold text-slate-500" dir="ltr">{i + 1}</span>
             <div className="min-w-0 flex-1">
               <div className="mb-1.5 flex flex-wrap items-center justify-between gap-2">
-                <span className="truncate text-sm font-bold text-slate-900">{r.name}</span>
+                <span className="flex min-w-0 items-center gap-2">
+                  <span className="truncate text-sm font-bold text-slate-900">{r.name}</span>
+                  {r.is_frozen && <span className="rounded-full bg-rose-50 px-2 py-0.5 text-[10px] font-bold text-rose-600">مجمّد</span>}
+                  {r.under_audit && <span className="rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-bold text-amber-600">تدقيق</span>}
+                  {r.tier_plan === 'enterprise' && <span className="rounded-full bg-blue-50 px-2 py-0.5 text-[10px] font-bold text-blue-600">Enterprise</span>}
+                </span>
                 <div className="flex flex-none items-center gap-2">
                   <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-semibold text-slate-500">{r.branches} فرع</span>
                   <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-semibold text-slate-500">{r.orders} عملية</span>
@@ -244,7 +250,7 @@ function MerchantLeaderboard({ rows = [], onManage }) {
                 <span className="font-mono text-[11px] font-semibold tabular-nums text-slate-400" dir="ltr">{r.share}%</span>
               </div>
             </div>
-            <button onClick={() => onManage(r)}
+            <button onClick={() => onManage(r.id)}
               className="flex flex-none items-center gap-1.5 rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-600 transition-colors hover:border-blue-400 hover:text-blue-600">
               <Settings size={13} /> إدارة الحساب
             </button>
@@ -255,9 +261,8 @@ function MerchantLeaderboard({ rows = [], onManage }) {
   );
 }
 
-function ManageSheet({ row, flash, onClose }) {
+function ManageSheet({ row, onFreeze, onAudit, onTier, onClose }) {
   if (!row) return null;
-  const ACTIONS = [['تدقيق مالي إجباري', 'بدأ التدقيق المالي'], ['تجميد الحساب مؤقتاً', 'تم تجميد الحساب'], ['إعادة ضبط الباقة', 'أُعيد ضبط الباقة']];
   return (
     <div dir="rtl" className="fixed inset-0 z-50 flex items-stretch justify-start bg-slate-900/40 backdrop-blur-sm" onClick={onClose}>
       <div className="h-full w-full max-w-md overflow-y-auto border-e border-slate-200 bg-white p-8 shadow-2xl" onClick={(e) => e.stopPropagation()}>
@@ -265,7 +270,11 @@ function ManageSheet({ row, flash, onClose }) {
           <h3 className="text-lg font-bold tracking-tight text-slate-900">إدارة الحساب</h3>
           <button onClick={onClose} className="grid h-8 w-8 place-items-center rounded-lg text-slate-400 hover:bg-slate-100">✕</button>
         </div>
-        <div className="mt-1 text-sm font-medium text-slate-500">{row.name}</div>
+        <div className="mt-1 flex items-center gap-2 text-sm font-medium text-slate-500">
+          {row.name}
+          {row.is_frozen && <span className="rounded-full bg-rose-50 px-2 py-0.5 text-[10px] font-bold text-rose-600">مجمّد</span>}
+          {row.under_audit && <span className="rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-bold text-amber-600">تحت التدقيق</span>}
+        </div>
 
         <div className="mt-6 grid grid-cols-2 gap-3">
           {[['الفروع', row.branches], ['العمليات', row.orders], ['الموظفون', row.staff], ['الإيراد', sar(row.revenue)]].map(([l, v]) => (
@@ -276,16 +285,29 @@ function ManageSheet({ row, flash, onClose }) {
           ))}
         </div>
 
-        <div className="mt-6 text-xs font-bold uppercase tracking-wider text-slate-400">تجاوزات إدارية</div>
-        <div className="mt-3 space-y-2">
-          {ACTIONS.map(([label, msg]) => (
-            <button key={label} onClick={() => { flash(`${msg} — ${row.name}`); onClose(); }}
-              className="flex w-full items-center justify-between rounded-xl border border-slate-200 px-4 py-3 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-50">
-              {label}<span className="text-slate-300">›</span>
+        {/* Tier override */}
+        <div className="mt-6 text-xs font-bold uppercase tracking-wider text-slate-400">الباقة</div>
+        <div className="mt-3 inline-flex gap-1 rounded-xl bg-slate-100 p-1">
+          {[['standard', 'قياسية'], ['enterprise', 'Enterprise']].map(([k, label]) => (
+            <button key={k} onClick={() => onTier(row.id, k)}
+              className={`rounded-lg px-4 py-1.5 text-xs font-bold transition-all ${row.tier_plan === k ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-800'}`}>
+              {label}
             </button>
           ))}
         </div>
-        <MockNote />
+
+        {/* Lifecycle overrides */}
+        <div className="mt-6 text-xs font-bold uppercase tracking-wider text-slate-400">تجاوزات إدارية</div>
+        <div className="mt-3 space-y-2">
+          <button onClick={() => onFreeze(row.id, !row.is_frozen)}
+            className={`flex w-full items-center justify-center gap-2 rounded-xl py-3 text-sm font-bold text-white transition-colors ${row.is_frozen ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-rose-600 hover:bg-rose-700'}`}>
+            {row.is_frozen ? 'إلغاء تجميد الحساب' : 'تجميد الحساب'}
+          </button>
+          <button onClick={() => onAudit(row.id, !row.under_audit)}
+            className={`flex w-full items-center justify-center gap-2 rounded-xl border py-3 text-sm font-bold transition-colors ${row.under_audit ? 'border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100' : 'border-amber-200 bg-amber-50 text-amber-700 hover:bg-amber-100'}`}>
+            {row.under_audit ? 'إنهاء التدقيق الإجباري' : 'بدء تدقيق إجباري'}
+          </button>
+        </div>
       </div>
     </div>
   );
@@ -294,9 +316,24 @@ function ManageSheet({ row, flash, onClose }) {
 export default function AdminConsole({ data = {}, userName = 'المدير' }) {
   const { metrics = {}, centers = [], requests = [], orders = [], workers = [], macro = {}, leaderboard = [] } = data;
   const [active, setActive] = useState('centers');
-  const [manage, setManage] = useState(null);
+  const [lbRows, setLbRows] = useState(leaderboard);
+  const [manageId, setManageId] = useState(null);
   const [toast, setToast] = useState(null);
   const flash = (msg) => { setToast(msg); setTimeout(() => setToast(null), 2400); };
+
+  const manageRow = lbRows.find((r) => r.id === manageId) || null;
+
+  // Optimistic governance mutators — patch the row instantly, revert on failure.
+  function govMutate(id, patch, run, okMsg, errMsg) {
+    const prev = lbRows;
+    setLbRows((rows) => rows.map((r) => (r.id === id ? { ...r, ...patch } : r)));
+    run().then((res) => {
+      if (!res?.ok) { setLbRows(prev); flash(errMsg); } else flash(okMsg);
+    }).catch(() => { setLbRows(prev); flash(errMsg); });
+  }
+  const onFreeze = (id, status) => govMutate(id, { is_frozen: status }, () => toggleMerchantFreeze(id, status), status ? 'تم تجميد الحساب' : 'تم إلغاء التجميد', 'تعذّر تنفيذ العملية');
+  const onAudit = (id, status) => govMutate(id, { under_audit: status }, () => toggleMerchantAudit(id, status), status ? 'بدأ التدقيق الإجباري' : 'انتهى التدقيق', 'تعذّر تنفيذ العملية');
+  const onTier = (id, tier) => govMutate(id, { tier_plan: tier }, () => resetMerchantTier(id, tier), `أُعيد ضبط الباقة: ${tier}`, 'تعذّر تنفيذ العملية');
 
   function renderView() {
     switch (active) {
@@ -377,7 +414,7 @@ export default function AdminConsole({ data = {}, userName = 'المدير' }) {
             <UnifiedChart showControls />
 
             {/* Merchant leaderboard / ranking matrix */}
-            <MerchantLeaderboard rows={leaderboard} onManage={setManage} />
+            <MerchantLeaderboard rows={lbRows} onManage={setManageId} />
 
             {renderView()}
           </DashboardContainer>
@@ -396,7 +433,7 @@ export default function AdminConsole({ data = {}, userName = 'المدير' }) {
         })}
       </nav>
 
-      <ManageSheet row={manage} flash={flash} onClose={() => setManage(null)} />
+      <ManageSheet row={manageRow} onFreeze={onFreeze} onAudit={onAudit} onTier={onTier} onClose={() => setManageId(null)} />
 
       {toast && <div className="pointer-events-none fixed bottom-24 start-1/2 z-50 -translate-x-1/2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-xl md:bottom-6">{toast}</div>}
     </div>

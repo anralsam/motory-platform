@@ -362,6 +362,55 @@ export async function deleteService(id) {
   return { ok: true };
 }
 
+// ── Platform governance — Super-Admin lifecycle controls over a merchant/center ──
+const TIER_PLANS = ['standard', 'enterprise'];
+
+async function requireAdmin() {
+  const supabase = createServerSupabase();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: 'غير مصرّح' };
+  if (!(await isAdmin(supabase, user))) return { error: 'هذه العملية للمشرف العام فقط' };
+  const admin = getSupabaseAdmin();
+  if (!admin) return { error: 'مفتاح الخدمة غير مهيّأ' };
+  return { admin };
+}
+
+function revalidateAdmin() {
+  revalidatePath('/dashboard-pro');
+  revalidatePath('/dashboard/admin');
+  revalidatePath('/dashboard');
+}
+
+export async function toggleMerchantFreeze(merchantId, status) {
+  if (!merchantId) return { ok: false, error: 'مدخلات ناقصة' };
+  const { admin, error } = await requireAdmin();
+  if (error) return { ok: false, error };
+  const { error: e } = await admin.from('users').update({ is_frozen: !!status, updated_at: new Date().toISOString() }).eq('id', merchantId);
+  if (e) return { ok: false, error: e.message };
+  revalidateAdmin();
+  return { ok: true, is_frozen: !!status };
+}
+
+export async function toggleMerchantAudit(merchantId, status) {
+  if (!merchantId) return { ok: false, error: 'مدخلات ناقصة' };
+  const { admin, error } = await requireAdmin();
+  if (error) return { ok: false, error };
+  const { error: e } = await admin.from('users').update({ under_audit: !!status, updated_at: new Date().toISOString() }).eq('id', merchantId);
+  if (e) return { ok: false, error: e.message };
+  revalidateAdmin();
+  return { ok: true, under_audit: !!status };
+}
+
+export async function resetMerchantTier(merchantId, tierPackage) {
+  if (!merchantId || !TIER_PLANS.includes(tierPackage)) return { ok: false, error: 'باقة غير صالحة' };
+  const { admin, error } = await requireAdmin();
+  if (error) return { ok: false, error };
+  const { error: e } = await admin.from('users').update({ tier_plan: tierPackage, updated_at: new Date().toISOString() }).eq('id', merchantId);
+  if (e) return { ok: false, error: e.message };
+  revalidateAdmin();
+  return { ok: true, tier_plan: tierPackage };
+}
+
 // ── Granular staff permissions — owner toggles their workers' access keys ──
 const PERMISSION_KEYS = ['can_view_financials', 'can_manage_catalog', 'can_transfer_staff'];
 

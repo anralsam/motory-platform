@@ -28,7 +28,7 @@ function CustomTooltip({ active, payload, label, unit }) {
   );
 }
 
-export default function UnifiedChart({ showControls = false }) {
+export default function UnifiedChart({ showControls = false, bare = false }) {
   const ctx = useDashboardData() || {};
   const orders = ctx.orders || [];
   const metric = ctx.metric || 'revenue';
@@ -44,7 +44,7 @@ export default function UnifiedChart({ showControls = false }) {
   // YT-style headline: window total for the ACTIVE metric + growth vs previous window.
   const head = useMemo(() => {
     const comp = computeComparisons(orders, timeline);
-    const key = metric === 'revenue' ? 'revenue' : metric === 'customers' ? 'customers' : 'sales';
+    const key = ['revenue', 'profit', 'customers', 'sales'].includes(metric) ? metric : 'revenue';
     const { value, growth } = comp[key] || { value: 0, growth: 0 };
     const metricLabel = (CHART_METRICS.find((m) => m.key === metric) || {}).label || '';
     const period = comp.days === 1 ? 'آخر ٢٤ ساعة' : comp.days === 7 ? 'آخر ٧ أيام' : comp.days === 30 ? 'آخر ٣٠ يومًا' : 'آخر ١٢ شهرًا';
@@ -52,8 +52,11 @@ export default function UnifiedChart({ showControls = false }) {
     return { metricLabel, period, fmt, growth };
   }, [orders, metric, timeline, unit]);
 
+  const shell = bare
+    ? 'w-full px-4 pb-5 pt-2 sm:px-6'
+    : 'w-full rounded-2xl border border-slate-200 bg-white p-6 shadow-sm md:p-8';
   return (
-    <div className="w-full rounded-2xl border border-slate-200 bg-white p-6 shadow-sm md:p-8">
+    <div className={shell}>
       {showControls && (
         <div dir="rtl" className="mb-6 flex w-full flex-col items-start justify-between gap-4 border-b border-slate-100 pb-5 sm:flex-row sm:items-start">
           {/* Context headline — Studio parity */}
@@ -90,9 +93,9 @@ export default function UnifiedChart({ showControls = false }) {
                 <stop offset="100%" stopColor="#2563eb" stopOpacity={0} />
               </linearGradient>
             </defs>
-            <CartesianGrid vertical={false} horizontal strokeDasharray="3 3" stroke="#f1f5f9" />
-            <XAxis dataKey="label" axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 11, fontFamily: 'monospace' }} padding={{ left: 20, right: 20 }} minTickGap={24} />
-            <YAxis axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 11, fontFamily: 'monospace' }} allowDecimals={false}
+            <CartesianGrid vertical={false} horizontal stroke="#eceef1" />
+            <XAxis dataKey="label" axisLine={false} tickLine={false} tickMargin={10} tick={{ fill: '#606060', fontSize: 12, fontWeight: 500 }} padding={{ left: 16, right: 16 }} minTickGap={28} />
+            <YAxis axisLine={false} tickLine={false} tickMargin={6} tickCount={5} tick={{ fill: '#606060', fontSize: 12, fontWeight: 500 }} allowDecimals={false}
               domain={[0, (max) => (max > 0 ? max : 10)]} tickFormatter={(val) => (val >= 1000 ? `${(val / 1000).toFixed(0)}k` : val)} />
             <Tooltip cursor={{ stroke: '#e2e8f0', strokeDasharray: '4 4', strokeWidth: 1.5 }} content={<CustomTooltip unit={unit} />} />
             <Area type="monotone" dataKey="value" stroke="none" fill="url(#chartGradient)" isAnimationActive animationDuration={400} />

@@ -60,17 +60,23 @@ export const fmtCompact = (v) => {
 };
 
 // ── UnifiedChart multi-filter matrix ──
+// المقاييس بالترتيب المعتمد: الإيرادات ← الأرباح (بعد عمولة المنصة 10%) ← العملاء ← العمليات
 export const CHART_METRICS = [
-  { key: 'revenue', label: 'الأرباح', unit: 'sar' },
-  { key: 'sales', label: 'المبيعات', unit: 'int' },
-  { key: 'customers', label: 'عدد العملاء', unit: 'int' },
+  { key: 'revenue', label: 'الإيرادات', unit: 'sar' },
+  { key: 'profit', label: 'الأرباح', unit: 'sar' },
+  { key: 'customers', label: 'العملاء', unit: 'int' },
+  { key: 'sales', label: 'العمليات', unit: 'int' },
 ];
 export const CHART_TIMELINES = [
   { key: 'day', label: 'آخر يوم' },
   { key: 'week', label: 'آخر أسبوع' },
   { key: 'month', label: 'آخر شهر' },
   { key: 'year', label: 'آخر سنة' },
+  { key: 'all', label: 'كامل المدة' },
 ];
+
+// نسبة عمولة المنصة — الأرباح = الإيرادات المكتملة − العمولة.
+export const PLATFORM_COMMISSION = 0.10;
 
 /**
  * Build the chart series for a (metric × timeline) cell of the matrix.
@@ -90,11 +96,23 @@ export function computeChartSeries(orders = [], metric = 'revenue', timeline = '
       const d = new Date(now.getFullYear(), now.getMonth(), now.getDate() - i);
       buckets.push({ label: `${d.getDate()}/${d.getMonth() + 1}`, key: d.toISOString().slice(0, 10) });
     }
+  } else if (timeline === 'all') {
+    // كامل المدة — monthly buckets from the earliest order to now (min 6 months).
+    const stamps = orders.filter((o) => o.created_at).map((o) => new Date(o.created_at).getTime());
+    const first = stamps.length ? new Date(Math.min(...stamps)) : now;
+    let cur = new Date(first.getFullYear(), first.getMonth(), 1);
+    const end = new Date(now.getFullYear(), now.getMonth(), 1);
+    while (cur <= end || buckets.length < 6) {
+      buckets.push({ label: `${MONTHS[cur.getMonth()]} ${String(cur.getFullYear()).slice(2)}`, mkey: `${cur.getFullYear()}-${cur.getMonth()}` });
+      cur = new Date(cur.getFullYear(), cur.getMonth() + 1, 1);
+      if (buckets.length > 60) break; // hard safety bound (5 سنوات)
+    }
   } else {
     for (let m = 0; m < 12; m++) buckets.push({ label: MONTHS[m] });
   }
 
   const keyIndex = Object.fromEntries(buckets.map((b, i) => [b.key, i]));
+  const mkeyIndex = Object.fromEntries(buckets.map((b, i) => [b.mkey, i]));
   const acc = buckets.map(() => (metric === 'customers' ? new Set() : 0));
   orders.forEach((o) => {
     if (!o.created_at) return;
@@ -104,17 +122,20 @@ export function computeChartSeries(orders = [], metric = 'revenue', timeline = '
       if (dt >= today) idx = dt.getHours();
     } else if (timeline === 'year') {
       if (dt.getFullYear() === now.getFullYear()) idx = dt.getMonth();
+    } else if (timeline === 'all') {
+      idx = mkeyIndex[`${dt.getFullYear()}-${dt.getMonth()}`] ?? -1;
     } else {
       idx = keyIndex[dt.toISOString().slice(0, 10)] ?? -1;
     }
     if (idx < 0 || idx >= acc.length) return;
     if (metric === 'revenue') { if (o.status === 'completed') acc[idx] += Number(o.price) || 0; }
+    else if (metric === 'profit') { if (o.status === 'completed') acc[idx] += (Number(o.price) || 0) * (1 - PLATFORM_COMMISSION); }
     else if (metric === 'sales') { acc[idx] += 1; }
     else if (o.customer_name) acc[idx].add(o.customer_name);
   });
 
-  const series = buckets.map((b, i) => ({ label: b.label, value: metric === 'customers' ? acc[i].size : acc[i] }));
-  const unit = metric === 'revenue' ? 'sar' : 'int';
+  const series = buckets.map((b, i) => ({ label: b.label, value: metric === 'customers' ? acc[i].size : Math.round(acc[i]) }));
+  const unit = metric === 'revenue' || metric === 'profit' ? 'sar' : 'int';
   return { series, unit };
 }
 
@@ -125,6 +146,7 @@ export function computeChartSeries(orders = [], metric = 'revenue', timeline = '
  *   day → today · week → last 7d · month → last 30d · year → current year.
  */
 export function timelineWindowStart(timeline, now = new Date()) {
+  if (timeline === 'all') return new Date(0); // كامل المدة
   if (timeline === 'day') return new Date(now.getFullYear(), now.getMonth(), now.getDate());
   if (timeline === 'week') return new Date(now.getFullYear(), now.getMonth(), now.getDate() - 6);
   if (timeline === 'month') return new Date(now.getFullYear(), now.getMonth(), now.getDate() - 29);
@@ -143,11 +165,14 @@ export function computeComparisons(orders = [], timeline = 'week') {
   const rev = (a) => a.filter((o) => o.status === 'completed').reduce((s, o) => s + (Number(o.price) || 0), 0);
   const cust = (a) => new Set(a.filter((o) => o.customer_name).map((o) => o.customer_name)).size;
   const grow = (c, p) => (p > 0 ? Math.round(((c - p) / p) * 100) : c > 0 ? 100 : 0);
+  const revenueCur = rev(cur);
   return {
     sales: { value: cur.length, growth: grow(cur.length, prev.length) },
-    revenue: { value: rev(cur), growth: grow(rev(cur), rev(prev)) },
+    revenue: { value: revenueCur, growth: grow(revenueCur, rev(prev)) },
+    profit: { value: Math.round(revenueCur * (1 - PLATFORM_COMMISSION)), growth: grow(rev(cur), rev(prev)) },
     customers: { value: cust(cur), growth: grow(cust(cur), cust(prev)) },
-    days: timeline === 'day' ? 1 : timeline === 'week' ? 7 : timeline === 'month' ? 30 : 365,
+    allTime: timeline === 'all',
+    days: timeline === 'day' ? 1 : timeline === 'week' ? 7 : timeline === 'month' ? 30 : timeline === 'year' ? 365 : 0,
   };
 }
 

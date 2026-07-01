@@ -16,7 +16,6 @@ const THEMES = [
   { key: 'default', label: 'الافتراضي', bg: '#f9fafb' },
   { key: 'slate', label: 'Slate', bg: '#eef2f7' },
   { key: 'zinc', label: 'Zinc', bg: '#f4f4f5' },
-  { key: 'neutral', label: 'Neutral', bg: '#f5f5f4' },
   { key: 'bluegray', label: 'Blue-gray', bg: '#e9eff5' },
 ];
 

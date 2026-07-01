@@ -6,9 +6,7 @@
 :root { --app-bg: #f8fafc; }          /* Global Style Guide page background */
 html[data-theme='slate']    { --app-bg: #eef2f7; }
 html[data-theme='zinc']     { --app-bg: #f4f4f5; }
-html[data-theme='neutral']  { --app-bg: #f5f5f4; }
 html[data-theme='bluegray'] { --app-bg: #e9eff5; }
-html[data-theme='stone']    { --app-bg: #f5f3ef; }
 
 body {
   background: var(--app-bg);

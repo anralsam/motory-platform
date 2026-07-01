@@ -7,6 +7,10 @@ import Forbidden403 from '@/components/Forbidden403';
 import { useCompletedOps } from '@/lib/useReports';
 import { useReportMetrics } from '@/lib/useReportMetrics';
 import SalesOpsChart from '@/components/SalesOpsChart';
+import LiveBranchBoard from '@/components/LiveBranchBoard';
+import DashboardContainer from '@/components/dashboard-pro/dna/DashboardContainer';
+import WorkforcePanel from '@/components/dashboard-pro/dna/WorkforcePanel';
+import { useDashboard } from '@/lib/useDashboard';
 import Toast from '@/components/Toast';
 
 /* ── Tier B: Operational & bottleneck analysis ── */
@@ -41,7 +45,8 @@ export default function ReportsPage() {
 
   const { rows, loading, error } = useCompletedOps(user?.id, selectedId);
   const { metrics, series, loading: metricsLoading } = useReportMetrics(user?.id, selectedId);
-  const [view, setView] = useState('overview'); // overview | ai | log
+  const { orders: teamOrders, workers: teamWorkers } = useDashboard(user?.id, selectedId);
+  const [view, setView] = useState('live'); // live | overview | team | ai | log
 
   const summary = useMemo(() => {
     const count = rows.length;
@@ -97,7 +102,7 @@ export default function ReportsPage() {
 
       {/* ── Ordered navigation: each block gets its own tab (no more one long scroll) ── */}
       <div className="flex items-center gap-6 border-b border-slate-200">
-        {[['overview', 'نظرة عامة'], ['ai', 'التحليل الذكي'], ['log', 'سجل العمليات']].map(([k, label]) => {
+        {[['live', 'المتابعة الحية'], ['overview', 'نظرة عامة'], ['team', 'تحليل الفريق'], ['ai', 'التحليل الذكي'], ['log', 'سجل العمليات']].map(([k, label]) => {
           const on = view === k;
           return (
             <button key={k} onClick={() => setView(k)} className="relative -mb-px pb-3 pt-1">
@@ -107,6 +112,14 @@ export default function ReportsPage() {
           );
         })}
       </div>
+
+      {view === 'live' && <LiveBranchBoard centerId={user?.id} />}
+
+      {view === 'team' && (
+        <DashboardContainer role="merchant" orders={teamOrders || []} workers={teamWorkers || []}>
+          <WorkforcePanel />
+        </DashboardContainer>
+      )}
 
       {view === 'overview' && (<>
       {/* Summary KPIs FIRST — the numbers before the curves */}

@@ -23,10 +23,12 @@ const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.voldmotor.com'
 const STATUS_TRIGGER = { in_progress: 'job_start', ready: 'job_ready', completed: 'job_ready' };
 
 async function isAdmin(supabase, user) {
+  // SECURITY: never trust user_metadata.role — it is client-writable via
+  // supabase.auth.updateUser({ data }). Only the @voldmotor.com email, the
+  // service-role-only app_metadata.role, and the DB users.role column are trusted.
   if (
     (user.email || '').toLowerCase().endsWith('@' + ADMIN_DOMAIN) ||
-    user.app_metadata?.role === 'admin' ||
-    user.user_metadata?.role === 'admin'
+    user.app_metadata?.role === 'admin'
   ) return true;
   const { data: urow } = await supabase.from('users').select('role').eq('id', user.id).maybeSingle();
   return urow?.role === 'admin';

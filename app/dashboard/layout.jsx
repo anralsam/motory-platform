@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation';
 import { createServerSupabase } from '@/lib/supabase/server';
+import { getSupabaseAdmin } from '@/lib/supabase/admin';
 import { roleOf } from '@/lib/roles';
 import { getMerchantGovernance } from '@/lib/dashboard-pro/queries';
 import { AuthProvider } from '@/components/AuthProvider';
@@ -28,7 +29,15 @@ export default async function DashboardRouteLayout({ children }) {
   // and middleware bounces authed users off /auth/* — a redirect would loop.
   const isPlatformAdmin = (user.email || '').toLowerCase().endsWith('@' + ADMIN_DOMAIN);
   if (!isPlatformAdmin) {
-    const centerId = role === 'owner' ? user.id : (user.user_metadata?.center_id || user.id);
+    // Resolve the center from a TRUSTED source. user_metadata.center_id is
+    // client-writable, so a manager could repoint it at an unfrozen center to
+    // dodge the wall — use the authoritative workers table for non-owners.
+    let centerId = user.id;
+    if (role !== 'owner') {
+      const admin = getSupabaseAdmin();
+      const { data: w } = admin ? await admin.from('workers').select('center_id').eq('user_id', user.id).maybeSingle() : { data: null };
+      centerId = w?.center_id || user.id;
+    }
     const gov = await getMerchantGovernance(centerId);
     const blocked = gov.is_frozen ? 'frozen' : (gov.under_audit ? 'audit' : null);
     if (blocked) {

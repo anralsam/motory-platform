@@ -79,12 +79,12 @@ Deno.serve(async (req) => {
     });
   }
 
-  // ── Admin check (trusted sources only) ──
+  // ── Admin check (trusted sources ONLY) ──
+  // NEVER trust user_metadata.role: it is client-writable via auth.updateUser({ data }).
   const adminDomain = Deno.env.get("ADMIN_EMAIL_DOMAIN") || "voldmotor.com";
   let isAdmin =
     user.email?.endsWith("@" + adminDomain) ||
-    user.app_metadata?.role === "admin" ||
-    user.user_metadata?.role === "admin";
+    user.app_metadata?.role === "admin";
   if (!isAdmin) {
     const { data: urow } = await sb.from("users").select("role").eq("id", user.id).single();
     isAdmin = urow?.role === "admin";

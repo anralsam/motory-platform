@@ -28,10 +28,12 @@ const ADMIN_DOMAIN = process.env.ADMIN_EMAIL_DOMAIN || 'voldmotor.com';
 
 async function detectRole(supabase, user) {
   if (!user) return 'merchant';
+  // SECURITY: user_metadata.role is client-writable (auth.updateUser) — never trust it
+  // for admin. A merchant self-setting role:'admin' must NOT gain the console or escape
+  // a governance lockdown. Trust only email domain, app_metadata, and the DB users.role.
   if (
     (user.email || '').toLowerCase().endsWith('@' + ADMIN_DOMAIN) ||
-    user.app_metadata?.role === 'admin' ||
-    user.user_metadata?.role === 'admin'
+    user.app_metadata?.role === 'admin'
   ) return 'admin';
   const admin = getSupabaseAdmin();
   if (admin) {

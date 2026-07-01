@@ -16,7 +16,21 @@ import { useDashboardData } from './DashboardContainer';
 import UnifiedChart from './UnifiedChart';
 import WorkforcePanel from './WorkforcePanel';
 import FilterSelect from './FilterSelect';
-import { fmtValue, computeComparisons, CHART_TIMELINES } from './engine';
+import { fmtValue, computeComparisons, computeChartSeries, CHART_TIMELINES } from './engine';
+
+/* ── Mini per-metric sparkline: every summary card carries its OWN chart, the
+      big master chart below expands whichever card is selected. ── */
+function Sparkline({ series = [], active = false }) {
+  const W = 120, H = 34;
+  const vals = series.map((p) => Number(p.value) || 0);
+  const max = Math.max(1, ...vals);
+  const pts = vals.map((v, i) => `${(i / Math.max(1, vals.length - 1)) * W},${H - (v / max) * (H - 4) - 2}`);
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} className="mt-3 h-8 w-full" preserveAspectRatio="none" dir="ltr" aria-hidden="true">
+      <polyline points={pts.join(' ')} fill="none" stroke={active ? '#2563eb' : '#cbd5e1'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke" />
+    </svg>
+  );
+}
 
 const TABS = [['overview', 'نظرة عامة'], ['content', 'المحتوى'], ['audience', 'الجمهور'], ['revenue', 'الإيرادات']];
 
@@ -34,6 +48,10 @@ export default function AnalyticsPanel() {
   const [tab, setTab] = useState('overview');
 
   const comp = useMemo(() => computeComparisons(orders, timeline), [orders, timeline]);
+  // A dedicated series per metric → each summary card gets its own sparkline chart.
+  const sparks = useMemo(() => Object.fromEntries(
+    SUMMARY.map((c) => [c.key, computeChartSeries(orders, c.key, timeline).series]),
+  ), [orders, timeline]);
   const periodText = comp.days === 1 ? 'اليوم' : `آخر ${comp.days} يومًا`;
 
   // Live 48-hour micro-bars (orders created per hour).
@@ -94,6 +112,8 @@ export default function AnalyticsPanel() {
                       </span>
                       <span>{up ? 'أكثر' : 'أقل'} مقارنة بالأيام الـ {comp.days} السابقة</span>
                     </div>
+                    {/* Per-metric mini chart — the master chart expands the selected one */}
+                    <Sparkline series={sparks[c.key]} active={on} />
                     {on && <span className="absolute inset-x-0 bottom-0 h-[2px] bg-[#2563eb]" />}
                   </button>
                 );

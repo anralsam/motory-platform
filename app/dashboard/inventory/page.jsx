@@ -3,7 +3,7 @@ import { useMemo, useRef, useState } from 'react';
 import { useBranchStore } from '@/store/branchStore';
 import { useAuth } from '@/components/AuthProvider';
 import { useInventory } from '@/lib/useInventory';
-import { categoriesFor, catLabelOf } from '@/lib/centerTypes';
+import { categoriesFor, catLabelOf, catalogFor } from '@/lib/centerTypes';
 import { supabase } from '@/lib/supabaseClient';
 import AddInventoryModal from '@/components/AddInventoryModal';
 import StockMovementModal from '@/components/StockMovementModal';
@@ -81,6 +81,48 @@ export default function InventoryPage() {
   // reset category filter if it no longer exists for this type
   const activeCat = categories.some((c) => c.key === cat) ? cat : 'all';
 
+  // ── «تجهيز مخزون النشاط»: seed the branch with the ready-made catalog for its
+  //     activity type (oils / batteries / wash / ...). Skips items that already
+  //     exist by name, so it is safe to run on a partially-filled branch. ──
+  const [seeding, setSeeding] = useState(false);
+  const template = useMemo(() => catalogFor(centerType), [centerType]);
+  async function seedTemplate() {
+    if (!user?.id || seeding) return;
+    const existing = new Set(items.map((i) => i.name.trim()));
+    const fresh = template.filter((t) => !existing.has(t.name.trim()));
+    if (!fresh.length) { showToast('كل أصناف القالب موجودة مسبقاً', 'error'); return; }
+    setSeeding(true);
+    const branch_id = selectedId && selectedId !== 'all' ? selectedId : null;
+    const rows = fresh.map((t) => ({
+      merchant_id: user.id, branch_id, name: t.name, category: t.cat,
+      quantity: t.qty, min_quantity: Math.max(1, Math.round(t.qty * 0.2)),
+      unit: t.unit, sell_price: t.price,
+    }));
+    const { error: err } = await supabase.from('inventory').insert(rows);
+    setSeeding(false);
+    if (err) { showToast('تعذّر تجهيز القالب: ' + err.message, 'error'); return; }
+    showToast(`تم تجهيز ${rows.length} صنفاً من قالب «${centerType}» — عدّل الأسعار بالضغط عليها`);
+    refetch();
+  }
+
+  // ── Inline direct pricing: click the price → edit → persists to sell_price,
+  //     and flows straight into future worker operations (same inventory table). ──
+  const [priceEdit, setPriceEdit] = useState(null); // { id, value }
+  async function savePrice() {
+    const e = priceEdit;
+    if (!e) return;
+    const val = Math.max(0, Number(e.value) || 0);
+    setPriceEdit(null);
+    const item = items.find((i) => i.id === e.id);
+    if (!item || item.price === val) return;
+    const prev = item.price;
+    patchItem(e.id, { price: val });                       // optimistic
+    const { error: err } = await supabase.from('inventory')
+      .update({ sell_price: val, updated_at: new Date().toISOString() }).eq('id', e.id);
+    if (err) { patchItem(e.id, { price: prev }); showToast('تعذّر حفظ السعر', 'error'); }
+    else showToast(`سعر «${item.name}» صار ${val.toLocaleString('en')} ر.س`);
+  }
+
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
     return items.filter((i) => {
@@ -108,13 +150,26 @@ export default function InventoryPage() {
             {branchName} · نوع النشاط: <span className="font-bold text-slate-700">{centerType}</span>
           </p>
         </div>
-        <button
-          onClick={() => setModalOpen(true)}
-          className="flex items-center gap-2 rounded-xl bg-brand px-4 py-2.5 text-sm font-extrabold text-white shadow-lg shadow-brand/25 transition hover:bg-brand-dark"
-        >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round"><path d="M12 5v14M5 12h14" /></svg>
-          إضافة صنف
-        </button>
+        <div className="flex items-center gap-2">
+          {template.length > 0 && (
+            <button
+              onClick={seedTemplate}
+              disabled={seeding}
+              title={`تعبئة مخزون جاهز لنشاط «${centerType}» — قابل للتعديل`}
+              className="flex items-center gap-2 rounded-xl border border-brand/30 bg-brand/5 px-4 py-2.5 text-sm font-extrabold text-brand transition hover:bg-brand/10 disabled:opacity-50"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" /><path d="m3.3 7 8.7 5 8.7-5M12 22V12" /></svg>
+              {seeding ? 'جارٍ التجهيز...' : 'تجهيز مخزون النشاط'}
+            </button>
+          )}
+          <button
+            onClick={() => setModalOpen(true)}
+            className="flex items-center gap-2 rounded-xl bg-brand px-4 py-2.5 text-sm font-extrabold text-white shadow-lg shadow-brand/25 transition hover:bg-brand-dark"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round"><path d="M12 5v14M5 12h14" /></svg>
+            إضافة صنف
+          </button>
+        </div>
       </div>
 
       {/* Context-aware category tabs */}
@@ -154,7 +209,7 @@ export default function InventoryPage() {
                 <th className="px-5 py-3 text-start">إجراء</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100">
+            <tbody className="divide-y divide-slate-100">
               {loading ? (
                 <tr><td colSpan={6} className="px-5 py-12 text-center text-sm text-slate-400">جاري التحميل...</td></tr>
               ) : error ? (
@@ -194,7 +249,30 @@ export default function InventoryPage() {
                         <span className="text-xs text-slate-400"> {i.unit}</span>
                         {low && <span className="ms-1 text-[11px] font-bold text-red-500">(الحد {i.min})</span>}
                       </td>
-                      <td className="px-5 py-3.5 font-bold text-slate-700">{i.price.toLocaleString('en')} ر.س</td>
+                      <td className="px-5 py-3.5">
+                        {priceEdit?.id === i.id ? (
+                          <input
+                            autoFocus
+                            type="number"
+                            min="0"
+                            value={priceEdit.value}
+                            onChange={(e) => setPriceEdit({ id: i.id, value: e.target.value })}
+                            onBlur={savePrice}
+                            onKeyDown={(e) => { if (e.key === 'Enter') savePrice(); if (e.key === 'Escape') setPriceEdit(null); }}
+                            className="w-24 rounded-lg border border-brand bg-white px-2 py-1 text-sm font-bold text-slate-900 outline-none ring-2 ring-brand/15"
+                            dir="ltr"
+                          />
+                        ) : (
+                          <button
+                            onClick={() => setPriceEdit({ id: i.id, value: i.price })}
+                            title="اضغط للتسعير المباشر"
+                            className="group inline-flex items-center gap-1.5 rounded-lg px-2 py-1 font-bold text-slate-700 transition hover:bg-brand/5 hover:text-brand"
+                          >
+                            {i.price.toLocaleString('en')} ر.س
+                            <svg className="opacity-0 transition group-hover:opacity-100" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5z" /></svg>
+                          </button>
+                        )}
+                      </td>
                       <td className="px-5 py-3.5">
                         <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-bold ring-1 ring-inset ${st.cls}`}>{st.label}</span>
                       </td>

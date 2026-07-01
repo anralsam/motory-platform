@@ -52,7 +52,7 @@ export default function SettingsPage() {
 
       {/* Tabs */}
       <div className="flex gap-1 border-b border-slate-200">
-        {[['identity', 'هوية المركز'], ['services', 'الخدمات والأسعار'], ...(canManageCatalog ? [['catalog', 'الكشّة الثابتة']] : []), ['automation', 'أتمتة واتساب']].map(([k, label]) => (
+        {[['identity', 'هوية المركز'], ['services', 'الخدمات والأسعار'], ...(canManageCatalog ? [['catalog', 'الكشّة الثابتة']] : []), ['automation', 'أتمتة واتساب'], ['tools', 'أدوات المالك']].map(([k, label]) => (
           <button key={k} onClick={() => setTab(k)}
             className={`-mb-px border-b-2 px-4 py-2.5 text-sm font-extrabold transition ${tab === k ? 'border-brand text-brand' : 'border-transparent text-slate-500 hover:text-slate-800'}`}>
             {label}
@@ -64,8 +64,76 @@ export default function SettingsPage() {
       {tab === 'services' && <ServicesTab centerId={centerId} branchId={selectedId} centerType={centerType} showToast={showToast} />}
       {tab === 'catalog' && canManageCatalog && <MasterCatalog centerId={centerId} branchId={selectedId} showToast={showToast} />}
       {tab === 'automation' && <AutomationHub centerId={centerId} showToast={showToast} />}
+      {tab === 'tools' && <OwnerToolsTab centerId={centerId} branchId={selectedId} showToast={showToast} />}
 
       <Toast toast={toast} />
+    </div>
+  );
+}
+
+/* ── Tab: أدوات المالك — quick exports + data ownership perks ── */
+function OwnerToolsTab({ centerId, branchId, showToast }) {
+  const [busy, setBusy] = useState(null);
+
+  function downloadCSV(name, header, rows) {
+    const csv = [header, ...rows]
+      .map((row) => row.map((c) => { const s = String(c ?? ''); return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s; }).join(','))
+      .join('\n');
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8' }));
+    a.download = `${name}-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+  }
+
+  async function exportCustomers() {
+    setBusy('cust');
+    let q = supabase.from('customers').select('full_name, phone, car_make, car_model, car_plate, total_visits, created_at').eq('merchant_id', centerId);
+    if (branchId && branchId !== 'all') q = q.eq('branch_id', branchId);
+    const { data, error } = await q.limit(1000);
+    setBusy(null);
+    if (error) { showToast('تعذّر التصدير: ' + error.message, 'error'); return; }
+    downloadCSV('customers',
+      ['الاسم', 'الجوال', 'السيارة', 'اللوحة', 'الزيارات', 'تاريخ الإضافة'],
+      (data || []).map((c) => [c.full_name, c.phone, [c.car_make, c.car_model].filter(Boolean).join(' '), c.car_plate, c.total_visits ?? 0, (c.created_at || '').slice(0, 10)]));
+    showToast(`تم تصدير ${(data || []).length} عميلاً (CSV)`);
+  }
+
+  async function exportInventory() {
+    setBusy('inv');
+    let q = supabase.from('inventory').select('name, category, quantity, min_quantity, unit, sell_price, supplier').eq('merchant_id', centerId);
+    if (branchId && branchId !== 'all') q = q.eq('branch_id', branchId);
+    const { data, error } = await q.limit(1000);
+    setBusy(null);
+    if (error) { showToast('تعذّر التصدير: ' + error.message, 'error'); return; }
+    downloadCSV('inventory',
+      ['الصنف', 'الفئة', 'الكمية', 'حد التنبيه', 'الوحدة', 'سعر البيع', 'المورّد'],
+      (data || []).map((i) => [i.name, i.category, i.quantity ?? 0, i.min_quantity ?? 0, i.unit, i.sell_price ?? 0, i.supplier]));
+    showToast(`تم تصدير ${(data || []).length} صنفاً (CSV)`);
+  }
+
+  const TOOLS = [
+    { key: 'cust', title: 'تصدير بيانات العملاء', hint: 'ملف CSV بكل عملائك: الأسماء، الجوالات، السيارات، الزيارات — ملكك بالكامل.', cta: 'تصدير CSV', run: exportCustomers },
+    { key: 'inv', title: 'تصدير جرد المخزون', hint: 'ملف CSV بالمخزون الحالي مع الكميات والأسعار — جاهز للمحاسب أو الجرد السنوي.', cta: 'تصدير CSV', run: exportInventory },
+  ];
+
+  return (
+    <div className="space-y-5">
+      <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+        <h3 className="text-base font-extrabold text-slate-900">بياناتك ملكك</h3>
+        <p className="mt-1 text-sm text-slate-500">صدّر بيانات مركزك في أي وقت بصيغة CSV تفتح في Excel مباشرة.</p>
+        <div className="mt-5 grid gap-4 sm:grid-cols-2">
+          {TOOLS.map((t) => (
+            <div key={t.key} className="flex flex-col rounded-2xl border border-slate-200 p-5">
+              <div className="text-sm font-extrabold text-slate-900">{t.title}</div>
+              <p className="mt-1.5 flex-1 text-sm leading-relaxed text-slate-500">{t.hint}</p>
+              <button onClick={t.run} disabled={busy === t.key}
+                className="mt-4 self-start rounded-xl bg-brand px-4 py-2 text-sm font-extrabold text-white transition hover:bg-brand-dark disabled:opacity-50">
+                {busy === t.key ? 'جارٍ التصدير...' : t.cta}
+              </button>
+            </div>
+          ))}
+        </div>
+      </section>
     </div>
   );
 }
@@ -205,7 +273,7 @@ function ServicesTab({ centerId, branchId, centerType, showToast }) {
               <th className="px-5 py-3 text-start">الإجراءات</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-100">
+          <tbody className="divide-y divide-slate-100">
             {loading ? (
               <tr><td colSpan={4} className="px-5 py-10 text-center text-sm text-slate-400">جاري التحميل...</td></tr>
             ) : error ? (

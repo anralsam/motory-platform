@@ -119,10 +119,10 @@ function CurrentTask({ order, stage, onStage, busy, automations, fallback = true
   const phone = order.customer_phone;
   const on = (k) => !automations || automations[k] !== false;
   let dispatch = null;
-  if (fallback && phone && order.status === 'in_progress' && on('job_start')) dispatch = { text: AUTO_MSG.job_start };
+  if (fallback && phone && order.status === 'in_progress' && on('job_start')) dispatch = { text: AUTO_MSG.job_start, label: '💬 إرسال التحديث عبر الـ WhatsApp' };
   else if (fallback && phone && order.status === 'completed' && on('job_ready')) {
     const link = typeof window !== 'undefined' ? `${window.location.origin}/receipt/${order.id}` : '';
-    dispatch = { text: `${AUTO_MSG.job_ready}${link ? `\n${link}` : ''}` };
+    dispatch = { text: `${AUTO_MSG.job_ready}${link ? `\n${link}` : ''}`, label: '🧾 إرسال الفاتورة عبر الـ WhatsApp' };
   }
   return (
     <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
@@ -174,7 +174,7 @@ function CurrentTask({ order, stage, onStage, busy, automations, fallback = true
         <div className="px-5 pb-5">
           <a href={waUrl(phone, dispatch.text)} target="_blank" rel="noopener noreferrer"
             className="flex w-full items-center justify-center gap-2 rounded-2xl bg-emerald-500 py-3.5 text-sm font-bold text-white shadow-lg shadow-emerald-500/25 transition-transform duration-200 will-change-transform hover:bg-emerald-600 active:scale-[1.03]">
-            <MessageCircle size={18} /> 💬 إرسال التحديث عبر الـ WhatsApp
+            <MessageCircle size={18} /> {dispatch.label}
           </a>
         </div>
       )}

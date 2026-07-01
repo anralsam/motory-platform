@@ -41,6 +41,7 @@ export default function ReportsPage() {
 
   const { rows, loading, error } = useCompletedOps(user?.id, selectedId);
   const { metrics, series, loading: metricsLoading } = useReportMetrics(user?.id, selectedId);
+  const [view, setView] = useState('overview'); // overview | ai | log
 
   const summary = useMemo(() => {
     const count = rows.length;
@@ -94,6 +95,27 @@ export default function ReportsPage() {
         </div>
       </div>
 
+      {/* ── Ordered navigation: each block gets its own tab (no more one long scroll) ── */}
+      <div className="flex items-center gap-6 border-b border-slate-200">
+        {[['overview', 'نظرة عامة'], ['ai', 'التحليل الذكي'], ['log', 'سجل العمليات']].map(([k, label]) => {
+          const on = view === k;
+          return (
+            <button key={k} onClick={() => setView(k)} className="relative -mb-px pb-3 pt-1">
+              <span className={`text-sm transition-colors ${on ? 'font-extrabold text-slate-900' : 'font-semibold text-slate-500 hover:text-slate-800'}`}>{label}</span>
+              {on && <span className="absolute inset-x-0 bottom-0 h-[3px] rounded-full bg-slate-900" />}
+            </button>
+          );
+        })}
+      </div>
+
+      {view === 'overview' && (<>
+      {/* Summary KPIs FIRST — the numbers before the curves */}
+      <div className="grid grid-cols-3 gap-4">
+        <KPI label="العمليات المنجزة" value={loading ? '—' : fmt(summary.count)} />
+        <KPI label="إجمالي المبيعات" value={loading ? '—' : fmt(summary.total)} suffix="ر.س" accent="text-emerald-600" />
+        <KPI label="متوسط الفاتورة" value={loading ? '—' : fmt(summary.avg)} suffix="ر.س" accent="text-blue-600" />
+      </div>
+
       {/* ════════ Sales vs Operations trend (current month) ════════ */}
       <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
         <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
@@ -114,8 +136,10 @@ export default function ReportsPage() {
           <SalesOpsChart data={series} />
         )}
       </section>
+      </>)}
 
-      {/* ════════ Monthly AI Performance Report (executive consultant view) ════════ */}
+      {view === 'ai' && (
+      /* ════════ Monthly AI Performance Report (executive consultant view) ════════ */
       <section className="rounded-3xl border border-transparent bg-gradient-to-br from-violet-100 via-white to-blue-100 p-[1.5px] shadow-sm">
         <div className="rounded-3xl bg-white/80 p-5 backdrop-blur sm:p-6">
           {/* Header + monthly export gate */}
@@ -137,7 +161,7 @@ export default function ReportsPage() {
                 className={
                   isReportDay
                     ? 'inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-violet-600 to-blue-600 px-5 py-3 text-sm font-extrabold text-white shadow-lg shadow-violet-500/30 ring-2 ring-violet-300 transition hover:brightness-110'
-                    : 'inline-flex cursor-not-allowed items-center justify-center gap-2 rounded-xl bg-gray-300 px-5 py-3 text-sm font-extrabold text-white opacity-50'
+                    : 'inline-flex cursor-not-allowed items-center justify-center gap-2 rounded-xl bg-slate-300 px-5 py-3 text-sm font-extrabold text-white opacity-50'
                 }
               >
                 <Sparkle size={15} />
@@ -203,15 +227,10 @@ export default function ReportsPage() {
           </div>
         </div>
       </section>
+      )}
 
-      {/* Summary mini-KPIs */}
-      <div className="grid grid-cols-3 gap-4">
-        <KPI label="العمليات المنجزة" value={loading ? '—' : fmt(summary.count)} />
-        <KPI label="إجمالي المبيعات" value={loading ? '—' : fmt(summary.total)} suffix="ر.س" accent="text-emerald-600" />
-        <KPI label="متوسط الفاتورة" value={loading ? '—' : fmt(summary.avg)} suffix="ر.س" accent="text-blue-600" />
-      </div>
-
-      {/* ════════ Standard reports (bottom) ════════ */}
+      {view === 'log' && (
+      /* ════════ Standard reports — العمليات المنجزة + التصدير ════════ */
       <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 px-5 py-4">
           <div>
@@ -244,7 +263,7 @@ export default function ReportsPage() {
                 <th className="px-5 py-3 text-start">الإجمالي</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100">
+            <tbody className="divide-y divide-slate-100">
               {loading ? (
                 <tr><td colSpan={5} className="px-5 py-12 text-center text-sm text-slate-400">جاري التحميل...</td></tr>
               ) : error ? (
@@ -266,6 +285,7 @@ export default function ReportsPage() {
           </table>
         </div>
       </section>
+      )}
 
       <Toast toast={toast} />
     </div>

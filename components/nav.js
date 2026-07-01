@@ -1,8 +1,8 @@
 // Canonical sidebar order (white-label, no "VOLD MOTOR" wordmark in nav).
-// الرئيسية → المخزون → الفواتير → التقارير → الفريق → الرسائل → الإعدادات
+// «الطلبات» أُزيلت عمداً: تسجيل الطلبات والعملاء يتم حصرياً من جهاز العامل،
+// وتظهر نتائجه هنا في الرئيسية/العملاء/الفواتير تلقائياً.
 export const NAV_ITEMS = [
   { href: '/dashboard',           label: 'الرئيسية', icon: 'home' },
-  { href: '/dashboard/orders',    label: 'الطلبات',  icon: 'clipboard' },
   { href: '/dashboard/customers', label: 'العملاء',  icon: 'users' },
   { href: '/dashboard/inventory', label: 'المخزون',  icon: 'box' },
   { href: '/dashboard/invoices',  label: 'الفواتير', icon: 'receipt' },

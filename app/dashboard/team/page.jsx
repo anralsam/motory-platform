@@ -28,6 +28,14 @@ export default function TeamPage() {
   const { members, loading, error, refetch, setMembers } = useTeam(user?.id, selectedId);
 
   const [open, setOpen] = useState(false);
+  const [roleFilter, setRoleFilter] = useState('all');
+  const [teamSearch, setTeamSearch] = useState('');
+  const shown = members.filter((m) => {
+    const okRole = roleFilter === 'all' || (m.role || 'technician') === roleFilter;
+    const q = teamSearch.trim().toLowerCase();
+    const okQ = !q || (m.full_name || '').toLowerCase().includes(q) || (m.phone || '').includes(q);
+    return okRole && okQ;
+  });
   const [toast, setToast] = useState({ show: false, msg: '', type: 'success' });
   const tt = useRef(null);
   function showToast(msg, type = 'success') {
@@ -86,12 +94,41 @@ export default function TeamPage() {
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <h1 className="text-xl font-bold tracking-tight text-slate-900">إدارة الفريق</h1>
-          <p className="mt-1 text-sm text-slate-500">{branchName} · {members.length} موظف</p>
+          <p className="mt-1 text-sm text-slate-500">{branchName} · حسابات العمال والمشرفين، صلاحياتهم، وروابط دخولهم</p>
         </div>
         <button onClick={() => setOpen(true)} className="flex items-center gap-2 rounded-xl bg-brand px-4 py-2.5 text-sm font-extrabold text-white shadow-lg shadow-brand/25 transition hover:bg-brand-dark">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round"><path d="M12 5v14M5 12h14" /></svg>
           إضافة موظف
         </button>
+      </div>
+
+      {/* Team pulse strip */}
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+        {[
+          ['إجمالي الفريق', members.length, 'text-slate-900'],
+          ['نشطون الآن', members.filter((m) => m.status === 'active').length, 'text-emerald-600'],
+          ['فنّيون', members.filter((m) => (m.role || 'technician') === 'technician').length, 'text-blue-600'],
+          ['مشرفون', members.filter((m) => m.role === 'manager').length, 'text-violet-600'],
+        ].map(([l, v, tone]) => (
+          <div key={l} className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+            <div className="text-xs font-bold text-slate-500">{l}</div>
+            <div className={`mt-1.5 font-mono text-2xl font-extrabold tabular-nums ${tone}`} dir="ltr">{loading ? '—' : v.toLocaleString('en')}</div>
+          </div>
+        ))}
+      </div>
+
+      {/* Role filter + search */}
+      <div className="flex flex-wrap items-center gap-2">
+        {[['all', 'الكل'], ['technician', 'الفنّيون'], ['manager', 'المشرفون']].map(([k, label]) => (
+          <button key={k} onClick={() => setRoleFilter(k)}
+            className={`rounded-full border px-4 py-2 text-sm font-bold transition ${roleFilter === k ? 'border-brand bg-brand text-white' : 'border-slate-200 bg-white text-slate-500 hover:border-brand hover:text-brand'}`}>
+            {label}
+          </button>
+        ))}
+        <div className="relative ms-auto max-w-xs flex-1">
+          <input value={teamSearch} onChange={(e) => setTeamSearch(e.target.value)} placeholder="ابحث بالاسم أو الجوال..."
+            className="w-full rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-900 outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/15" />
+        </div>
       </div>
 
       {/* Table */}
@@ -107,12 +144,12 @@ export default function TeamPage() {
                 <th className="px-5 py-3 text-start">الإجراءات</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100">
+            <tbody className="divide-y divide-slate-100">
               {loading ? (
                 <tr><td colSpan={5} className="px-5 py-12 text-center text-sm text-slate-400">جاري التحميل...</td></tr>
               ) : error ? (
                 <tr><td colSpan={5} className="px-5 py-12 text-center text-sm text-red-500">تعذّر التحميل: {error}</td></tr>
-              ) : members.length === 0 ? (
+              ) : shown.length === 0 ? (
                 <tr>
                   <td colSpan={5} className="px-5 py-12 text-center">
                     <div className="text-sm font-bold text-slate-700">لا يوجد موظفون في هذا الفرع بعد</div>
@@ -120,7 +157,7 @@ export default function TeamPage() {
                   </td>
                 </tr>
               ) : (
-                members.map((m) => {
+                shown.map((m) => {
                   const active = m.status === 'active';
                   return (
                     <tr key={m.id} className="text-sm transition hover:bg-slate-50/60">

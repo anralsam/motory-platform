@@ -1,46 +1,41 @@
 'use client';
 
 /**
- * AdminConsole — VOLD MOTOR Super-Admin command center.
- * Dark "GitHub Primer" technical theme (admin only; merchant/worker stay light).
- * Grouped sidebar (Operations / Finance / Governance) with tab-based content
- * rendered in-place (no route changes). Real data for centers + join requests
- * (service-role via server props; approve/reject through the admin-merchants Edge
- * Function). Modules without a DB table yet render clearly-labelled mock views.
+ * AdminConsole — VOLD MOTOR Super-Admin command center (YouTube-Studio parity).
+ * Light shell, ONE flat concise sidebar (no groups, no page bloat):
+ *   لوحة البيانات · المراكز لايف · طلبات الانضمام · المالية · الحوكمة · الإعدادات
+ * Finance and Governance fold their former standalone pages into internal
+ * sub-tabs — nothing is lost, the nav just stops shouting. Header carries the
+ * page title + the live indicator only (the "العودة للموقع" escape hatch is
+ * intentionally gone: the console IS the destination). Brand: the same
+ * /logo.png wordmark as the public landing. Metric cards are Studio-style —
+ * label / big tabular number / growth arrow — with NO icon chips.
  */
 import { useState } from 'react';
 import {
-  Store, Inbox, AlertOctagon, Wallet, ReceiptText, Banknote, ScrollText, ShieldCheck,
-  Settings, MoreHorizontal, Globe, Activity, Gauge, Car, ArrowLeft,
+  LayoutDashboard, RadioTower, Inbox, Wallet, ShieldCheck, Settings,
+  ArrowUpRight, ArrowDownRight,
 } from 'lucide-react';
 import { supabase } from '@/lib/supabaseClient';
 import { SUPABASE_URL } from '@/lib/supabase/config';
 import { toggleMerchantFreeze, toggleMerchantAudit, resetMerchantTier } from '@/app/dashboard-pro/actions';
 import DashboardContainer from './dna/DashboardContainer';
 import UnifiedChart from './dna/UnifiedChart';
+import CentersLive from './CentersLive';
 
 const EDGE = `${SUPABASE_URL}/functions/v1/admin-merchants`;
 const sar = (n) => `${(Number(n) || 0).toLocaleString('en-US')} ﷼`;
 
-const GROUPS = [
-  { title: 'العمليات', items: [
-    { k: 'centers', label: 'المراكز والورش النشطة', Icon: Store },
-    { k: 'requests', label: 'طلبات الانضمام والتدقيق', Icon: Inbox },
-    { k: 'disputes', label: 'مركز النزاعات والشكاوى', Icon: AlertOctagon },
-  ] },
-  { title: 'المالية', items: [
-    { k: 'commissions', label: 'الأرباح والعمولات', Icon: Wallet },
-    { k: 'subscriptions', label: 'الاشتراكات وفواتير B2B', Icon: ReceiptText },
-    { k: 'settlements', label: 'تسويات التحويلات البنكية', Icon: Banknote },
-  ] },
-  { title: 'الحوكمة والأمان', items: [
-    { k: 'audit', label: 'سجل حركات الموظفين', Icon: ScrollText },
-    { k: 'rbac', label: 'صلاحيات المشرفين', Icon: ShieldCheck },
-    { k: 'settings', label: 'إعدادات المنصة', Icon: Settings },
-  ] },
+// ── Flat, concise nav — Studio parity ──
+const PAGES = [
+  { k: 'dashboard', label: 'لوحة البيانات', Icon: LayoutDashboard },
+  { k: 'live', label: 'المراكز لايف', Icon: RadioTower },
+  { k: 'requests', label: 'طلبات الانضمام', Icon: Inbox },
+  { k: 'finance', label: 'المالية', Icon: Wallet },
+  { k: 'governance', label: 'الحوكمة والأمان', Icon: ShieldCheck },
+  { k: 'settings', label: 'إعدادات المنصة', Icon: Settings },
 ];
-const ALL_ITEMS = GROUPS.flatMap((g) => g.items);
-const TITLE = Object.fromEntries(ALL_ITEMS.map((i) => [i.k, i.label]));
+const TITLE = Object.fromEntries(PAGES.map((p) => [p.k, p.label]));
 
 // surfaces
 const CARD = 'rounded-2xl border border-slate-200 bg-white shadow-sm';
@@ -54,49 +49,35 @@ function Pill({ tone = 'gray', children }) {
   return <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold ${map[tone]}`}>{children}</span>;
 }
 
-function MetricCard({ icon: Icon, label, value, delta }) {
+/* ── Studio-style stat card: label / big number / growth. NO icon chips. ── */
+function StatCard({ label, value, delta, deltaTone = 'up', hint }) {
   return (
     <div className={`${CARD} p-5`}>
-      <div className="flex items-center justify-between">
-        <span className={`text-xs font-medium uppercase tracking-wider ${MUTED}`}>{label}</span>
-        <span className="grid h-9 w-9 place-items-center rounded-lg bg-blue-50 text-blue-600"><Icon size={18} /></span>
+      <div className={`text-xs font-medium ${MUTED}`}>{label}</div>
+      <div className="mt-3 font-mono text-3xl font-bold tabular-nums tracking-tight text-slate-900" dir="ltr">{value}</div>
+      <div className="mt-1.5 flex items-center gap-1.5 text-xs">
+        {delta != null && (deltaTone === 'up'
+          ? <span className="inline-flex items-center gap-0.5 font-semibold text-emerald-600"><ArrowUpRight size={13} /><span dir="ltr">{delta}</span></span>
+          : <span className="inline-flex items-center gap-0.5 font-semibold text-rose-600"><ArrowDownRight size={13} /><span dir="ltr">{delta}</span></span>)}
+        {hint && <span className="font-medium text-slate-400">{hint}</span>}
       </div>
-      <div className="mt-4 font-inter text-3xl font-bold tabular-nums tracking-tight text-slate-900" dir="ltr">{value}</div>
-      {delta ? <div className="mt-1 text-xs font-semibold text-emerald-600" dir="ltr">▲ {delta}</div> : null}
     </div>
   );
 }
 
-/* ── Centers table with actions ── */
-function CentersView({ centers, flash }) {
-  const [menu, setMenu] = useState(null);
-  if (!centers.length) return <Empty label="لا توجد مراكز نشطة" />;
+/* ── Internal sub-tab strip (folds former standalone pages) ── */
+function SubTabs({ tabs, value, onChange }) {
   return (
-    <div className={`${CARD} overflow-hidden`}>
-      <div className="grid grid-cols-[1.4fr_1fr_1fr_auto_auto_44px] items-center gap-4 border-b border-slate-200 px-5 py-3 text-xs font-semibold uppercase tracking-wider text-slate-500">
-        <span>المركز</span><span>المدينة</span><span>الباقة</span><span>المهندسون</span><span>الحالة</span><span />
-      </div>
-      <div className="divide-y divide-slate-200">
-        {centers.map((c) => (
-          <div key={c.id} className="grid grid-cols-[1.4fr_1fr_1fr_auto_auto_44px] items-center gap-4 px-5 py-4 text-sm transition-colors hover:bg-slate-100">
-            <span className="truncate font-semibold text-slate-900">{c.name}</span>
-            <span className={MUTED}>{c.city || '—'}</span>
-            <span><Pill tone="blue">{c.pkg}</Pill></span>
-            <span className="tabular-nums text-slate-900" dir="ltr">{c.engineers}</span>
-            <span><Pill tone="green">نشط</Pill></span>
-            <div className="relative">
-              <button onClick={() => setMenu(menu === c.id ? null : c.id)} className="grid h-8 w-8 place-items-center rounded-lg text-slate-500 hover:bg-slate-100"><MoreHorizontal size={16} /></button>
-              {menu === c.id && (
-                <div className="absolute end-0 z-10 mt-1 w-44 overflow-hidden rounded-lg border border-slate-200 bg-white py-1 shadow-xl">
-                  {[['حظر مؤقت', 'red'], ['تدقيق مالي', 'gray'], ['محاكاة الدخول', 'gray']].map(([t]) => (
-                    <button key={t} onClick={() => { setMenu(null); flash(`${t} — ${c.name}`); }} className="block w-full px-3 py-2 text-start text-sm text-slate-700 hover:bg-slate-100">{t}</button>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
-        ))}
-      </div>
+    <div className="flex items-center gap-6 border-b border-slate-200">
+      {tabs.map(([k, label]) => {
+        const on = value === k;
+        return (
+          <button key={k} onClick={() => onChange(k)} className="relative -mb-px pb-3 pt-1">
+            <span className={`text-sm transition-colors ${on ? 'font-bold text-slate-900' : 'font-medium text-slate-500 hover:text-slate-800'}`}>{label}</span>
+            {on && <span className="absolute inset-x-0 bottom-0 h-[3px] rounded-full bg-slate-900" />}
+          </button>
+        );
+      })}
     </div>
   );
 }
@@ -198,6 +179,38 @@ function MockNote() {
 }
 function Empty({ label }) {
   return <div className={`${CARD} grid place-items-center py-16 text-sm ${MUTED}`}>{label}</div>;
+}
+
+/* ── Finance page: العمولات · الاشتراكات · التسويات (folded sub-tabs) ── */
+function FinanceView({ metrics }) {
+  const [tab, setTab] = useState('commissions');
+  return (
+    <div className="space-y-6">
+      <SubTabs value={tab} onChange={setTab} tabs={[['commissions', 'الأرباح والعمولات'], ['subscriptions', 'الاشتراكات وفواتير B2B'], ['settlements', 'تسويات التحويلات']]} />
+      {tab === 'commissions' && (
+        <div className="grid grid-cols-1 gap-5 sm:grid-cols-3">
+          <StatCard label="صافي العمولات" value={sar(metrics.commissions)} hint="نسبة المنصة 10%" />
+          <StatCard label="حجم المعاملات" value={sar(metrics.gmv)} hint="إجمالي قيمة العمليات المكتملة" />
+          <StatCard label="متوسط العمولة" value="10%" hint="على كل عملية مكتملة" />
+        </div>
+      )}
+      {tab === 'subscriptions' && <ListView cols={['المركز', 'الباقة', 'المستحق']} rows={[['مركز رائد', 'Pro', '٩٩٩ ﷼'], ['ورشة الخليج', 'Basic', '٤٩٩ ﷼']]} />}
+      {tab === 'settlements' && <ListView cols={['المركز', 'المبلغ', 'الحالة']} rows={[['مركز رائد', '٢٤٬٠٥٠ ﷼', 'بانتظار التحويل'], ['ورشة الخليج', '٨٬٢٠٠ ﷼', 'تمّت']]} />}
+    </div>
+  );
+}
+
+/* ── Governance page: سجل الحركات · الصلاحيات · النزاعات (folded sub-tabs) ── */
+function GovernanceView() {
+  const [tab, setTab] = useState('audit');
+  return (
+    <div className="space-y-6">
+      <SubTabs value={tab} onChange={setTab} tabs={[['audit', 'سجل حركات الموظفين'], ['rbac', 'صلاحيات المشرفين'], ['disputes', 'النزاعات والشكاوى']]} />
+      {tab === 'audit' && <AuditView />}
+      {tab === 'rbac' && <RbacView />}
+      {tab === 'disputes' && <ListView cols={['الشكوى', 'المركز', 'الحالة']} rows={[['تأخر تسليم سيارة', 'مركز رائد', 'مفتوحة'], ['نزاع على فاتورة', 'ورشة الخليج', 'قيد المراجعة']]} />}
+    </div>
+  );
 }
 
 function MacroSummary({ macro = {} }) {
@@ -314,8 +327,8 @@ function ManageSheet({ row, onFreeze, onAudit, onTier, onClose }) {
 }
 
 export default function AdminConsole({ data = {}, userName = 'المدير' }) {
-  const { metrics = {}, centers = [], requests = [], orders = [], workers = [], macro = {}, leaderboard = [] } = data;
-  const [active, setActive] = useState('centers');
+  const { metrics = {}, requests = [], orders = [], workers = [], macro = {}, leaderboard = [] } = data;
+  const [active, setActive] = useState('dashboard');
   const [lbRows, setLbRows] = useState(leaderboard);
   const [manageId, setManageId] = useState(null);
   const [toast, setToast] = useState(null);
@@ -337,20 +350,30 @@ export default function AdminConsole({ data = {}, userName = 'المدير' }) {
 
   function renderView() {
     switch (active) {
-      case 'centers': return <CentersView centers={centers} flash={flash} />;
-      case 'requests': return <RequestsView initial={requests} flash={flash} />;
-      case 'disputes': return <ListView cols={['الشكوى', 'المركز', 'الحالة']} rows={[['تأخر تسليم سيارة', 'مركز رائد', 'مفتوحة'], ['نزاع على فاتورة', 'ورشة الخليج', 'قيد المراجعة']]} />;
-      case 'commissions': return (
-        <div className="grid grid-cols-1 gap-5 sm:grid-cols-3">
-          <MetricCard icon={Wallet} label="صافي العمولات" value={sar(metrics.commissions)} />
-          <MetricCard icon={Activity} label="حجم المعاملات" value={sar(metrics.gmv)} />
-          <MetricCard icon={Gauge} label="متوسط العمولة" value="10%" />
-        </div>
+      case 'dashboard': return (
+        <DashboardContainer role="admin" orders={orders} workers={workers}>
+          {/* Multi-tenant macro summary — consolidated across all centers */}
+          <MacroSummary macro={macro} />
+
+          {/* platform governance KPI strip — clean Studio cards, no icon chips */}
+          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4">
+            <StatCard label="صافي عمولات المنصة" value={sar(metrics.commissions)} delta="12%" hint="مقارنةً بالشهر الماضي" />
+            <StatCard label="نجاح الالتزام SLA" value={`${metrics.slaPct || 0}%`} hint="نسبة العمليات المكتملة" />
+            <StatCard label="ورش تحت الفحص" value={(metrics.underInspection || 0).toLocaleString('en-US')} hint="طلبات بانتظار التدقيق" />
+            <StatCard label="سيارات داخل الصالات" value={(metrics.carsInOps || 0).toLocaleString('en-US')} hint="عمليات جارية الآن" />
+          </div>
+
+          {/* Master chart — dropdown filters, Studio headline */}
+          <UnifiedChart showControls />
+
+          {/* Merchant leaderboard / ranking matrix */}
+          <MerchantLeaderboard rows={lbRows} onManage={setManageId} />
+        </DashboardContainer>
       );
-      case 'subscriptions': return <ListView cols={['المركز', 'الباقة', 'المستحق']} rows={[['مركز رائد', 'Pro', '٩٩٩ ﷼'], ['ورشة الخليج', 'Basic', '٤٩٩ ﷼']]} />;
-      case 'settlements': return <ListView cols={['المركز', 'المبلغ', 'الحالة']} rows={[['مركز رائد', '٢٤٬٠٥٠ ﷼', 'بانتظار التحويل'], ['ورشة الخليج', '٨٬٢٠٠ ﷼', 'تمّت']]} />;
-      case 'audit': return <AuditView />;
-      case 'rbac': return <RbacView />;
+      case 'live': return <CentersLive />;
+      case 'requests': return <RequestsView initial={requests} flash={flash} />;
+      case 'finance': return <FinanceView metrics={metrics} />;
+      case 'governance': return <GovernanceView />;
       case 'settings': return <ListView cols={['الإعداد', 'القيمة']} rows={[['نسبة العمولة', '10%'], ['حد المحاولات قبل القفل', '5'], ['التحقق بخطوتين', 'مفعّل']]} />;
       default: return null;
     }
@@ -360,27 +383,21 @@ export default function AdminConsole({ data = {}, userName = 'المدير' }) {
     <div dir="rtl" className="min-h-screen bg-slate-50 font-sans text-slate-900">
       {/* Sidebar — desktop */}
       <aside className="fixed inset-y-0 end-0 z-40 hidden w-64 flex-col border-s border-slate-200 bg-slate-50 md:flex">
-        <div className="flex h-16 items-center gap-2.5 border-b border-slate-200 px-5" dir="ltr">
-          <svg width="24" height="24" viewBox="0 0 48 48" fill="none"><path d="M6 10 L24 42 L42 10" stroke="#2563eb" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round" /></svg>
-          <span className="text-sm font-extrabold tracking-wide">VOLD <span className="text-blue-600">MOTOR</span></span>
+        {/* Brand — same wordmark as the public landing */}
+        <div className="flex h-16 items-center border-b border-slate-200 px-5" dir="ltr">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/logo.png" alt="VOLD MOTOR" className="h-6 w-auto" />
         </div>
-        <nav className="flex-1 space-y-5 overflow-y-auto p-3">
-          {GROUPS.map((g) => (
-            <div key={g.title}>
-              <div className="px-2 pb-1.5 text-[10px] font-bold uppercase tracking-[0.12em] text-slate-400">{g.title}</div>
-              <div className="space-y-0.5">
-                {g.items.map((it) => {
-                  const on = active === it.k;
-                  return (
-                    <button key={it.k} onClick={() => setActive(it.k)}
-                      className={`flex w-full items-center gap-3 rounded-lg px-3 py-2 text-start text-sm font-medium transition-colors ${on ? 'bg-blue-50 text-blue-600' : 'text-slate-700 hover:bg-slate-100'}`}>
-                      <it.Icon size={17} className="flex-none" /><span className="truncate">{it.label}</span>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          ))}
+        <nav className="flex-1 space-y-0.5 overflow-y-auto p-3">
+          {PAGES.map((it) => {
+            const on = active === it.k;
+            return (
+              <button key={it.k} onClick={() => setActive(it.k)}
+                className={`flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-start text-sm font-medium transition-colors ${on ? 'bg-blue-50 font-semibold text-blue-600' : 'text-slate-700 hover:bg-slate-100'}`}>
+                <it.Icon size={18} className="flex-none" /><span className="truncate">{it.label}</span>
+              </button>
+            );
+          })}
         </nav>
         <div className="flex items-center gap-3 border-t border-slate-200 p-4">
           <div className="grid h-9 w-9 place-items-center rounded-full bg-blue-600 text-sm font-black text-white">{(userName || 'A').charAt(0).toUpperCase()}</div>
@@ -392,38 +409,27 @@ export default function AdminConsole({ data = {}, userName = 'المدير' }) {
       <div className="flex min-h-screen flex-col md:me-64">
         <header className="sticky top-0 z-20 flex h-16 items-center justify-between border-b border-slate-200 bg-white/80 px-4 backdrop-blur-xl md:px-8">
           <h1 className="text-[15px] font-bold">{TITLE[active]}</h1>
-          <a href="/" className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 px-3 py-2 text-sm font-semibold text-slate-700 transition hover:border-blue-400 hover:text-blue-600">
-            <ArrowLeft size={16} className="rotate-180" /><span>العودة للموقع</span>
-          </a>
+          {active === 'live' ? (
+            <span className="inline-flex items-center gap-2 rounded-full bg-emerald-50 px-3 py-1.5 text-xs font-bold text-emerald-600">
+              <span className="relative flex h-2 w-2">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
+                <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
+              </span>
+              بث مباشر
+            </span>
+          ) : (
+            <div className="grid h-9 w-9 place-items-center rounded-full bg-blue-600 text-sm font-black text-white md:hidden">{(userName || 'A').charAt(0).toUpperCase()}</div>
+          )}
         </header>
 
         <main className="flex-1 p-4 pb-24 md:p-8 md:pb-8">
-          {/* Grand Unified DNA — same brain (range+metric) + master chart as merchant/worker */}
-          <DashboardContainer role="admin" orders={orders} workers={workers}>
-            {/* Multi-tenant macro summary — consolidated across all centers */}
-            <MacroSummary macro={macro} />
-
-            {/* persistent platform governance KPI strip */}
-            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4">
-              <MetricCard icon={Wallet} label="صافي عمولات المنصة" value={sar(metrics.commissions)} delta="12%" />
-              <MetricCard icon={Gauge} label="نجاح الالتزام SLA" value={`${metrics.slaPct || 0}%`} />
-              <MetricCard icon={ShieldCheck} label="ورش تحت الفحص" value={(metrics.underInspection || 0).toLocaleString('en-US')} />
-              <MetricCard icon={Car} label="سيارات داخل الصالات" value={(metrics.carsInOps || 0).toLocaleString('en-US')} />
-            </div>
-
-            <UnifiedChart showControls />
-
-            {/* Merchant leaderboard / ranking matrix */}
-            <MerchantLeaderboard rows={lbRows} onManage={setManageId} />
-
-            {renderView()}
-          </DashboardContainer>
+          {renderView()}
         </main>
       </div>
 
       {/* Mobile bottom nav — key sections */}
       <nav className="fixed inset-x-0 bottom-0 z-40 flex items-stretch border-t border-slate-200 bg-slate-50 md:hidden">
-        {[['centers', Store], ['requests', Inbox], ['commissions', Wallet], ['audit', ScrollText]].map(([k, Icon]) => {
+        {[['dashboard', LayoutDashboard], ['live', RadioTower], ['requests', Inbox], ['finance', Wallet]].map(([k, Icon]) => {
           const on = active === k;
           return (
             <button key={k} onClick={() => setActive(k)} className={`flex flex-1 flex-col items-center gap-1 py-2.5 text-[10px] font-semibold transition-colors ${on ? 'text-blue-600' : 'text-slate-400'}`}>

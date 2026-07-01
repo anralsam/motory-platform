@@ -15,6 +15,7 @@ import { ArrowUpRight, ArrowDownRight } from 'lucide-react';
 import { useDashboardData } from './DashboardContainer';
 import UnifiedChart from './UnifiedChart';
 import WorkforcePanel from './WorkforcePanel';
+import FilterSelect from './FilterSelect';
 import { fmtValue, computeComparisons, CHART_TIMELINES } from './engine';
 
 const TABS = [['overview', 'نظرة عامة'], ['content', 'المحتوى'], ['audience', 'الجمهور'], ['revenue', 'الإيرادات']];
@@ -55,17 +56,7 @@ export default function AnalyticsPanel() {
           <div className="text-lg font-bold leading-snug text-[#0f172a]">
             حصدت مركزك <span className="font-mono tabular-nums" dir="ltr">{comp.sales.value}</span> عملية خلال {periodText}.
           </div>
-          <div className="inline-flex gap-1 rounded-xl bg-slate-100 p-1">
-            {CHART_TIMELINES.map((t) => {
-              const on = timeline === t.key;
-              return (
-                <button key={t.key} onClick={() => setTimeline(t.key)}
-                  className={`rounded-lg px-3 py-1.5 text-xs transition-all ${on ? 'bg-blue-600 font-bold text-white shadow-sm' : 'font-medium text-slate-500 hover:text-slate-800'}`}>
-                  {t.label}
-                </button>
-              );
-            })}
-          </div>
+          <FilterSelect label="الفترة" options={CHART_TIMELINES} value={timeline} onChange={setTimeline} />
         </div>
 
         {/* Navigation tabs */}

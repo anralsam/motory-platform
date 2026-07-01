@@ -1,18 +1,20 @@
 'use client';
 
 /**
- * UnifiedChart — VOLD MOTOR floating line canvas (YouTube-Analytics parity).
- * A plain white panel, borderless on its interior: no vertical grid, only light
- * horizontal dashed reference markers, a thin sharp 2px monotone curve, and an
- * ultra-faint gradient mask. Reads the global metric/timeline (useDashboardData);
- * the metric is normally driven by the AnalyticsPanel summary cards. Pass
- * `showControls` to render the inline Metric×Timeline matrix (used standalone, e.g.
- * the admin console where there is no surrounding summary grid).
+ * UnifiedChart — VOLD MOTOR master analytics chart (YouTube-Analytics parity).
+ * Header (when `showControls`): a YT-style context headline ("حصدت منصتك X خلال
+ * آخر N يومًا") + the current metric total with growth vs the previous window,
+ * and the Metric × Timeline filters as compact DROPDOWNS (FilterSelect) — never
+ * open pill rows on the canvas. Below: a plain white panel, no vertical grid,
+ * light dashed horizontal markers, a thin 2px monotone curve and a faint
+ * gradient — the day sequence on the X axis exactly like Studio.
  */
 import { useMemo } from 'react';
 import { ResponsiveContainer, ComposedChart, Area, Line, CartesianGrid, XAxis, YAxis, Tooltip } from 'recharts';
+import { ArrowUpRight, ArrowDownRight } from 'lucide-react';
 import { useDashboardData } from './DashboardContainer';
-import { CHART_METRICS, CHART_TIMELINES, computeChartSeries } from './engine';
+import FilterSelect from './FilterSelect';
+import { CHART_METRICS, CHART_TIMELINES, computeChartSeries, computeComparisons } from './engine';
 
 function CustomTooltip({ active, payload, label, unit }) {
   if (!active || !payload || !payload.length) return null;
@@ -39,31 +41,40 @@ export default function UnifiedChart({ showControls = false }) {
     return { data: r.series, unit: r.unit };
   }, [orders, metric, timeline]);
 
+  // YT-style headline: window total for the ACTIVE metric + growth vs previous window.
+  const head = useMemo(() => {
+    const comp = computeComparisons(orders, timeline);
+    const key = metric === 'revenue' ? 'revenue' : metric === 'customers' ? 'customers' : 'sales';
+    const { value, growth } = comp[key] || { value: 0, growth: 0 };
+    const metricLabel = (CHART_METRICS.find((m) => m.key === metric) || {}).label || '';
+    const period = comp.days === 1 ? 'آخر ٢٤ ساعة' : comp.days === 7 ? 'آخر ٧ أيام' : comp.days === 30 ? 'آخر ٣٠ يومًا' : 'آخر ١٢ شهرًا';
+    const fmt = unit === 'sar' ? `${(Number(value) || 0).toLocaleString('en-US')} ﷼` : (Number(value) || 0).toLocaleString('en-US');
+    return { metricLabel, period, fmt, growth };
+  }, [orders, metric, timeline, unit]);
+
   return (
     <div className="w-full rounded-2xl border border-slate-200 bg-white p-6 shadow-sm md:p-8">
       {showControls && (
-        <div dir="rtl" className="mb-8 flex w-full flex-col items-start justify-between gap-4 border-b border-slate-100 pb-4 sm:flex-row sm:items-center">
-          <div className="inline-flex gap-1 rounded-xl bg-slate-100 p-1">
-            {CHART_METRICS.map((m) => {
-              const on = metric === m.key;
-              return (
-                <button key={m.key} onClick={() => setMetric(m.key)}
-                  className={`rounded-lg px-4 py-1.5 text-sm transition-all ${on ? 'bg-white font-bold text-slate-900 shadow-sm' : 'font-medium text-slate-500 hover:text-slate-800'}`}>
-                  {m.label}
-                </button>
-              );
-            })}
+        <div dir="rtl" className="mb-6 flex w-full flex-col items-start justify-between gap-4 border-b border-slate-100 pb-5 sm:flex-row sm:items-start">
+          {/* Context headline — Studio parity */}
+          <div>
+            <div className="text-base font-bold leading-snug text-slate-900 md:text-lg">
+              حصدت المنصة <span className="font-mono tabular-nums" dir="ltr">{head.fmt}</span>
+              <span className="mx-1">{head.metricLabel === 'الأرباح' ? 'أرباحًا' : ''}</span>
+              خلال {head.period}.
+            </div>
+            <div className="mt-1.5 flex items-center gap-1.5 text-xs font-semibold">
+              {head.growth >= 0
+                ? <span className="inline-flex items-center gap-0.5 text-emerald-600"><ArrowUpRight size={14} /><span dir="ltr">{head.growth}%</span></span>
+                : <span className="inline-flex items-center gap-0.5 text-rose-600"><ArrowDownRight size={14} /><span dir="ltr">{Math.abs(head.growth)}%</span></span>}
+              <span className="font-medium text-slate-400">مقارنةً بالفترة السابقة</span>
+            </div>
           </div>
-          <div className="inline-flex gap-1 rounded-xl bg-slate-100 p-1">
-            {CHART_TIMELINES.map((t) => {
-              const on = timeline === t.key;
-              return (
-                <button key={t.key} onClick={() => setTimeline(t.key)}
-                  className={`rounded-lg px-3.5 py-1.5 text-xs transition-all ${on ? 'bg-blue-600 font-bold text-white shadow-sm' : 'font-medium text-slate-500 hover:text-slate-800'}`}>
-                  {t.label}
-                </button>
-              );
-            })}
+
+          {/* Filters — compact dropdowns, never open pill rows */}
+          <div className="flex flex-none items-center gap-2">
+            <FilterSelect label="المقياس" options={CHART_METRICS} value={metric} onChange={setMetric} />
+            <FilterSelect label="الفترة" options={CHART_TIMELINES} value={timeline} onChange={setTimeline} />
           </div>
         </div>
       )}

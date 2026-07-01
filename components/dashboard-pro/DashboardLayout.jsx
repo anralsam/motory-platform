@@ -40,16 +40,9 @@ const PAGES_BY_ROLE = {
 };
 
 function Logo() {
-  return (
-    <svg width="26" height="26" viewBox="0 0 48 48" fill="none" aria-hidden="true">
-      <path d="M6 10 L24 42 L42 10" stroke="url(#dlg)" strokeWidth="4.8" strokeLinecap="round" strokeLinejoin="round" />
-      <defs>
-        <linearGradient id="dlg" x1="6" y1="10" x2="42" y2="42" gradientUnits="userSpaceOnUse">
-          <stop stopColor="#1e293b" /><stop offset=".55" stopColor="#3b82f6" /><stop offset="1" stopColor="#2563eb" />
-        </linearGradient>
-      </defs>
-    </svg>
-  );
+  // Same /logo.png wordmark as the public landing — one brand across all consoles.
+  // eslint-disable-next-line @next/next/no-img-element
+  return <img src="/logo.png" alt="VOLD MOTOR" className="h-6 w-auto" />;
 }
 
 function Placeholder({ label }) {
@@ -100,9 +93,8 @@ export default function DashboardLayout({ role = 'admin', content = {}, userName
     <div dir={dir} className={`min-h-screen bg-slate-50 text-slate-900 ${isAr ? 'font-sans' : 'font-inter'}`}>
       {/* ══ Sidebar — desktop only (hidden md:flex) ══ */}
       <aside className="fixed inset-y-0 end-0 z-40 hidden w-60 flex-col border-s border-slate-200 bg-slate-50 md:flex">
-        <div className="flex h-16 items-center gap-2.5 border-b border-slate-200 px-5" dir="ltr">
+        <div className="flex h-16 items-center border-b border-slate-200 px-5" dir="ltr">
           <Logo />
-          <span className="text-sm font-extrabold tracking-wide text-slate-900">VOLD <span className="text-blue-600">MOTOR</span></span>
         </div>
         <nav className="flex-1 space-y-1 p-3">
           {pages.map((p) => <NavItem key={p.key} p={p} />)}

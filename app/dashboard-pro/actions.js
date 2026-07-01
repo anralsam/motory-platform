@@ -451,3 +451,83 @@ export async function setAutomation(key, enabled) {
   revalidatePath('/dashboard/settings');
   return { ok: true };
 }
+
+export async function getCentersLive() {
+  const supabase = createServerSupabase();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user || !(await isAdmin(supabase, user))) return { ok: false, error: 'غير مصرّح' };
+  const admin = getSupabaseAdmin();
+  if (!admin) return { ok: false, error: 'مفتاح الخدمة غير مهيّأ' };
+
+  const [{ data: orders }, { data: workers }, { data: users }, billingRes] = await Promise.all([
+    admin.from('orders')
+      .select('id, merchant_id, customer_name, plate, service_type, status, price, created_at, started_at, completed_at, assigned_to')
+      .order('created_at', { ascending: false }).limit(400),
+    admin.from('workers').select('*').order('created_at', { ascending: false }).limit(200)
+      .then((r) => (r.error ? admin.from('workers').select('*').limit(200) : r)),
+    admin.from('users').select('id, shop_name, is_frozen, under_audit').eq('role', 'merchant'),
+    admin.from('platform_billing').select('*').limit(120)
+      .then((r) => (r.error ? { data: [] } : r)),
+  ]);
+
+  const nameById = Object.fromEntries((users || []).map((u) => [u.id, u.shop_name || 'مركز']));
+  const workerName = Object.fromEntries((workers || []).filter((w) => w.user_id).map((w) => [w.user_id, w.full_name]));
+
+  // ── Per-center consolidation ──
+  const centers = {};
+  const centerOf = (id) => {
+    if (!centers[id]) {
+      centers[id] = {
+        id, name: nameById[id] || 'مركز',
+        frozen: !!(users || []).find((u) => u.id === id)?.is_frozen,
+        audit: !!(users || []).find((u) => u.id === id)?.under_audit,
+        live: 0, pending: 0, todayOps: 0, todayRevenue: 0,
+        ops: [], hires: [], transfers: [],
+      };
+    }
+    return centers[id];
+  };
+  (users || []).forEach((u) => centerOf(u.id));
+
+  const dayStart = new Date(); dayStart.setHours(0, 0, 0, 0);
+  (orders || []).forEach((o) => {
+    if (!o.merchant_id) return;
+    const c = centerOf(o.merchant_id);
+    if (o.status === 'in_progress' || o.status === 'ready') c.live += 1;
+    if (o.status === 'pending') c.pending += 1;
+    const t = o.created_at ? new Date(o.created_at) : null;
+    if (t && t >= dayStart) {
+      c.todayOps += 1;
+      if (o.status === 'completed') c.todayRevenue += Number(o.price) || 0;
+    }
+    if (c.ops.length < 8) c.ops.push({
+      id: o.id, customer: o.customer_name || 'عميل', plate: o.plate || null,
+      service: o.service_type || 'خدمة', status: o.status, price: Number(o.price) || 0,
+      tech: o.assigned_to ? (workerName[o.assigned_to] || 'فنّي') : null,
+      at: o.completed_at || o.started_at || o.created_at,
+    });
+  });
+
+  (workers || []).forEach((w) => {
+    if (!w.center_id) return;
+    const c = centerOf(w.center_id);
+    if (c.hires.length < 6) c.hires.push({
+      name: w.full_name || 'موظف', status: w.status || '—', at: w.created_at || null,
+    });
+  });
+
+  (billingRes.data || []).forEach((b) => {
+    const id = b.merchant_id || b.center_id;
+    if (!id) return;
+    const c = centerOf(id);
+    if (c.transfers.length < 6) c.transfers.push({
+      period: b.billing_period || '—',
+      amount: Number(b.amount_due ?? b.amount ?? b.total ?? b.commission_due ?? 0) || 0,
+      status: b.status || (b.paid_at || b.is_paid ? 'paid' : 'due'),
+      at: b.paid_at || b.updated_at || b.created_at || null,
+    });
+  });
+
+  const rows = Object.values(centers).sort((a, b) => (b.live + b.pending) - (a.live + a.pending) || b.todayOps - a.todayOps);
+  return { ok: true, at: new Date().toISOString(), centers: rows };
+}

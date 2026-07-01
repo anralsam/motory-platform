@@ -32,7 +32,7 @@ export default function CustomersPage() {
   const selectedId = useBranchStore((s) => s.selectedBranchId);
   const branches = useBranchStore((s) => s.branches);
   const primary = branches.find((b) => b.is_primary) || branches[0];
-  const branchName = selectedId === 'all' ? (primary?.name || 'مركزي') : (branches.find((b) => b.id === selectedId)?.name || 'فرع');
+  const branchName = selectedId === 'all' ? 'كل الفروع' : (branches.find((b) => b.id === selectedId)?.name || 'فرع');
 
   const { customers, loading, error } = useCustomers(centerId, selectedId);
 
@@ -95,7 +95,7 @@ export default function CustomersPage() {
       </div>
 
       {/* Aggregate strip */}
-      <div className="grid grid-cols-1 overflow-hidden rounded-2xl border border-slate-200 bg-[#fafafa]/50 sm:grid-cols-3">
+      <div className="grid grid-cols-1 overflow-hidden rounded-2xl border border-slate-200 bg-white sm:grid-cols-3">
         {[
           ['إجمالي العملاء', totals.count.toLocaleString('en-US')],
           ['إجمالي ما دفعوه', sar(totals.spent)],
@@ -143,7 +143,7 @@ export default function CustomersPage() {
                     <tr key={c.id} className="text-sm transition hover:bg-slate-50/60">
                       <td className="px-5 py-3.5">
                         <div className="flex items-center gap-3">
-                          <span className="grid h-9 w-9 place-items-center rounded-full bg-gradient-to-br from-brand to-brand-violet text-sm font-extrabold text-white">{(c.full_name || 'ع').charAt(0)}</span>
+                          <span className="grid h-9 w-9 place-items-center rounded-full bg-brand text-sm font-extrabold text-white">{(c.full_name || 'ع').charAt(0)}</span>
                           <span className="font-bold text-slate-900">{c.full_name || '—'}</span>
                         </div>
                       </td>

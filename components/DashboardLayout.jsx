@@ -50,7 +50,7 @@ export default function DashboardLayout({ children }) {
   return (
     <div dir={dir} className="flex h-screen bg-[var(--app-bg)] text-slate-900">
       {/* 1. Sidebar (desktop, white-labeled) — inline-start, flips with dir */}
-      <aside className="hidden w-64 flex-col border-e border-slate-200 bg-white md:flex">
+      <aside className="hidden w-56 flex-col border-e border-slate-200 bg-white md:flex">
         <Sidebar />
       </aside>
 
@@ -62,7 +62,7 @@ export default function DashboardLayout({ children }) {
         onClick={() => setDrawerOpen(false)}
       />
       <aside
-        className={`fixed inset-y-0 end-0 z-50 w-64 border-s border-slate-200 bg-white shadow-xl transition-transform md:hidden ${
+        className={`fixed inset-y-0 end-0 z-50 w-60 border-s border-slate-200 bg-white shadow-xl transition-transform md:hidden ${
           drawerOpen ? 'translate-x-0' : (dir === 'ltr' ? '-translate-x-full' : 'translate-x-full')
         }`}
       >
@@ -112,7 +112,7 @@ export default function DashboardLayout({ children }) {
                 onClick={() => setMenuOpen((o) => !o)}
                 className="flex items-center gap-2 rounded-full p-0.5 pe-2 transition hover:bg-slate-100"
               >
-                <span className="grid h-9 w-9 place-items-center rounded-full bg-gradient-to-br from-brand to-brand-violet text-sm font-extrabold text-white">
+                <span className="grid h-9 w-9 place-items-center rounded-full bg-brand text-sm font-extrabold text-white">
                   {initial}
                 </span>
                 <span className="hidden text-sm font-bold text-slate-700 sm:block">{centerName}</span>

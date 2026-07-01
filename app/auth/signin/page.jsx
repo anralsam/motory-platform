@@ -377,7 +377,7 @@ function SignInForm() {
                   <p dir="ltr" className="mt-1.5 text-[13px] font-bold text-gray-700">{maskEmail(otpEmail)}</p>
                 </div>
 
-                <div dir="ltr" onPaste={onOtpPaste} className="flex items-center justify-center gap-3 py-7 sm:gap-3.5">
+                <div dir="ltr" onPaste={onOtpPaste} className="flex items-center justify-center gap-2 py-7 sm:gap-3">
                   {Array.from({ length: 6 }).map((_, i) => {
                     const filled = Boolean(otpCode[i]);
                     return (
@@ -393,7 +393,7 @@ function SignInForm() {
                         onKeyDown={(e) => onOtpKeyDown(i, e)}
                         onFocus={(e) => e.target.select()}
                         aria-label={`${t.otpCodeLabel} ${i + 1}`}
-                        className={`h-16 w-12 rounded-xl border-2 bg-white text-center text-2xl font-extrabold text-zinc-900 caret-blue-600 outline-none transition-all duration-150 sm:w-14 ${
+                        className={`h-14 min-w-0 flex-1 max-w-[3rem] rounded-xl border-2 bg-white text-center text-xl font-extrabold text-zinc-900 caret-blue-600 outline-none transition-all duration-150 sm:h-16 sm:max-w-[3.5rem] sm:text-2xl ${
                           filled ? 'border-blue-600 ring-4 ring-blue-100' : 'border-zinc-200 hover:border-zinc-300'
                         } focus:border-blue-600 focus:ring-4 focus:ring-blue-100`}
                       />

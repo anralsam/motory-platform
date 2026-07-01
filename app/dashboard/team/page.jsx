@@ -53,7 +53,7 @@ export default function TeamPage() {
         </div>
         <h1 className="mt-4 text-xl font-extrabold text-slate-900">الوصول مرفوض</h1>
         <p className="mt-1 text-sm text-slate-500">إدارة الفريق متاحة لمالك المركز فقط.</p>
-        <Link href="/dashboard" className="mt-5 rounded-xl bg-brand px-5 py-2.5 text-sm font-extrabold text-white hover:bg-brand-dark">العودة للرئيسية</Link>
+        <Link href="/dashboard" className="mt-5 rounded-xl bg-slate-900 px-5 py-2.5 text-sm font-bold text-white hover:bg-slate-800">العودة للرئيسية</Link>
       </div>
     );
   }
@@ -96,7 +96,7 @@ export default function TeamPage() {
           <h1 className="text-xl font-bold tracking-tight text-slate-900">إدارة الفريق</h1>
           <p className="mt-1 text-sm text-slate-500">{branchName} · حسابات العمال والمشرفين، صلاحياتهم، وروابط دخولهم</p>
         </div>
-        <button onClick={() => setOpen(true)} className="flex items-center gap-2 rounded-xl bg-brand px-4 py-2.5 text-sm font-extrabold text-white shadow-lg shadow-brand/25 transition hover:bg-brand-dark">
+        <button onClick={() => setOpen(true)} className="flex items-center gap-2 rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-bold text-white transition hover:bg-slate-800">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round"><path d="M12 5v14M5 12h14" /></svg>
           إضافة موظف
         </button>
@@ -121,7 +121,7 @@ export default function TeamPage() {
       <div className="flex flex-wrap items-center gap-2">
         {[['all', 'الكل'], ['technician', 'الفنّيون'], ['manager', 'المشرفون']].map(([k, label]) => (
           <button key={k} onClick={() => setRoleFilter(k)}
-            className={`rounded-full border px-4 py-2 text-sm font-bold transition ${roleFilter === k ? 'border-brand bg-brand text-white' : 'border-slate-200 bg-white text-slate-500 hover:border-brand hover:text-brand'}`}>
+            className={`rounded-full border px-4 py-2 text-sm font-bold transition ${roleFilter === k ? 'border-slate-900 bg-slate-900 text-white' : 'border-slate-200 bg-white text-slate-500 hover:border-slate-400 hover:text-slate-900'}`}>
             {label}
           </button>
         ))}
@@ -163,7 +163,7 @@ export default function TeamPage() {
                     <tr key={m.id} className="text-sm transition hover:bg-slate-50/60">
                       <td className="px-5 py-3.5">
                         <div className="flex items-center gap-3">
-                          <span className="grid h-9 w-9 place-items-center rounded-full bg-gradient-to-br from-brand to-brand-violet text-sm font-extrabold text-white">
+                          <span className="grid h-9 w-9 place-items-center rounded-full bg-brand text-sm font-extrabold text-white">
                             {(m.full_name || 'ع').charAt(0)}
                           </span>
                           <span className="font-bold text-slate-900">{m.full_name || '—'}</span>

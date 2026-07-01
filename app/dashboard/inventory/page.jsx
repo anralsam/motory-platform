@@ -132,6 +132,23 @@ export default function InventoryPage() {
     });
   }, [items, activeCat, search]);
 
+  // ── Organized view: rows grouped under category headers, in the activity's
+  //     canonical category order (unknown categories sink to the bottom). ──
+  const grouped = useMemo(() => {
+    const order = Object.fromEntries(categories.map((c, i) => [c.key, i]));
+    const sorted = [...filtered].sort((a, b) =>
+      ((order[a.cat] ?? 99) - (order[b.cat] ?? 99)) || a.name.localeCompare(b.name, 'ar'));
+    const groups = [];
+    sorted.forEach((i) => {
+      const last = groups[groups.length - 1];
+      if (!last || last.cat !== i.cat) groups.push({ cat: i.cat, items: [i] });
+      else last.items.push(i);
+    });
+    return groups;
+  }, [filtered, categories]);
+
+  const lowStock = useMemo(() => items.filter((i) => i.qty <= i.min), [items]);
+
   const counts = useMemo(() => {
     const m = {};
     items.forEach((i) => { m[i.cat] = (m[i.cat] || 0) + 1; });
@@ -150,13 +167,13 @@ export default function InventoryPage() {
             {branchName} · نوع النشاط: <span className="font-bold text-slate-700">{centerType}</span>
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           {template.length > 0 && (
             <button
               onClick={seedTemplate}
               disabled={seeding}
               title={`تعبئة مخزون جاهز لنشاط «${centerType}» — قابل للتعديل`}
-              className="flex items-center gap-2 rounded-xl border border-brand/30 bg-brand/5 px-4 py-2.5 text-sm font-extrabold text-brand transition hover:bg-brand/10 disabled:opacity-50"
+              className="flex items-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-bold text-slate-700 transition hover:border-slate-900 hover:text-slate-900 disabled:opacity-50"
             >
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" /><path d="m3.3 7 8.7 5 8.7-5M12 22V12" /></svg>
               {seeding ? 'جارٍ التجهيز...' : 'تجهيز مخزون النشاط'}
@@ -164,7 +181,7 @@ export default function InventoryPage() {
           )}
           <button
             onClick={() => setModalOpen(true)}
-            className="flex items-center gap-2 rounded-xl bg-brand px-4 py-2.5 text-sm font-extrabold text-white shadow-lg shadow-brand/25 transition hover:bg-brand-dark"
+            className="flex items-center gap-2 rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-bold text-white transition hover:bg-slate-800"
           >
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round"><path d="M12 5v14M5 12h14" /></svg>
             إضافة صنف
@@ -195,6 +212,15 @@ export default function InventoryPage() {
         />
       </div>
 
+      {/* Low-stock alert strip */}
+      {!loading && lowStock.length > 0 && (
+        <div className="flex flex-wrap items-center gap-2 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3">
+          <svg className="text-amber-600" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" /><path d="M12 9v4M12 17h.01" /></svg>
+          <span className="text-sm font-extrabold text-amber-800">{lowStock.length} صنف يحتاج إعادة تعبئة:</span>
+          <span className="text-sm font-semibold text-amber-700">{lowStock.slice(0, 4).map((i) => i.name).join('، ')}{lowStock.length > 4 ? ` +${lowStock.length - 4} أخرى` : ''}</span>
+        </div>
+      )}
+
       {/* Data table */}
       <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
         <div className="overflow-x-auto">
@@ -224,21 +250,28 @@ export default function InventoryPage() {
                   </td>
                 </tr>
               ) : (
-                filtered.map((i) => {
+                grouped.flatMap((g) => {
+                  const gcol = catColor[g.cat] || '#57606a';
+                  return [
+                    <tr key={'h-' + g.cat} className="bg-slate-50/80">
+                      <td colSpan={6} className="px-5 py-2">
+                        <span className="inline-flex items-center gap-2 text-xs font-extrabold" style={{ color: gcol }}>
+                          <span className="h-2 w-2 rounded-full" style={{ background: gcol }} />
+                          {catLabelOf(g.cat)}
+                          <span className="font-bold text-slate-400">· {g.items.length} صنف</span>
+                        </span>
+                      </td>
+                    </tr>,
+                    ...g.items.map((i) => {
                   const st = statusOf(i);
                   const col = catColor[i.cat] || '#57606a';
                   const low = st.key !== 'ok';
                   return (
                     <tr key={i.id} className="text-sm transition hover:bg-slate-50/60">
                       <td className="px-5 py-3.5">
-                        <div className="flex items-center gap-3">
-                          <span className="grid h-9 w-9 place-items-center rounded-lg" style={{ background: col + '1a' }}>
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={col} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 7H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z" /><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" /></svg>
-                          </span>
-                          <div>
-                            <div className="font-bold text-slate-900">{i.name}</div>
-                            {i.supplier && <div className="text-xs text-slate-400">{i.supplier}</div>}
-                          </div>
+                        <div>
+                          <div className="font-bold text-slate-900">{i.name}</div>
+                          {i.supplier && <div className="text-xs text-slate-400">{i.supplier}</div>}
                         </div>
                       </td>
                       <td className="px-5 py-3.5">
@@ -288,6 +321,8 @@ export default function InventoryPage() {
                       </td>
                     </tr>
                   );
+                }),
+                  ];
                 })
               )}
             </tbody>
@@ -322,7 +357,7 @@ function Chip({ active, onClick, children }) {
     <button
       onClick={onClick}
       className={`rounded-full border px-4 py-2 text-sm font-bold transition ${
-        active ? 'border-brand bg-brand text-white' : 'border-slate-200 bg-white text-slate-500 hover:border-brand hover:text-brand'
+        active ? 'border-slate-900 bg-slate-900 text-white' : 'border-slate-200 bg-white text-slate-500 hover:border-slate-400 hover:text-slate-900'
       }`}
     >
       {children}

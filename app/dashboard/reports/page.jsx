@@ -110,7 +110,7 @@ export default function ReportsPage() {
 
       {view === 'overview' && (<>
       {/* Summary KPIs FIRST — the numbers before the curves */}
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         <KPI label="العمليات المنجزة" value={loading ? '—' : fmt(summary.count)} />
         <KPI label="إجمالي المبيعات" value={loading ? '—' : fmt(summary.total)} suffix="ر.س" accent="text-emerald-600" />
         <KPI label="متوسط الفاتورة" value={loading ? '—' : fmt(summary.avg)} suffix="ر.س" accent="text-blue-600" />
@@ -238,7 +238,7 @@ export default function ReportsPage() {
             <p className="text-xs text-slate-500">{branchName} · آخر 100 عملية</p>
           </div>
           <div className="relative">
-            <button onClick={() => setExportOpen((o) => !o)} className="flex items-center gap-2 rounded-xl bg-brand px-4 py-2.5 text-sm font-extrabold text-white shadow-lg shadow-brand/25 transition hover:bg-brand-dark">
+            <button onClick={() => setExportOpen((o) => !o)} className="flex items-center gap-2 rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-bold text-white transition hover:bg-slate-800">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3" /></svg>
               تصدير PDF/CSV
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round"><path d="M6 9l6 6 6-6" /></svg>

@@ -18,7 +18,6 @@ const THEMES = [
   { key: 'zinc', label: 'Zinc', bg: '#f4f4f5' },
   { key: 'neutral', label: 'Neutral', bg: '#f5f5f4' },
   { key: 'bluegray', label: 'Blue-gray', bg: '#e9eff5' },
-  { key: 'stone', label: 'Stone', bg: '#f5f3ef' },
 ];
 
 export default function SettingsPage() {
@@ -54,7 +53,7 @@ export default function SettingsPage() {
       <div className="flex gap-1 border-b border-slate-200">
         {[['identity', 'هوية المركز'], ['services', 'الخدمات والأسعار'], ...(canManageCatalog ? [['catalog', 'الكشّة الثابتة']] : []), ['automation', 'أتمتة واتساب'], ['tools', 'أدوات المالك']].map(([k, label]) => (
           <button key={k} onClick={() => setTab(k)}
-            className={`-mb-px border-b-2 px-4 py-2.5 text-sm font-extrabold transition ${tab === k ? 'border-brand text-brand' : 'border-transparent text-slate-500 hover:text-slate-800'}`}>
+            className={`-mb-px border-b-2 px-4 py-2.5 text-sm font-extrabold transition ${tab === k ? 'border-slate-900 text-slate-900' : 'border-transparent text-slate-500 hover:text-slate-800'}`}>
             {label}
           </button>
         ))}
@@ -202,7 +201,7 @@ function IdentityTab({ user, centerId, loadBranches, showToast }) {
           <Field label="رقم التواصل"><input value={phone} onChange={(e) => setPhone(e.target.value)} dir="ltr" placeholder="05XXXXXXXX" className={`${inp} text-right`} /></Field>
         </div>
         <div className="mt-5 flex justify-end">
-          <button onClick={saveIdentity} disabled={saving} className="rounded-xl bg-brand px-5 py-2.5 text-sm font-extrabold text-white hover:bg-brand-dark disabled:opacity-70">حفظ البيانات</button>
+          <button onClick={saveIdentity} disabled={saving} className="rounded-xl bg-slate-900 px-5 py-2.5 text-sm font-bold text-white hover:bg-slate-800 disabled:opacity-70">حفظ البيانات</button>
         </div>
       </section>
 
@@ -257,7 +256,7 @@ function ServicesTab({ centerId, branchId, centerType, showToast }) {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <p className="text-sm text-slate-500">قائمة الخدمات والأسعار للفرع الحالي — تُستخدم في إنشاء الطلبات والفواتير.</p>
-        <button onClick={() => setModal({ open: true, editing: null })} className="flex items-center gap-2 rounded-xl bg-brand px-4 py-2.5 text-sm font-extrabold text-white hover:bg-brand-dark">
+        <button onClick={() => setModal({ open: true, editing: null })} className="flex items-center gap-2 rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-bold text-white hover:bg-slate-800">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round"><path d="M12 5v14M5 12h14" /></svg>
           إضافة خدمة
         </button>

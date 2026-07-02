@@ -93,7 +93,7 @@ export default function StartTaskModal({ order, inventory = [], services = [], o
                     <button type="button" key={t.id} onClick={() => setServiceType(t.name)}
                       className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-sm transition-all ${serviceType === t.name ? 'border-blue-600 bg-blue-50 font-bold text-blue-700' : 'border-slate-200 font-medium text-slate-700 hover:border-blue-400'}`}>
                       <span>{t.name}</span>
-                      <span className="font-mono text-xs tabular-nums text-slate-400" dir="ltr">{Number(t.price)} ر.س</span>
+                      <span className="font-mono text-xs tabular-nums text-slate-400" dir="ltr">{Number(t.price)} ⃀</span>
                     </button>
                   )) : <span className="text-xs text-slate-400">لا توجد قوالب لهذا النشاط.</span>}
                 </div>

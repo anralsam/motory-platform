@@ -17,7 +17,7 @@ import { supabase } from '@/lib/supabaseClient';
 import { waPhone } from '@/lib/whatsapp';
 import MessageCustomerDrawer from '@/components/MessageCustomerDrawer';
 
-const sar = (n) => `${(Number(n) || 0).toLocaleString('en-US')} ر.س`;
+const sar = (n) => `${(Number(n) || 0).toLocaleString('en-US')} ⃀`;
 const STATUS_AR = { pending: 'انتظار', in_progress: 'جاري', ready: 'جاهز', completed: 'مكتمل' };
 const STATUS_CLS = {
   pending: 'bg-amber-50 text-amber-600', in_progress: 'bg-blue-50 text-blue-600',

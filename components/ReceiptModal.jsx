@@ -76,7 +76,7 @@ export default function ReceiptModal({ open, order, centerName, vatNumber, onClo
           <Row k="الإجمالي قبل الضريبة" v={fmtSar(t.net)} />
           <Row k={`ضريبة القيمة المضافة (${Math.round(VAT_RATE * 100)}%)`} v={fmtSar(t.vat)} />
           <div className="mt-1 flex justify-between text-[14px] font-extrabold">
-            <span>الإجمالي (ر.س)</span><span>{fmtSar(t.total)}</span>
+            <span>الإجمالي (⃀)</span><span>{fmtSar(t.total)}</span>
           </div>
 
           <div className="my-2 text-center text-[11px] tracking-tighter">{dash}</div>

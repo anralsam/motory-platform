@@ -5,7 +5,7 @@
 import { Wallet, Receipt, TrendingUp } from 'lucide-react';
 import StatTile from './StatTile';
 
-const sar = (n) => `${(Number(n) || 0).toLocaleString('en-US')} ﷼`;
+const sar = (n) => `${(Number(n) || 0).toLocaleString('en-US')} ⃀`;
 
 export default function FinancePanel({ revenue = 0, ordersValue = 0, completed = 0, avgOrder = 0 }) {
   return (

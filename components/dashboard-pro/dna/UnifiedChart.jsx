@@ -19,7 +19,7 @@ import { CHART_METRICS, CHART_TIMELINES, computeChartSeries, computeComparisons 
 function CustomTooltip({ active, payload, label, unit }) {
   if (!active || !payload || !payload.length) return null;
   const v = Number(payload[0].value) || 0;
-  const text = unit === 'sar' ? `${v.toLocaleString('en-US')} ر.س` : v.toLocaleString('en-US');
+  const text = unit === 'sar' ? `${v.toLocaleString('en-US')} ⃀` : v.toLocaleString('en-US');
   return (
     <div dir="rtl" className="rounded-xl border border-slate-800 bg-slate-900 p-3.5 text-sm font-medium text-white shadow-xl">
       <div className="mb-1 font-mono text-xs text-slate-400" dir="ltr">{label}</div>
@@ -48,7 +48,7 @@ export default function UnifiedChart({ showControls = false, bare = false }) {
     const { value, growth } = comp[key] || { value: 0, growth: 0 };
     const metricLabel = (CHART_METRICS.find((m) => m.key === metric) || {}).label || '';
     const period = comp.days === 1 ? 'آخر ٢٤ ساعة' : comp.days === 7 ? 'آخر ٧ أيام' : comp.days === 30 ? 'آخر ٣٠ يومًا' : 'آخر ١٢ شهرًا';
-    const fmt = unit === 'sar' ? `${(Number(value) || 0).toLocaleString('en-US')} ﷼` : (Number(value) || 0).toLocaleString('en-US');
+    const fmt = unit === 'sar' ? `${(Number(value) || 0).toLocaleString('en-US')} ⃀` : (Number(value) || 0).toLocaleString('en-US');
     return { metricLabel, period, fmt, growth };
   }, [orders, metric, timeline, unit]);
 
@@ -98,8 +98,8 @@ export default function UnifiedChart({ showControls = false, bare = false }) {
             <YAxis axisLine={false} tickLine={false} tickMargin={6} tickCount={5} tick={{ fill: '#606060', fontSize: 12, fontWeight: 500 }} allowDecimals={false}
               domain={[0, (max) => (max > 0 ? max : 10)]} tickFormatter={(val) => (val >= 1000 ? `${(val / 1000).toFixed(0)}k` : val)} />
             <Tooltip cursor={{ stroke: '#e2e8f0', strokeDasharray: '4 4', strokeWidth: 1.5 }} content={<CustomTooltip unit={unit} />} />
-            <Area type="monotone" dataKey="value" stroke="none" fill="url(#chartGradient)" isAnimationActive animationDuration={400} />
-            <Line type="monotone" dataKey="value" stroke="#2563eb" strokeWidth={2} dot={false} activeDot={{ r: 5, fill: '#2563eb', stroke: '#ffffff', strokeWidth: 2.5 }} isAnimationActive animationDuration={400} />
+            <Area type="linear" dataKey="value" stroke="none" fill="#e3f2fd" fillOpacity={1} isAnimationActive animationDuration={350} />
+            <Line type="linear" dataKey="value" stroke="#1a73e8" strokeWidth={2} dot={false} activeDot={{ r: 4.5, fill: '#1a73e8', stroke: '#ffffff', strokeWidth: 2 }} isAnimationActive animationDuration={350} />
           </ComposedChart>
         </ResponsiveContainer>
       </div>

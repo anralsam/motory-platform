@@ -62,7 +62,7 @@ export default function ServiceModal({ open, onClose, onSaved, centerId, branchI
             <input value={name} onChange={(e) => setName(e.target.value)} placeholder="مثال: تغيير زيت 5W-30" className={inp} />
           </Field>
           <div className="grid grid-cols-2 gap-3">
-            <Field label="السعر (ر.س)">
+            <Field label="السعر (⃀)">
               <input type="number" min="0" step="0.5" value={price} onChange={(e) => setPrice(e.target.value)} placeholder="0" className={inp} />
             </Field>
             <Field label="الفئة">

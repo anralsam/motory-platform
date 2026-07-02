@@ -12,7 +12,7 @@ import { motion } from 'framer-motion';
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts';
 import { Wallet, Activity, Store, ShieldCheck } from 'lucide-react';
 
-const sar = (n) => `${(Number(n) || 0).toLocaleString('en-US')} ﷼`;
+const sar = (n) => `${(Number(n) || 0).toLocaleString('en-US')} ⃀`;
 
 function MetricCard({ icon: Icon, label, value, sub, i }) {
   return (

@@ -76,7 +76,7 @@ export default function AddInventoryModal({ open, onClose, onSaved, categories, 
           <Field label="الحد الأدنى للتنبيه">
             <input type="number" min="0" value={min} onChange={(e) => setMin(e.target.value)} placeholder="5" className={inputCls} />
           </Field>
-          <Field label="سعر الوحدة (ر.س)" className="col-span-2">
+          <Field label="سعر الوحدة (⃀)" className="col-span-2">
             <input type="number" min="0" step="0.01" value={price} onChange={(e) => setPrice(e.target.value)} placeholder="0.00" className={inputCls} />
           </Field>
         </div>

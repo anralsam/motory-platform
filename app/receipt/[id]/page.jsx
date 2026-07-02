@@ -116,7 +116,7 @@ export default function PublicReceiptPage({ params }) {
                 <div className="font-bold text-slate-900">{r.service_type || 'خدمة'}</div>
                 <div className="text-xs text-slate-400">{car}</div>
               </div>
-              <div className="font-extrabold text-slate-900">{fmtSar(t.net)} ر.س</div>
+              <div className="font-extrabold text-slate-900">{fmtSar(t.net)} ⃀</div>
             </div>
             <div className="space-y-1.5 px-4 py-3 text-sm">
               <Line k="الإجمالي قبل الضريبة" v={fmtSar(t.net)} />
@@ -124,7 +124,7 @@ export default function PublicReceiptPage({ params }) {
             </div>
             <div className="flex items-center justify-between border-t border-slate-200 px-4 py-3">
               <span className="text-base font-extrabold text-slate-900">الإجمالي</span>
-              <span className="text-xl font-extrabold text-brand">{fmtSar(t.total)} <span className="text-sm">ر.س</span></span>
+              <span className="text-xl font-extrabold text-brand">{fmtSar(t.total)} <span className="text-sm">⃀</span></span>
             </div>
           </div>
 
@@ -173,7 +173,7 @@ function Meta({ k, v, mono, green, full }) {
 function Line({ k, v }) {
   return (
     <div className="flex items-center justify-between text-slate-600">
-      <span>{k}</span><span className="font-bold ltr">{v} ر.س</span>
+      <span>{k}</span><span className="font-bold ltr">{v} ⃀</span>
     </div>
   );
 }

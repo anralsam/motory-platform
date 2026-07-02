@@ -18,8 +18,8 @@ import { getCentersLive } from '@/app/dashboard-pro/actions';
 import StatusPill from './StatusPill';
 
 const REFRESH_MS = 8000;
-const COMMISSION = 0.10;
-const sar = (n) => `${(Number(n) || 0).toLocaleString('en-US')} ﷼`;
+const COMMISSION = 0.004; // 0.4%
+const sar = (n) => `${Math.round(Number(n) || 0).toLocaleString('en-US')} ⃀`;
 
 function timeAgo(iso) {
   if (!iso) return '—';
@@ -160,7 +160,7 @@ export default function CentersLive() {
       </div>
 
       {/* ② Today stats — للنشاط المختار */}
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-5">
+      <div className="grid grid-cols-2 gap-px overflow-hidden rounded-2xl border border-slate-200 bg-slate-200 shadow-sm sm:grid-cols-3 xl:grid-cols-5">
         {[
           ['بالانتظار الآن', stats.pending.toLocaleString('en-US'), 'text-amber-600'],
           ['تحت الخدمة الآن', stats.live.toLocaleString('en-US'), 'text-blue-600'],
@@ -168,7 +168,7 @@ export default function CentersLive() {
           ['إيرادات اليوم', sar(stats.revenue), 'text-slate-900'],
           ['عمولة المنصة اليوم', sar(stats.commission), 'text-slate-900'],
         ].map(([l, v, tone]) => (
-          <div key={l} className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+          <div key={l} className="bg-white px-4 py-4 sm:px-5">
             <div className="text-[11px] font-semibold text-slate-400">{l}</div>
             <div className={`mt-1.5 truncate text-xl font-bold tabular-nums sm:text-2xl ${tone}`} dir="ltr">{v}</div>
           </div>
@@ -187,18 +187,12 @@ export default function CentersLive() {
         <div className="mt-4 h-48 w-full" dir="ltr">
           <ResponsiveContainer width="100%" height="100%">
             <ComposedChart data={hourly} margin={{ top: 6, right: 8, left: -24, bottom: 0 }}>
-              <defs>
-                <linearGradient id="liveGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#0f172a" stopOpacity={0.10} />
-                  <stop offset="100%" stopColor="#0f172a" stopOpacity={0} />
-                </linearGradient>
-              </defs>
               <CartesianGrid vertical={false} horizontal stroke="#eceef1" />
               <XAxis dataKey="label" axisLine={false} tickLine={false} tickMargin={8} tick={{ fill: '#606060', fontSize: 11, fontWeight: 500 }} minTickGap={26} />
               <YAxis axisLine={false} tickLine={false} tickCount={4} tick={{ fill: '#606060', fontSize: 11, fontWeight: 500 }} allowDecimals={false} domain={[0, (m) => (m > 0 ? m : 4)]} />
               <Tooltip cursor={{ stroke: '#e2e8f0', strokeWidth: 1.5 }} content={<HourlyTooltip />} />
-              <Area type="monotone" dataKey="value" stroke="none" fill="url(#liveGrad)" isAnimationActive animationDuration={350} />
-              <Line type="monotone" dataKey="value" stroke="#0f172a" strokeWidth={2} dot={false} activeDot={{ r: 4, fill: '#0f172a', stroke: '#fff', strokeWidth: 2 }} isAnimationActive animationDuration={350} />
+              <Area type="linear" dataKey="value" stroke="none" fill="#e3f2fd" fillOpacity={1} isAnimationActive animationDuration={350} />
+              <Line type="linear" dataKey="value" stroke="#1a73e8" strokeWidth={2} dot={false} activeDot={{ r: 4, fill: '#1a73e8', stroke: '#fff', strokeWidth: 2 }} isAnimationActive animationDuration={350} />
             </ComposedChart>
           </ResponsiveContainer>
         </div>
@@ -207,7 +201,13 @@ export default function CentersLive() {
       {/* ④ Centers rail + selected center streams */}
       <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-4">
         <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm lg:col-span-1">
-          <div className="border-b border-slate-100 px-4 py-3 text-xs font-bold uppercase tracking-wider text-slate-400">المراكز حسب الضغط الحيّ</div>
+          <div className="flex items-center justify-between gap-2 border-b border-slate-100 px-4 py-2.5">
+            <span className="text-xs font-bold uppercase tracking-wider text-slate-400">المراكز حسب النشاط</span>
+            <select value={typeTab} onChange={(e) => { setTypeTab(e.target.value); setSelected(null); }}
+              className="rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-xs font-bold text-slate-700 outline-none transition focus:border-slate-900">
+              {typeTabs.map((t) => <option key={t.key} value={t.key}>{t.label} ({t.count})</option>)}
+            </select>
+          </div>
           <div className="flex max-h-[220px] flex-row divide-x divide-x-reverse divide-slate-100 overflow-x-auto lg:max-h-[560px] lg:flex-col lg:divide-x-0 lg:divide-y lg:overflow-y-auto">
             {centers.map((c) => {
               const on = active?.id === c.id;

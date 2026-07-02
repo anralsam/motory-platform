@@ -51,7 +51,7 @@ export default function BankTransferModal({ open, billing, onClose, onConfirmed 
         {/* Amount */}
         <div className="mb-4 rounded-2xl bg-gradient-to-br from-violet-600 to-blue-600 px-5 py-4 text-white">
           <div className="text-xs font-bold opacity-80">المبلغ المطلوب تحويله</div>
-          <div className="mt-1 text-2xl font-extrabold tabular-nums">{fmtSar(billing.total_amount)} <span className="text-base opacity-80">ر.س</span></div>
+          <div className="mt-1 text-2xl font-extrabold tabular-nums">{fmtSar(billing.total_amount)} <span className="text-base opacity-80">⃀</span></div>
           <div className="mt-0.5 text-[11px] opacity-70">مستحقات منصة VOLD MOTOR · {billing.billing_period}</div>
         </div>
 

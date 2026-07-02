@@ -11,7 +11,7 @@
  * /logo.png wordmark as the public landing. Metric cards are Studio-style —
  * label / big tabular number / growth arrow — with NO icon chips.
  */
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import {
   LayoutDashboard, RadioTower, Inbox, Wallet, ShieldCheck, Settings,
   ArrowUpRight, ArrowDownRight,
@@ -24,7 +24,7 @@ import UnifiedChart from './dna/UnifiedChart';
 import CentersLive from './CentersLive';
 
 const EDGE = `${SUPABASE_URL}/functions/v1/admin-merchants`;
-const sar = (n) => `${(Number(n) || 0).toLocaleString('en-US')} ﷼`;
+const sar = (n) => `${Math.round(Number(n) || 0).toLocaleString('en-US')} \u20C0`;
 
 // ── Flat, concise nav — الترتيب المعتمد: الرئيسية ← طلبات الانضمام ← المالية
 //    ← المتابعة الحية ← الحوكمة ← الإعدادات (آخر شيء دائماً). ثنائي اللغة. ──
@@ -177,25 +177,166 @@ function ListView({ rows, cols }) {
 function MockNote() {
   return <div className="border-t border-slate-200 px-5 py-2 text-[11px] text-slate-400">عرض تجريبي — يُربط بجدول حقيقي عند تجهيز الوحدة.</div>;
 }
+/* ── نسبة عمولة المنصة الرسمية — 0.4% لكل عملية ── */
+const COMMISSION_RATE = 0.004;
+const RATE_LABEL = '0.4%';
+
+/* ── الإعدادات = إدارة المراكز وحظرها فقط ── */
+function CentersControl({ rows = [], onManage }) {
+  const [q, setQ] = useState('');
+  const filtered = rows.filter((r) => !q.trim() || r.name.toLowerCase().includes(q.trim().toLowerCase()));
+  return (
+    <div className="space-y-4">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <div className="text-base font-bold text-slate-900">إدارة المراكز والحظر</div>
+          <div className="mt-0.5 text-xs font-medium text-slate-400">تجميد المراكز، وضعها تحت التدقيق، أو ترقية باقتها — التغييرات فورية</div>
+        </div>
+        <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="ابحث باسم المركز…"
+          className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm font-medium outline-none transition focus:border-slate-900 sm:w-64" />
+      </div>
+      <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+        <div className="divide-y divide-slate-100">
+          {filtered.map((r) => (
+            <div key={r.id} className="flex flex-wrap items-center gap-3 px-5 py-3.5">
+              <div className="min-w-0 flex-1">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="truncate text-sm font-bold text-slate-900">{r.name}</span>
+                  {r.is_frozen && <span className="rounded-full bg-rose-50 px-2 py-0.5 text-[10px] font-bold text-rose-600">محظور/مجمّد</span>}
+                  {r.under_audit && <span className="rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-bold text-amber-600">تحت التدقيق</span>}
+                </div>
+                <div className="mt-0.5 text-[11px] font-medium text-slate-400">{r.branches} فرع · {r.orders?.toLocaleString?.('en-US') || r.orders || 0} عملية</div>
+              </div>
+              <button onClick={() => onManage?.(r.id)}
+                className="rounded-lg border border-slate-200 px-3.5 py-2 text-xs font-bold text-slate-700 transition hover:border-slate-900 hover:text-slate-900">
+                إدارة الحساب
+              </button>
+            </div>
+          ))}
+          {!filtered.length && <div className="grid place-items-center py-14 text-sm text-slate-400">لا نتائج مطابقة</div>}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ── شريط أرقام موحّد: بطاقة واحدة مقسّمة بفواصل — نظيف على كل المقاسات ── */
+function StatStrip({ items = [] }) {
+  return (
+    <div className="grid grid-cols-2 gap-px overflow-hidden rounded-2xl border border-slate-200 bg-slate-200 shadow-sm sm:grid-cols-3 xl:grid-cols-5">
+      {items.map(([l, v]) => (
+        <div key={l} className="bg-white px-4 py-4 sm:px-5">
+          <div className="text-[11px] font-semibold text-slate-400">{l}</div>
+          <div className="mt-1.5 truncate text-xl font-bold tabular-nums text-slate-900 sm:text-2xl" dir="ltr">{v}</div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 function Empty({ label }) {
   return <div className={`${CARD} grid place-items-center py-16 text-sm ${MUTED}`}>{label}</div>;
 }
 
-/* ── Finance page: العمولات · الاشتراكات · التسويات (folded sub-tabs) ── */
-function FinanceView({ metrics }) {
+/* ── Finance page: العمولات · التسويات الشهرية المفصلة (لا اشتراكات) ── */
+const MONTH_AR = ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'];
+
+function FinanceView({ metrics, orders = [], centers = [] }) {
   const [tab, setTab] = useState('commissions');
   return (
     <div className="space-y-6">
-      <SubTabs value={tab} onChange={setTab} tabs={[['commissions', 'الأرباح والعمولات'], ['subscriptions', 'الاشتراكات وفواتير B2B'], ['settlements', 'تسويات التحويلات']]} />
+      <SubTabs value={tab} onChange={setTab} tabs={[['commissions', 'الأرباح والعمولات'], ['settlements', 'التسويات والتحويلات']]} />
       {tab === 'commissions' && (
         <div className="grid grid-cols-1 gap-5 sm:grid-cols-3">
-          <StatCard label="صافي العمولات" value={sar(metrics.commissions)} hint="نسبة المنصة 10%" />
+          <StatCard label="صافي العمولات" value={sar(metrics.commissions)} hint={`نسبة المنصة ${RATE_LABEL} على كل عملية`} />
           <StatCard label="حجم المعاملات" value={sar(metrics.gmv)} hint="إجمالي قيمة العمليات المكتملة" />
-          <StatCard label="متوسط العمولة" value="10%" hint="على كل عملية مكتملة" />
+          <StatCard label="نسبة العمولة" value={RATE_LABEL} hint="لكل عملية مكتملة" />
         </div>
       )}
-      {tab === 'subscriptions' && <ListView cols={['المركز', 'الباقة', 'المستحق']} rows={[['مركز رائد', 'Pro', '٩٩٩ ﷼'], ['ورشة الخليج', 'Basic', '٤٩٩ ﷼']]} />}
-      {tab === 'settlements' && <ListView cols={['المركز', 'المبلغ', 'الحالة']} rows={[['مركز رائد', '٢٤٬٠٥٠ ﷼', 'بانتظار التحويل'], ['ورشة الخليج', '٨٬٢٠٠ ﷼', 'تمّت']]} />}
+      {tab === 'settlements' && <MonthlySettlements orders={orders} centers={centers} />}
+    </div>
+  );
+}
+
+/* التسويات والتحويلات — مقسّمة شهرياً ومفصّلة لكل مركز */
+function MonthlySettlements({ orders = [], centers = [] }) {
+  const nameOf = useMemo(() => Object.fromEntries(centers.map((c) => [c.id, c.name])), [centers]);
+  const months = useMemo(() => {
+    const g = {};
+    orders.forEach((o) => {
+      if (o.status !== 'completed') return;
+      const t = o.completed_at || o.created_at;
+      if (!t) return;
+      const d = new Date(t);
+      const key = `${d.getFullYear()}-${String(d.getMonth()).padStart(2, '0')}`;
+      const m = g[key] || (g[key] = { y: d.getFullYear(), m: d.getMonth(), gmv: 0, ops: 0, byCenter: {} });
+      const price = Number(o.price) || 0;
+      m.gmv += price; m.ops += 1;
+      const c = m.byCenter[o.merchant_id] || (m.byCenter[o.merchant_id] = { gmv: 0, ops: 0 });
+      c.gmv += price; c.ops += 1;
+    });
+    return Object.entries(g).map(([key, m]) => ({ key, ...m }))
+      .sort((a, b) => (b.y - a.y) || (b.m - a.m));
+  }, [orders]);
+  const [openKey, setOpenKey] = useState(null);
+  const now = new Date();
+
+  if (!months.length) return <Empty label="لا توجد تسويات بعد — تظهر تلقائياً مع أول عملية مكتملة" />;
+
+  return (
+    <div className="space-y-4">
+      {months.map((m) => {
+        const commission = m.gmv * COMMISSION_RATE;
+        const isCurrent = m.y === now.getFullYear() && m.m === now.getMonth();
+        const open = openKey === m.key;
+        const rows = Object.entries(m.byCenter)
+          .map(([id, c]) => ({ id, name: nameOf[id] || 'مركز', ...c }))
+          .sort((a, b) => b.gmv - a.gmv);
+        return (
+          <div key={m.key} className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+            <button onClick={() => setOpenKey(open ? null : m.key)} className="flex w-full flex-wrap items-center justify-between gap-3 px-5 py-4 text-start transition hover:bg-slate-50">
+              <div className="flex items-center gap-3">
+                <span className="text-sm font-bold text-slate-900">{MONTH_AR[m.m]} {m.y}</span>
+                <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${isCurrent ? 'bg-blue-50 text-blue-600' : 'bg-emerald-50 text-emerald-600'}`}>
+                  {isCurrent ? 'الشهر الجاري — تُسوَّى نهايته' : 'مستحقة التحويل'}
+                </span>
+              </div>
+              <div className="flex flex-wrap items-center gap-x-6 gap-y-1 text-sm">
+                <span className="font-semibold text-slate-400">{m.ops.toLocaleString('en-US')} عملية</span>
+                <span className="font-semibold text-slate-500">إجمالي <b className="tabular-nums text-slate-900" dir="ltr">{sar(m.gmv)}</b></span>
+                <span className="font-semibold text-slate-500">عمولة المنصة <b className="tabular-nums text-blue-600" dir="ltr">{sar(commission)}</b></span>
+                <svg className={`text-slate-400 transition-transform ${open ? 'rotate-180' : ''}`} width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6" /></svg>
+              </div>
+            </button>
+            {open && (
+              <div className="overflow-x-auto border-t border-slate-100">
+                <table className="w-full text-right text-sm">
+                  <thead>
+                    <tr className="bg-slate-50 text-xs font-bold text-slate-500">
+                      <th className="px-5 py-2.5 text-start">المركز</th>
+                      <th className="px-5 py-2.5 text-start">العمليات</th>
+                      <th className="px-5 py-2.5 text-start">الإجمالي</th>
+                      <th className="px-5 py-2.5 text-start">عمولة {RATE_LABEL}</th>
+                      <th className="px-5 py-2.5 text-start">صافي المركز</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {rows.map((r) => (
+                      <tr key={r.id}>
+                        <td className="px-5 py-3 font-bold text-slate-900">{r.name}</td>
+                        <td className="px-5 py-3 tabular-nums text-slate-600" dir="ltr">{r.ops}</td>
+                        <td className="px-5 py-3 font-semibold tabular-nums text-slate-900" dir="ltr">{sar(r.gmv)}</td>
+                        <td className="px-5 py-3 font-semibold tabular-nums text-blue-600" dir="ltr">{sar(r.gmv * COMMISSION_RATE)}</td>
+                        <td className="px-5 py-3 font-semibold tabular-nums text-emerald-600" dir="ltr">{sar(r.gmv * (1 - COMMISSION_RATE))}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        );
+      })}
     </div>
   );
 }
@@ -342,31 +483,21 @@ export default function AdminConsole({ data = {}, userName = 'المدير' }) {
           {/* الرسم أولاً — Studio parity مع فلاتره المنسدلة */}
           <UnifiedChart showControls />
 
-          {/* جداول الأرقام المختصرة — تشمل المراكز + الفروع كاملة */}
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-5">
-            {[
-              ['المراكز النشطة', (macro.activeCenters || 0).toLocaleString('en-US')],
-              ['إجمالي الفروع', (macro.branches || 0).toLocaleString('en-US')],
-              ['حجم العمليات الكلي', (macro.totalOps || 0).toLocaleString('en-US')],
-              ['إجمالي الإيرادات', sar(macro.revenue)],
-              ['صافي عمولات المنصة', sar(metrics.commissions)],
-            ].map(([l, v]) => (
-              <div key={l} className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-                <div className="text-[11px] font-semibold text-slate-400">{l}</div>
-                <div className="mt-1.5 truncate text-xl font-bold tabular-nums text-slate-900 sm:text-2xl" dir="ltr">{v}</div>
-              </div>
-            ))}
-          </div>
-
-          {/* Merchant leaderboard / ranking matrix */}
-          <MerchantLeaderboard rows={lbRows} onManage={setManageId} />
+          {/* شريط الأرقام الموحّد — بطاقة واحدة مقسّمة، مرتبة على الجوال والكمبيوتر */}
+          <StatStrip items={[
+            ['المراكز النشطة', (macro.activeCenters || 0).toLocaleString('en-US')],
+            ['إجمالي الفروع', (macro.branches || 0).toLocaleString('en-US')],
+            ['حجم العمليات الكلي', (macro.totalOps || 0).toLocaleString('en-US')],
+            ['إجمالي الإيرادات', sar(macro.revenue)],
+            ['صافي عمولات المنصة', sar(metrics.commissions)],
+          ]} />
         </DashboardContainer>
       );
       case 'live': return <CentersLive />;
       case 'requests': return <RequestsView initial={requests} flash={flash} />;
-      case 'finance': return <FinanceView metrics={metrics} />;
+      case 'finance': return <FinanceView metrics={metrics} orders={orders} centers={lbRows} />;
       case 'governance': return <GovernanceView />;
-      case 'settings': return <ListView cols={['الإعداد', 'القيمة']} rows={[['نسبة العمولة', '10%'], ['حد المحاولات قبل القفل', '5'], ['التحقق بخطوتين', 'مفعّل']]} />;
+      case 'settings': return <CentersControl rows={lbRows} onManage={setManageId} />;
       default: return null;
     }
   }
@@ -374,7 +505,7 @@ export default function AdminConsole({ data = {}, userName = 'المدير' }) {
   return (
     <div dir={dir} className="min-h-screen bg-slate-50 font-sans text-slate-900">
       {/* Sidebar — desktop */}
-      <aside className="fixed inset-y-0 end-0 z-40 hidden w-64 flex-col border-s border-slate-200 bg-slate-50 md:flex">
+      <aside className={`fixed inset-y-0 z-40 hidden w-64 flex-col border-slate-200 bg-slate-50 md:flex ${isAr ? 'right-0 border-l' : 'left-0 border-r'}`}>
         {/* Brand — same wordmark as the public landing */}
         <div className="flex h-16 items-center border-b border-slate-200 px-5" dir="ltr">
           {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -398,7 +529,7 @@ export default function AdminConsole({ data = {}, userName = 'المدير' }) {
       </aside>
 
       {/* Main */}
-      <div className="flex min-h-screen flex-col md:me-64">
+      <div className={`flex min-h-screen flex-col ${isAr ? 'md:mr-64' : 'md:ml-64'}`}>
         <header className="sticky top-0 z-20 flex h-16 items-center justify-between border-b border-slate-200 bg-white/80 px-4 backdrop-blur-xl md:px-8">
           <h1 className="text-[15px] font-bold">{TITLE[active]}</h1>
           <div className="flex items-center gap-2">

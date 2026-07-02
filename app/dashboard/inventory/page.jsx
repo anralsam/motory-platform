@@ -120,7 +120,7 @@ export default function InventoryPage() {
     const { error: err } = await supabase.from('inventory')
       .update({ sell_price: val, updated_at: new Date().toISOString() }).eq('id', e.id);
     if (err) { patchItem(e.id, { price: prev }); showToast('تعذّر حفظ السعر', 'error'); }
-    else showToast(`سعر «${item.name}» صار ${val.toLocaleString('en')} ر.س`);
+    else showToast(`سعر «${item.name}» صار ${val.toLocaleString('en')} ⃀`);
   }
 
   const filtered = useMemo(() => {
@@ -301,7 +301,7 @@ export default function InventoryPage() {
                             title="اضغط للتسعير المباشر"
                             className="group inline-flex items-center gap-1.5 rounded-lg px-2 py-1 font-bold text-slate-700 transition hover:bg-brand/5 hover:text-brand"
                           >
-                            {i.price.toLocaleString('en')} ر.س
+                            {i.price.toLocaleString('en')} ⃀
                             <svg className="opacity-0 transition group-hover:opacity-100" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5z" /></svg>
                           </button>
                         )}

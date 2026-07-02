@@ -10,7 +10,7 @@ import { Wallet, Loader, Store, ShieldCheck } from 'lucide-react';
 import StatTile from './StatTile';
 
 const CARDS = [
-  { icon: Wallet, tone: 'emerald', label: 'صافي الأرباح', value: '24,050 ﷼', sub: 'هذا الشهر' },
+  { icon: Wallet, tone: 'emerald', label: 'صافي الأرباح', value: '24,050 ⃀', sub: 'هذا الشهر' },
   { icon: Loader, tone: 'blue', label: 'طلبات قيد التنفيذ', value: '26', sub: 'نشطة الآن' },
   { icon: Store, tone: 'blue', label: 'الورش النشطة', value: '15', sub: 'مركز مفعّل' },
   { icon: ShieldCheck, tone: 'amber', label: 'معدل الالتزام', value: '94%', sub: 'ضمن المستهدف' },

@@ -8,6 +8,7 @@ import Forbidden403 from '@/components/Forbidden403';
 import { useInvoices } from '@/lib/useInvoices';
 import { usePlatformBilling } from '@/lib/usePlatformBilling';
 import BankTransferModal from '@/components/BankTransferModal';
+import PayDuesModal from '@/components/PayDuesModal';
 import { invoiceTotals, invoiceNo, fmtSar, COMMISSION_RATE } from '@/lib/billing';
 import { waNormalize } from '@/lib/team';
 import ReceiptModal from '@/components/ReceiptModal';
@@ -24,11 +25,12 @@ export default function InvoicesPage() {
   const selectedId = useBranchStore((s) => s.selectedBranchId);
   const branches = useBranchStore((s) => s.branches);
   const primary = branches.find((b) => b.is_primary) || branches[0];
-  const branchName = selectedId === 'all' ? (branches.length > 1 ? 'كل الفروع' : (primary?.name || 'مركزي')) : (branches.find((b) => b.id === selectedId)?.name || 'فرع');
+  const branchName = selectedId === 'all' ? 'كل الفروع' : (branches.find((b) => b.id === selectedId)?.name || 'فرع');
 
   const { invoices, loading, error, dues } = useInvoices(centerId, selectedId);
   const { billing, loading: billingLoading, refetch: refetchBilling } = usePlatformBilling(centerId);
   const [bankOpen, setBankOpen] = useState(false);
+  const [payOpen, setPayOpen] = useState(false);
 
   const [receipt, setReceipt] = useState(null);
   const [toast, setToast] = useState({ show: false, msg: '', type: 'success' });
@@ -69,19 +71,19 @@ export default function InvoicesPage() {
       </div>
 
       {/* ── Platform commission banner ── */}
-      <div className="overflow-hidden rounded-3xl border border-violet-100 bg-gradient-to-br from-violet-600 to-blue-600 p-[1px] shadow-sm">
-        <div className="flex flex-wrap items-center justify-between gap-4 rounded-3xl bg-gradient-to-br from-violet-600 to-blue-600 px-6 py-5 text-white">
+      <div className="overflow-hidden rounded-3xl border border-slate-200 bg-gradient-to-br from-slate-900 to-blue-700 p-[1px] shadow-sm">
+        <div className="flex flex-wrap items-center justify-between gap-4 rounded-3xl bg-gradient-to-br from-slate-900 to-blue-700 px-6 py-5 text-white">
           <div>
             <div className="flex items-center gap-2 text-sm font-bold opacity-90">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" /></svg>
               مستحقات منصة VOLD MOTOR · {monthLabel}
             </div>
             <div className="mt-1.5 text-3xl font-extrabold tabular-nums">
-              {billingLoading ? '—' : fmtSar(billing ? billing.total_amount : 0)} <span className="text-lg font-bold opacity-80">ر.س</span>
+              {billingLoading ? '—' : fmtSar(billing ? billing.total_amount : 0)} <span className="text-lg font-bold opacity-80">⃀</span>
             </div>
             <div className="mt-1 text-xs opacity-80">
               {billing
-                ? `عمولة ${Math.round(COMMISSION_RATE * 100)}% على العمليات المنجزة — ${dues.count} طلب هذا الشهر`
+                ? `عمولة ${(COMMISSION_RATE * 100).toLocaleString('en-US')}% على العمليات المنجزة — ${dues.count} طلب هذا الشهر`
                 : 'لا توجد مستحقات لهذا الشهر'}
             </div>
           </div>
@@ -98,8 +100,8 @@ export default function InvoicesPage() {
             </span>
           ) : billing && billing.status === 'PENDING' ? (
             <button
-              onClick={() => setBankOpen(true)}
-              className="inline-flex items-center gap-2 rounded-xl bg-white px-5 py-3 text-sm font-extrabold text-violet-700 shadow-lg transition hover:bg-violet-50"
+              onClick={() => setPayOpen(true)}
+              className="inline-flex items-center gap-2 rounded-xl bg-white px-5 py-3 text-sm font-extrabold text-blue-700 shadow-lg transition hover:bg-blue-50"
             >
               تسديد المستحقات
             </button>
@@ -121,7 +123,7 @@ export default function InvoicesPage() {
                 <th className="px-5 py-3 text-start">الإجراءات</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100">
+            <tbody className="divide-y divide-slate-100">
               {loading ? (
                 <tr><td colSpan={6} className="px-5 py-12 text-center text-sm text-slate-400">جاري التحميل...</td></tr>
               ) : error ? (
@@ -137,7 +139,7 @@ export default function InvoicesPage() {
                       <td className="px-5 py-3.5 text-slate-500">{fmtDate(o.created_at)}</td>
                       <td className="px-5 py-3.5 font-bold text-slate-900">{o.customer_name || o.customer_phone || '—'}</td>
                       <td className="px-5 py-3.5 text-slate-600">{o.service_type || '—'}</td>
-                      <td className="px-5 py-3.5 font-extrabold text-brand">{fmtSar(t.total)} ر.س</td>
+                      <td className="px-5 py-3.5 font-extrabold text-brand">{fmtSar(t.total)} ⃀</td>
                       <td className="px-5 py-3.5">
                         <div className="flex items-center gap-2">
                           <button onClick={() => setReceipt(o)} className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-bold text-slate-600 transition hover:border-brand hover:text-brand">
@@ -159,6 +161,13 @@ export default function InvoicesPage() {
           </table>
         </div>
       </div>
+
+      <PayDuesModal
+        open={payOpen}
+        billing={billing}
+        onClose={() => setPayOpen(false)}
+        onBank={() => setBankOpen(true)}
+      />
 
       <BankTransferModal
         open={bankOpen}

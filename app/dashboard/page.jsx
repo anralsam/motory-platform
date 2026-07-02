@@ -34,7 +34,7 @@ export default function DashboardHome() {
   // W-2: revenue + customer financials are owner-only; managers see operational KPIs only.
   const CARDS = [
     { key: 'cars', label: 'سيارات اليوم', value: fmt(kpis.carsToday), accent: 'text-brand', icon: 'M5 17H3a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h11l5 5v3a2 2 0 0 1-2 2h-1 M7.5 17.5a2 2 0 1 0 0 .01 M16.5 17.5a2 2 0 1 0 0 .01', iconBg: 'bg-brand/10', iconColor: '#2563eb' },
-    { key: 'rev', owner: true, label: 'دخل اليوم', value: fmt(kpis.revenueToday), suffix: 'ر.س', accent: 'text-emerald-600', icon: 'M12 1v22 M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6', iconBg: 'bg-emerald-50', iconColor: '#16a34a' },
+    { key: 'rev', owner: true, label: 'دخل اليوم', value: fmt(kpis.revenueToday), suffix: '⃀', accent: 'text-emerald-600', icon: 'M12 1v22 M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6', iconBg: 'bg-emerald-50', iconColor: '#16a34a' },
     { key: 'cust', owner: true, label: 'العملاء', value: fmt(kpis.customers), accent: 'text-violet-600', icon: 'M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2 M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z M23 21v-2a4 4 0 0 0-3-3.87', iconBg: 'bg-violet-50', iconColor: '#7c3aed' },
     { key: 'comp', label: 'نسبة الإنجاز', value: kpis.totalToday ? kpis.completion + '%' : '—', accent: 'text-blue-600', icon: 'M22 11.08V12a10 10 0 1 1-5.93-9.14 M22 4 12 14.01l-3-3', iconBg: 'bg-blue-50', iconColor: '#2563eb', sub: kpis.totalToday ? `${fmt(kpis.completedToday)} من ${fmt(kpis.totalToday)} طلب` : 'لا طلبات اليوم' },
   ].filter((c) => isOwner || !c.owner);

@@ -45,7 +45,7 @@ const STATUS_META = [
 
 export const fmtValue = (v, unit) => {
   const n = Number(v) || 0;
-  if (unit === 'sar') return `${n.toLocaleString('en-US')} ﷼`;
+  if (unit === 'sar') return `${n.toLocaleString('en-US')} ⃀`;
   if (unit === 'pct') return `${n}%`;
   return n.toLocaleString('en-US');
 };
@@ -60,7 +60,7 @@ export const fmtCompact = (v) => {
 };
 
 // ── UnifiedChart multi-filter matrix ──
-// المقاييس بالترتيب المعتمد: الإيرادات ← الأرباح (بعد عمولة المنصة 10%) ← العملاء ← العمليات
+// المقاييس بالترتيب المعتمد: الإيرادات ← الأرباح (بعد عمولة المنصة 0.4%) ← العملاء ← العمليات
 export const CHART_METRICS = [
   { key: 'revenue', label: 'الإيرادات', unit: 'sar' },
   { key: 'profit', label: 'الأرباح', unit: 'sar' },
@@ -76,7 +76,7 @@ export const CHART_TIMELINES = [
 ];
 
 // نسبة عمولة المنصة — الأرباح = الإيرادات المكتملة − العمولة.
-export const PLATFORM_COMMISSION = 0.10;
+export const PLATFORM_COMMISSION = 0.004; // 0.4% لكل عملية
 
 /**
  * Build the chart series for a (metric × timeline) cell of the matrix.
@@ -94,7 +94,7 @@ export function computeChartSeries(orders = [], metric = 'revenue', timeline = '
     const span = timeline === 'week' ? 7 : 30;
     for (let i = span - 1; i >= 0; i--) {
       const d = new Date(now.getFullYear(), now.getMonth(), now.getDate() - i);
-      buckets.push({ label: `${d.getDate()}/${d.getMonth() + 1}`, key: d.toISOString().slice(0, 10) });
+      buckets.push({ label: String(d.getDate()), key: d.toISOString().slice(0, 10) }); // يوم 1 2 3 … مثل YouTube
     }
   } else if (timeline === 'all') {
     // كامل المدة — monthly buckets from the earliest order to now (min 6 months).

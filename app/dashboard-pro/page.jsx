@@ -152,23 +152,8 @@ async function adminConsoleData() {
     govById = Object.fromEntries((us || []).map((u) => [u.id, u]));
   }
 
-  const leaderboard = merchantIds
-    .map((id) => ({
-      id,
-      name: govById[id]?.shop_name || brByOwner[id]?.name || 'مركز',
-      branches: brByOwner[id]?.count || 0,
-      orders: byMerchant[id]?.orders || 0,
-      compliance: complianceOf(id),
-      staff: staffByCenter[id] || 0,
-      revenue: byMerchant[id]?.revenue || 0,
-      is_frozen: !!govById[id]?.is_frozen,
-      under_audit: !!govById[id]?.under_audit,
-      tier_plan: govById[id]?.tier_plan || 'standard',
-    }))
-    .sort((a, b) => b.revenue - a.revenue)
-    .map((m) => ({ ...m, share: totalRev ? Math.round((m.revenue / totalRev) * 100) : 0 }));
-
   // «الالتزام بدفع العمولة» لكل مركز — من سجل التحصيل الشهري.
+  // يجب أن تُعرّف قبل بناء leaderboard (الذي يستدعي complianceOf) وإلا TDZ ReferenceError.
   const nowPeriod = new Date().toISOString().slice(0, 7);
   const complianceByMerchant = {};
   (billingRows || []).forEach((b) => {
@@ -184,6 +169,22 @@ async function adminConsoleData() {
     if (c.pendingCurrent) return { tone: 'ok', label: 'ملتزم — مستحقات الشهر الجاري قيد الدورة', detail: c.paid ? `${c.paid} تسوية مدفوعة سابقاً` : null };
     return { tone: 'ok', label: 'ملتزم — كل المستحقات مسدَّدة', detail: `${c.paid} تسوية مدفوعة` };
   };
+
+  const leaderboard = merchantIds
+    .map((id) => ({
+      id,
+      name: govById[id]?.shop_name || brByOwner[id]?.name || 'مركز',
+      branches: brByOwner[id]?.count || 0,
+      orders: byMerchant[id]?.orders || 0,
+      compliance: complianceOf(id),
+      staff: staffByCenter[id] || 0,
+      revenue: byMerchant[id]?.revenue || 0,
+      is_frozen: !!govById[id]?.is_frozen,
+      under_audit: !!govById[id]?.under_audit,
+      tier_plan: govById[id]?.tier_plan || 'standard',
+    }))
+    .sort((a, b) => b.revenue - a.revenue)
+    .map((m) => ({ ...m, share: totalRev ? Math.round((m.revenue / totalRev) * 100) : 0 }));
 
   const macro = { revenue: totalRev, activeCenters: merchantIds.length, totalOps: total, branches: (intel.branches || []).length };
 

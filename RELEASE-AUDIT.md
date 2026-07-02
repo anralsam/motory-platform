@@ -43,7 +43,7 @@
 1. **`TURNSTILE_SECRET_KEY`** في متغيرات البيئة — الحالي مفتاح اختبار كلاودفلير الرسمي (يمرّر الجميع). بدونه الحماية شكلية.
 2. **`NEXT_PUBLIC_MOYASAR_PK`** لتفعيل Apple Pay فعليًا (يتطلب حساب Moyasar بسجل تجاري + تفعيل Apple Pay من لوحتهم).
 3. **تنظيف البيانات التجريبية** قبل فتح المنصة للحقيقيين: `cleanup-demo.sql`.
-4. **تفعيل RLS** على جداول Supabase (orders/customers/inventory/branches/workers/platform_billing) بسياسات `merchant_id = auth.uid()` — الواجهة تعزل الآن عبر الاستعلامات، وRLS هو القفل النهائي عند مستوى القاعدة. *(أعدّ لك ملف السياسات متى ما طلبت.)*
+4. ~~**تفعيل RLS**~~ ✅ **مُنجز ومُتحقَّق منه** (تدقيق ٢ يوليو ٢٠٢٦ — القسم ٦ أدناه). RLS مُفعّل على كل الجداول الـ٢١ بسياسات مدركة للأدوار.
 5. **نسخ احتياطي**: فعّل Point-in-Time Recovery من إعدادات Supabase.
 6. اختبار Apple Pay على جهاز فعلي بعد ربط Moyasar (Sandbox ثم Live).
 
@@ -54,4 +54,23 @@
 - ضغط شعار المراكز المرفوع (حاليًا يُخزَّن كما هو).
 - لاحقًا: إشعارات Push حقيقية بدل الاستطلاع كل 30ث (Supabase Realtime).
 
-**الخلاصة:** الكود بحالة إطلاق. أنجز البنود الستة أعلاه (أهمها 1–4) وأطلقها بثقة — عالمية ياصديقي 🌍
+## ٦) تدقيق RLS العميق على قاعدة الإنتاج (٢ يوليو ٢٠٢٦)
+فُحصت قاعدة الإنتاج مباشرةً (project `pycyttykvmbhykltnxzj`) عبر مدقّق Supabase + استعلام `pg_policies`:
+
+- ✅ **RLS مُفعّل على كل الجداول الـ٢١** في مخطط `public` — لا يوجد أي `rls_disabled_in_public`.
+- ✅ **الجداول الحيّة معزولة بالدور**: `orders` (مالك ALL + مدير + فنّي `assigned_to=uid`)، `customers/inventory/expenses/visits/service_menu/branches/transactions/vehicles/credits/promo_codes/whatsapp_automations` كلها `merchant_id/owner_id = auth.uid()` (+ الموظفون عبر `app_metadata.center_id` من JWT — **غير قابلة للكتابة من العميل**).
+- ✅ **`platform_billing`**: قراءة المالك فقط؛ الكتابة عبر الخادم (webhook) حصراً.
+- ✅ **`is_admin()`** يقرأ `public.users.role` من القاعدة (**ليس** `user_metadata`)، ومحميّ بتريغر `guard_users_role` الذي يمنع أي مستخدم من ترقية نفسه لـ`admin`. فكل سياسات `OR is_admin()` غير قابلة للتزوير.
+- ✅ دوال `admin_*` (SECURITY DEFINER) كلها تبدأ بـ`if not is_admin() then raise 'forbidden'` — لا تسريب بين التجّار.
+
+**ثغرتان حقيقيتان وُجدتا وأُصلحتا** (هجرة `tighten_legacy_rls_bookings_services`، جدولان قديمان لا يستخدمهما تطبيق Next.js):
+1. `bookings` (٨ صفوف فيها اسم/هاتف العميل، بلا عمود تاجر): كانت القراءة/التعديل مفتوحة لأي مستخدم مسجّل → **قُيّدت لـ`is_admin()` فقط**.
+2. `services` (قديم؛ التطبيق يستخدم `service_menu`): أُزيلت سياسة `services_public_read` التي كشفت خدمات كل التجّار للزوار.
+
+**بند واحد آمن متبقٍّ (توصية):** تفعيل **Leaked Password Protection** (HaveIBeenPwned) من لوحة Supabase → Authentication → Policies — إعداد بنقرة، لا يتطلب شيفرة.
+
+*(ملاحظات منخفضة الأولوية: سياسات إدراج عامة على `join_requests`/`support_tickets`/`bookings` — متعمَّدة لنماذج عامة؛ وتعداد البريد عبر `account_status`/`email_exists` — مطلوب لتدفّق الدخول.)*
+
+---
+
+**الخلاصة:** الكود + قاعدة البيانات بحالة إطلاق. بند RLS (رقم ٤) **مُنجز ومُتحقَّق منه**. تبقى البنود التشغيلية 1–3 و5 (مفاتيح Turnstile/Moyasar، تنظيف التجريبي، النسخ الاحتياطي) + تفعيل حماية كلمات المرور المسرّبة — عالمية ياصديقي 🌍

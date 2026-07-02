@@ -2,6 +2,27 @@
 const nextConfig = {
   reactStrictMode: true,
   images: { remotePatterns: [{ protocol: 'https', hostname: '**' }] },
+  // ── Security headers — hardening على مستوى المنصات العالمية ──
+  //  • HSTS: يفرض HTTPS دائماً (سنتان + النطاقات الفرعية).
+  //  • X-Frame-Options: يمنع تضمين اللوحات داخل iframe (حماية Clickjacking).
+  //  • nosniff: يمنع تخمين نوع المحتوى.
+  //  • Referrer-Policy: لا تُسرَّب روابط اللوحات الداخلية لمواقع خارجية.
+  //  • Permissions-Policy: تعطيل الكاميرا/المايك/الموقع افتراضياً.
+  async headers() {
+    return [
+      {
+        source: '/(.*)',
+        headers: [
+          { key: 'Strict-Transport-Security', value: 'max-age=63072000; includeSubDomains; preload' },
+          { key: 'X-Frame-Options', value: 'DENY' },
+          { key: 'X-Content-Type-Options', value: 'nosniff' },
+          { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
+          { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=()' },
+          { key: 'X-DNS-Prefetch-Control', value: 'on' },
+        ],
+      },
+    ];
+  },
   // Legacy static HTML is retired. Permanently redirect any old .html URL
   // (bookmarks, indexed links) to its Next.js App Router equivalent.
   async redirects() {

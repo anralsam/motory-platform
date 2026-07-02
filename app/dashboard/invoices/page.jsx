@@ -1,5 +1,6 @@
 'use client';
 import { useRef, useState } from 'react';
+import { useT } from '@/lib/i18n';
 import { useBranchStore } from '@/store/branchStore';
 import { useAuth } from '@/components/AuthProvider';
 import { roleOf } from '@/lib/roles';
@@ -17,6 +18,7 @@ import Toast from '@/components/Toast';
 function fmtDate(d) { try { return new Date(d).toLocaleDateString('en-GB'); } catch { return '—'; } }
 
 export default function InvoicesPage() {
+  const { t } = useT();
   const { user } = useAuth();
   const { canViewFinancials } = usePermissions();
   const myRole = roleOf(user?.user_metadata?.role);
@@ -66,7 +68,7 @@ export default function InvoicesPage() {
   return (
     <div className="mx-auto max-w-6xl space-y-6">
       <div>
-        <h1 className="text-xl font-bold tracking-tight text-slate-900">الفواتير</h1>
+        <h1 className="text-xl font-bold tracking-tight text-slate-900">{t('الفواتير')}</h1>
         <p className="mt-1 text-sm text-slate-500">{branchName} · {invoices.length} فاتورة</p>
       </div>
 
@@ -123,7 +125,7 @@ export default function InvoicesPage() {
                 <th className="px-5 py-3 text-start">الإجراءات</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100">
+            <tbody className="divide-y divide-slate-100">
               {loading ? (
                 <tr><td colSpan={6} className="px-5 py-12 text-center text-sm text-slate-400">جاري التحميل...</td></tr>
               ) : error ? (

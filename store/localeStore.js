@@ -13,7 +13,7 @@ export const useLocaleStore = create(
       lang: 'ar',
       setLang: (lang) => set({ lang: lang === 'en' ? 'en' : 'ar' }),
     }),
-    { name: 'vm-locale-store' },
+    { name: 'vm-locale-store', partialize: () => ({}) }, // الافتراضي عربي في كل جلسة
   ),
 );
 

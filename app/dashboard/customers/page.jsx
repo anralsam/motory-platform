@@ -9,6 +9,7 @@
  * Matching: normalized phone first (waPhone), exact name as fallback.
  */
 import { useEffect, useMemo, useState } from 'react';
+import { useT } from '@/lib/i18n';
 import { useBranchStore } from '@/store/branchStore';
 import { useAuth } from '@/components/AuthProvider';
 import { roleOf } from '@/lib/roles';
@@ -25,6 +26,7 @@ const STATUS_CLS = {
 };
 
 export default function CustomersPage() {
+  const { t } = useT();
   const { user } = useAuth();
   const myRole = roleOf(user?.user_metadata?.role);
   const centerId = myRole === 'owner' ? user?.id : (user?.user_metadata?.center_id || user?.id);
@@ -89,7 +91,7 @@ export default function CustomersPage() {
     <div className="mx-auto max-w-6xl space-y-5">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="text-xl font-bold tracking-tight text-slate-900">العملاء</h1>
+          <h1 className="text-xl font-bold tracking-tight text-slate-900">{t('العملاء')}</h1>
           <p className="mt-1 text-sm text-slate-500">{branchName} · يُسجَّل العملاء تلقائياً من جهاز العامل وتظهر بياناتهم هنا مباشرة</p>
         </div>
       </div>

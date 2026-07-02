@@ -5,6 +5,7 @@ import { useBranchStore } from '@/store/branchStore';
 import { useAuth } from '@/components/AuthProvider';
 import { useTeam } from '@/lib/useTeam';
 import { roleOf } from '@/lib/roles';
+import { useT } from '@/lib/i18n';
 import { supabase } from '@/lib/supabaseClient';
 import { genPin, setPin, pinFor, whatsappLink, createWorker } from '@/lib/team';
 import AddStaffModal from '@/components/AddStaffModal';
@@ -18,6 +19,7 @@ const ROLE_BADGE = {
 const ROLE_LABEL = { manager: 'مشرف', technician: 'فني' };
 
 export default function TeamPage() {
+  const { t } = useT();
   const { user } = useAuth();
   const myRole = roleOf(user?.user_metadata?.role);
 
@@ -93,22 +95,22 @@ export default function TeamPage() {
       {/* Header */}
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="text-xl font-bold tracking-tight text-slate-900">إدارة الفريق</h1>
-          <p className="mt-1 text-sm text-slate-500">{branchName} · حسابات العمال والمشرفين، صلاحياتهم، وروابط دخولهم</p>
+          <h1 className="text-xl font-bold tracking-tight text-slate-900">{t('إدارة الفريق')}</h1>
+          <p className="mt-1 text-sm text-slate-500">{branchName} · {t('حسابات العمال والمشرفين، صلاحياتهم، وروابط دخولهم', 'Staff & supervisor accounts, permissions, and sign-in links')}</p>
         </div>
         <button onClick={() => setOpen(true)} className="flex items-center gap-2 rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-bold text-white transition hover:bg-slate-800">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round"><path d="M12 5v14M5 12h14" /></svg>
-          إضافة موظف
+          {t('إضافة موظف')}
         </button>
       </div>
 
       {/* Team pulse strip */}
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
         {[
-          ['إجمالي الفريق', members.length, 'text-slate-900'],
-          ['نشطون الآن', members.filter((m) => m.status === 'active').length, 'text-emerald-600'],
-          ['فنّيون', members.filter((m) => (m.role || 'technician') === 'technician').length, 'text-blue-600'],
-          ['مشرفون', members.filter((m) => m.role === 'manager').length, 'text-violet-600'],
+          [t('إجمالي الفريق'), members.length, 'text-slate-900'],
+          [t('نشطون الآن'), members.filter((m) => m.status === 'active').length, 'text-emerald-600'],
+          [t('فنّيون'), members.filter((m) => (m.role || 'technician') === 'technician').length, 'text-blue-600'],
+          [t('مشرفون'), members.filter((m) => m.role === 'manager').length, 'text-violet-600'],
         ].map(([l, v, tone]) => (
           <div key={l} className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
             <div className="text-xs font-bold text-slate-500">{l}</div>
@@ -119,7 +121,7 @@ export default function TeamPage() {
 
       {/* Role filter + search */}
       <div className="flex flex-wrap items-center gap-2">
-        {[['all', 'الكل'], ['technician', 'الفنّيون'], ['manager', 'المشرفون']].map(([k, label]) => (
+        {[['all', t('الكل')], ['technician', t('الفنّيون')], ['manager', 'المشرفون']].map(([k, label]) => (
           <button key={k} onClick={() => setRoleFilter(k)}
             className={`rounded-full border px-4 py-2 text-sm font-bold transition ${roleFilter === k ? 'border-slate-900 bg-slate-900 text-white' : 'border-slate-200 bg-white text-slate-500 hover:border-slate-400 hover:text-slate-900'}`}>
             {label}
@@ -137,11 +139,11 @@ export default function TeamPage() {
           <table className="w-full text-right">
             <thead>
               <tr className="border-b border-slate-200 bg-slate-50 text-xs font-bold text-slate-500">
-                <th className="px-5 py-3 text-start">الاسم</th>
-                <th className="px-5 py-3 text-start">المنصب</th>
-                <th className="px-5 py-3 text-start">رقم الجوال</th>
-                <th className="px-5 py-3 text-start">حالة الحساب</th>
-                <th className="px-5 py-3 text-start">الإجراءات</th>
+                <th className="px-5 py-3 text-start">{t('الاسم')}</th>
+                <th className="px-5 py-3 text-start">{t('المنصب')}</th>
+                <th className="px-5 py-3 text-start">{t('رقم الجوال')}</th>
+                <th className="px-5 py-3 text-start">{t('حالة الحساب')}</th>
+                <th className="px-5 py-3 text-start">{t('الإجراءات')}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
@@ -152,7 +154,7 @@ export default function TeamPage() {
               ) : shown.length === 0 ? (
                 <tr>
                   <td colSpan={5} className="px-5 py-12 text-center">
-                    <div className="text-sm font-bold text-slate-700">لا يوجد موظفون في هذا الفرع بعد</div>
+                    <div className="text-sm font-bold text-slate-700">{t('لا يوجد موظفون في هذا الفرع بعد')}</div>
                     <button onClick={() => setOpen(true)} className="mt-3 text-sm font-extrabold text-brand">+ إضافة أول موظف</button>
                   </td>
                 </tr>

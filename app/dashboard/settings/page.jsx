@@ -1,5 +1,6 @@
 'use client';
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { useT } from '@/lib/i18n';
 import { useBranchStore } from '@/store/branchStore';
 import { useAuth } from '@/components/AuthProvider';
 import { usePermissions } from '@/lib/usePermissions';
@@ -20,6 +21,7 @@ const THEMES = [
 ];
 
 export default function SettingsPage() {
+  const { t } = useT();
   const { user } = useAuth();
   const myRole = roleOf(user?.user_metadata?.role);
   const centerId = myRole === 'owner' ? user?.id : (user?.user_metadata?.center_id || user?.id);
@@ -46,7 +48,7 @@ export default function SettingsPage() {
 
   return (
     <div className="mx-auto max-w-5xl space-y-5">
-      <h1 className="text-xl font-bold tracking-tight text-slate-900">الإعدادات</h1>
+      <h1 className="text-xl font-bold tracking-tight text-slate-900">{t('الإعدادات')}</h1>
 
       {/* Tabs */}
       <div className="flex gap-1 border-b border-slate-200">

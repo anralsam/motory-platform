@@ -60,7 +60,7 @@ function HeroPreview() {
         <span className="h-2.5 w-2.5 rounded-full bg-white/20" />
         <span className="mx-auto rounded-md bg-white/5 px-3 py-0.5 text-[10px] font-medium text-white/40">app.voldmotor.com/dashboard</span>
       </div>
-      <div className="grid grid-cols-[150px_1fr]">
+      <div className="grid grid-cols-1 sm:grid-cols-[150px_1fr]">
         {/* sidebar */}
         <div className="hidden border-s border-white/10 bg-white/[0.02] p-3 sm:block">
           <div className="mb-4 flex items-center gap-2">
@@ -108,14 +108,82 @@ function HeroPreview() {
   );
 }
 
-const BENTOS = [
-  { key: 'pos', tag: 'الاستقبال', title: 'الاستقبال الذكي', desc: 'أتمتة كاملة لدخول المركبات وتوجيه فوري للفنيين — استقبل العميل وابدأ الخدمة في ثوانٍ.' },
-  { key: 'kanban', tag: 'العمليات', title: 'تحكم مطلق بسير العمل', desc: 'تتبّع دقيق لحالة كل سيارة من لحظة الدخول حتى التسليم، على لوحة تفاعلية بسيطة وفعّالة.' },
-  { key: 'reports', tag: 'الذكاء', title: 'رؤى تقود النمو', desc: 'تحليلات حيّة للإيرادات وذروة النشاط ومعدلات الإشغال لاتخاذ قرارات مدعومة بالأرقام.' },
-  { key: 'invoice', tag: 'الفوترة', title: 'امتثال ZATCA بضغطة', desc: 'فواتير ضريبية معتمدة برمز QR تُصدر بضغطة وتُرسل لعميلك تلقائياً عبر واتساب.' },
-];
+
+/* ── قاموس الهبوط ثنائي اللغة ── */
+const LANDING_I18N = {
+  ar: {
+    navFeatures: 'المزايا', navPricing: 'الأسعار', navFaq: 'الأسئلة الشائعة',
+    login: 'تسجيل الدخول', signup: 'سجّل الآن',
+    badge: 'نظام تشغيل متكامل لمراكز العناية بالسيارات',
+    heroTitle: 'نظام التشغيل المتكامل لمراكز العناية بالسيارات',
+    heroSub: 'تحكم كامل في عمليات مركزك، من استقبال العميل وحتى إصدار الفاتورة الضريبية — في واجهة واحدة.',
+    trusted: 'يثق بنا أكثر من +400 مركز شريك',
+    platTag: 'THE PLATFORM', platTitle: 'منصة واحدة · أربع قوى',
+    platSub: 'كل ما يحتاجه مركزك في لوحة واحدة متكاملة — من الاستقبال حتى الفاتورة.',
+    priceBadge: 'التسعير المرن', priceTitle1: 'شراكة حقيقية.', priceTitle2: 'ادفع فقط عندما تكسب.',
+    priceSub: 'لا توجد رسوم شهرية ثابتة، ولا تكاليف خفية. نحن ندعم نمو مركزك ونتقاضى عمولة رمزية فقط عند إتمام العمليات بنجاح. نجاحنا مرتبط بنجاحك.',
+    priceCta: 'ابدأ الآن مجاناً',
+    priceList: ['لا رسوم شهرية ثابتة – أبداً', 'عمولة واضحة تُدفع فقط عند إتمام العملية', 'تُحسب فقط على العمليات المكتملة', 'جميع المزايا المؤسسية مفتوحة بلا حدود'],
+    faqTitle: 'الأسئلة الشائعة', faqMore: 'لديك المزيد من الأسئلة؟', faqContact: 'تواصل معنا',
+    ctaTitle: 'مركزك يستاهل نظام أفضل', ctaBtn: 'سجّل مركزك',
+    fProduct: 'المنتج', fCompany: 'الشركة', fApp: 'حمّل التطبيق', soon: 'قريباً',
+    fAbout: 'من نحن', fPrivacy: 'سياسة الخصوصية', fPrivacyShort: 'الخصوصية', fContact: 'تواصل معنا',
+    rights: '© 2026 VOLD MOTOR · جميع الحقوق محفوظة',
+    bentos: [
+      ['الاستقبال', 'الاستقبال الذكي', 'أتمتة كاملة لدخول المركبات وتوجيه فوري للفنيين — استقبل العميل وابدأ الخدمة في ثوانٍ.'],
+      ['العمليات', 'تحكم مطلق بسير العمل', 'تتبّع دقيق لحالة كل سيارة من لحظة الدخول حتى التسليم، على لوحة تفاعلية بسيطة وفعّالة.'],
+      ['الذكاء', 'رؤى تقود النمو', 'تحليلات حيّة للإيرادات وذروة النشاط ومعدلات الإشغال لاتخاذ قرارات مدعومة بالأرقام.'],
+      ['الفوترة', 'امتثال ZATCA بضغطة', 'فواتير ضريبية معتمدة برمز QR تُصدر بضغطة وتُرسل لعميلك تلقائياً عبر واتساب.'],
+    ],
+    faqs: [
+      ['هل فيه اشتراك شهري؟', 'لا. النظام بدون أي اشتراك شهري — تدفع عمولة رمزية فقط على العمليات المكتملة.'],
+      ['كم تأخذ عملية التسجيل؟', 'دقائق فقط. سجّل مركزك، وبعد اعتماد الطلب تدخل لوحة التحكم مباشرة.'],
+      ['هل يناسب نوع نشاطي؟', 'نعم — مغاسل، تلميع، تغيير زيوت، بطاريات، كهرباء، وميكانيكا. النظام يتشكّل حسب نوع مركزك.'],
+      ['هل الفواتير متوافقة مع هيئة الزكاة؟', 'نعم، فواتير ضريبية مبسطة متوافقة مع ZATCA مع رمز QR قابل للمسح.'],
+      ['هل أقدر أدير أكثر من فرع؟', 'نعم، تتنقّل بين كل فروعك من نفس اللوحة وبيانات منفصلة لكل فرع.'],
+    ],
+  },
+  en: {
+    navFeatures: 'Features', navPricing: 'Pricing', navFaq: 'FAQ',
+    login: 'Sign in', signup: 'Get started',
+    badge: 'The complete operating system for car-care centers',
+    heroTitle: 'The Complete Operating System for Car-Care Centers',
+    heroSub: 'Full control over your center — from customer check-in to ZATCA-compliant invoicing, in one unified dashboard.',
+    trusted: 'Trusted by 400+ partner centers',
+    platTag: 'THE PLATFORM', platTitle: 'One platform · Four powers',
+    platSub: 'Everything your center needs in one integrated dashboard — from check-in to invoice.',
+    priceBadge: 'Flexible pricing', priceTitle1: 'A true partnership.', priceTitle2: 'Pay only when you earn.',
+    priceSub: 'No fixed monthly fees, no hidden costs. We grow with your center and charge a small commission only on successfully completed operations. Our success is tied to yours.',
+    priceCta: 'Start free now',
+    priceList: ['No fixed monthly fees — ever', 'A clear commission, paid only on completion', 'Calculated on completed operations only', 'All enterprise features unlocked, no limits'],
+    faqTitle: 'Frequently Asked Questions', faqMore: 'Have more questions?', faqContact: 'Contact us',
+    ctaTitle: 'Your center deserves a better system', ctaBtn: 'Register your center',
+    fProduct: 'Product', fCompany: 'Company', fApp: 'Get the app', soon: 'Soon',
+    fAbout: 'About us', fPrivacy: 'Privacy Policy', fPrivacyShort: 'Privacy', fContact: 'Contact us',
+    rights: '© 2026 VOLD MOTOR · All rights reserved',
+    bentos: [
+      ['CHECK-IN', 'Smart Reception', 'Fully automated vehicle intake with instant technician dispatch — greet the customer and start service in seconds.'],
+      ['OPERATIONS', 'Total Workflow Control', 'Precise tracking of every car from arrival to hand-over, on a simple, effective live board.'],
+      ['INTELLIGENCE', 'Insights That Drive Growth', 'Live analytics for revenue, peak hours and utilization — decisions backed by numbers.'],
+      ['BILLING', 'ZATCA Compliance in One Tap', 'Certified tax invoices with QR, issued in a tap and sent to your customer via WhatsApp.'],
+    ],
+    faqs: [
+      ['Is there a monthly subscription?', 'No. There is no monthly fee — you pay a small commission only on completed operations.'],
+      ['How long does registration take?', 'Minutes. Register your center, and once approved you enter the dashboard immediately.'],
+      ['Does it fit my type of business?', 'Yes — car washes, detailing, oil change, batteries, electrical and mechanical. The system adapts to your center type.'],
+      ['Are invoices ZATCA-compliant?', 'Yes — simplified tax invoices compliant with ZATCA, with a scannable QR code.'],
+      ['Can I manage multiple branches?', 'Yes — switch between all your branches from the same dashboard, with separate data per branch.'],
+    ],
+  },
+};
 
 export default function LandingPage() {
+  // لغة الهبوط: افتراضي عربي، وتُحفظ محلياً (مستقلة عن لغة اللوحة).
+  const [lang, setLangState] = useState('ar');
+  useEffect(() => { try { const v = localStorage.getItem('vm_landing_lang'); if (v === 'en') setLangState('en'); } catch {} }, []);
+  const setLang = (v) => { setLangState(v); try { localStorage.setItem('vm_landing_lang', v); } catch {} };
+  const L = LANDING_I18N[lang];
+  const isEn = lang === 'en';
   // Auth-aware CTAs: detect an active session and adapt label + route.
   const [authed, setAuthed] = useState(false);
   useEffect(() => {
@@ -134,7 +202,7 @@ export default function LandingPage() {
   const navStartLabel = 'سجّل الآن';
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-[#0a0a0a] font-sans text-white antialiased">
+    <div dir={isEn ? 'ltr' : 'rtl'} className="relative min-h-screen overflow-hidden bg-[#0a0a0a] font-sans text-white antialiased">
       <Preloader />
       {/* faint grid */}
       <div
@@ -160,13 +228,17 @@ export default function LandingPage() {
             <Logo className="h-7 w-auto text-white" />
           </Link>
           <div className="hidden items-center gap-7 md:flex">
-            <a href="#features" className="text-sm font-normal text-zinc-300 transition hover:text-white">المزايا</a>
-            <a href="#pricing" className="text-sm font-normal text-zinc-300 transition hover:text-white">الأسعار</a>
-            <a href="#faq" className="text-sm font-normal text-zinc-300 transition hover:text-white">الأسئلة الشائعة</a>
+            <a href="#features" className="text-sm font-normal text-zinc-300 transition hover:text-white">{L.navFeatures}</a>
+            <a href="#pricing" className="text-sm font-normal text-zinc-300 transition hover:text-white">{L.navPricing}</a>
+            <a href="#faq" className="text-sm font-normal text-zinc-300 transition hover:text-white">{L.navFaq}</a>
           </div>
           <div className="flex items-center gap-2">
-            <Link href={appHref} className="rounded-lg px-3 py-2 text-sm font-light text-zinc-400 transition hover:text-white">{loginLabel}</Link>
-            <Link href={registerHref} className="rounded-xl bg-white px-4 py-2 text-sm font-medium text-[#0a0a0a] transition hover:bg-zinc-200">{navStartLabel}</Link>
+            <button onClick={() => setLang(isEn ? 'ar' : 'en')}
+              className="rounded-lg border border-white/10 bg-white/5 px-2.5 py-1.5 text-xs font-bold text-zinc-300 transition hover:border-white/25 hover:text-white">
+              {isEn ? 'عربي' : 'EN'}
+            </button>
+            <Link href={appHref} className="rounded-lg px-3 py-2 text-sm font-light text-zinc-400 transition hover:text-white">{L.login}</Link>
+            <Link href={registerHref} className="rounded-xl bg-white px-4 py-2 text-sm font-medium text-[#0a0a0a] transition hover:bg-zinc-200">{L.signup}</Link>
           </div>
         </nav>
 
@@ -175,24 +247,24 @@ export default function LandingPage() {
           <HeroIn delay={0.05}>
             <div className="mx-auto mb-7 inline-flex items-center gap-2 whitespace-nowrap rounded-full border border-white/10 bg-zinc-900/60 px-4 py-1.5 text-xs font-medium text-zinc-300">
               <span className="h-1.5 w-1.5 flex-none rounded-full bg-emerald-400/80" />
-              <span>نظام تشغيل متكامل لمراكز العناية بالسيارات</span>
+              <span>{L.badge}</span>
             </div>
           </HeroIn>
           <HeroIn delay={0.15}>
             <h1 className="mx-auto max-w-3xl text-balance bg-gradient-to-b from-white to-zinc-400 bg-clip-text py-3 text-4xl font-extrabold leading-[1.45] tracking-tight text-transparent sm:text-5xl md:text-6xl">
-              نظام التشغيل المتكامل لمراكز العناية بالسيارات
+              {L.heroTitle}
             </h1>
           </HeroIn>
           <HeroIn delay={0.3}>
             <p className="mx-auto mt-6 max-w-xl text-balance text-base leading-relaxed text-zinc-400 md:text-lg">
-              تحكم كامل في عمليات مركزك، من استقبال العميل وحتى إصدار الفاتورة الضريبية — في واجهة واحدة.
+              {L.heroSub}
             </p>
           </HeroIn>
           <HeroIn delay={0.6}>
             <div className="mt-6 flex items-center justify-center gap-2 text-sm font-light text-zinc-500">
               <span>★ 4.9/5</span>
               <span className="text-zinc-700">·</span>
-              <span>يثق بنا أكثر من +400 مركز شريك</span>
+              <span>{L.trusted}</span>
             </div>
           </HeroIn>
         </header>
@@ -213,27 +285,27 @@ export default function LandingPage() {
         <section id="features" className="mx-auto max-w-6xl px-5 py-24">
           <FadeIn>
             <div className="mb-14 text-center">
-              <div className="text-[10px] font-medium uppercase tracking-[0.4em] text-zinc-600">THE PLATFORM</div>
+              <div className="text-[10px] font-medium uppercase tracking-[0.4em] text-zinc-600">{L.platTag}</div>
               <h2 className="mt-4 text-3xl font-medium tracking-tight text-white sm:text-4xl">
-                منصة واحدة · أربع قوى
+                {L.platTitle}
               </h2>
-              <p className="mx-auto mt-3 max-w-lg text-sm font-light leading-relaxed text-zinc-400">كل ما يحتاجه مركزك في لوحة واحدة متكاملة — من الاستقبال حتى الفاتورة.</p>
+              <p className="mx-auto mt-3 max-w-lg text-sm font-light leading-relaxed text-zinc-400">{L.platSub}</p>
             </div>
           </FadeIn>
 
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-            {BENTOS.map((b, i) => (
+            {L.bentos.map(([tag, title, desc], i) => (
               <motion.div
-                key={b.key}
+                key={title}
                 initial={{ opacity: 0, y: 16 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, margin: '-60px' }}
                 transition={{ duration: 0.5, delay: i * 0.08, ease: [0.22, 1, 0.36, 1] }}
                 className="group flex h-full min-h-[200px] flex-col justify-center rounded-2xl border border-white/10 bg-zinc-900/50 p-8 transition-colors duration-300 hover:border-white/20"
               >
-                <div className="text-[10px] font-medium uppercase tracking-[0.35em] text-zinc-500">{b.tag}</div>
-                <h3 className="mt-3 text-lg font-semibold tracking-tight text-white">{b.title}</h3>
-                <p className="mt-2 text-sm font-normal leading-relaxed text-zinc-300">{b.desc}</p>
+                <div className="text-[10px] font-medium uppercase tracking-[0.35em] text-zinc-500">{tag}</div>
+                <h3 className="mt-3 text-lg font-semibold tracking-tight text-white">{title}</h3>
+                <p className="mt-2 text-sm font-normal leading-relaxed text-zinc-300">{desc}</p>
               </motion.div>
             ))}
           </div>
@@ -253,31 +325,26 @@ export default function LandingPage() {
                 {/* Left — hook & value prop */}
                 <div>
                   <span className="mb-6 inline-block rounded-full border border-white/10 bg-white/5 px-4 py-1.5 text-sm font-medium text-zinc-300">
-                    التسعير المرن
+                    {L.priceBadge}
                   </span>
                   <h3 className="mb-6 text-4xl font-bold leading-tight text-white md:text-5xl">
-                    شراكة حقيقية.<br />ادفع فقط عندما تكسب.
+                    {L.priceTitle1}<br />{L.priceTitle2}
                   </h3>
                   <p className="text-lg leading-relaxed text-zinc-400">
-                    لا توجد رسوم شهرية ثابتة، ولا تكاليف خفية. نحن ندعم نمو مركزك ونتقاضى عمولة رمزية فقط عند إتمام العمليات بنجاح. نجاحنا مرتبط بنجاحك.
+                    {L.priceSub}
                   </p>
                   <Link
                     href={registerHref}
                     className="mt-8 inline-flex items-center justify-center rounded-xl bg-white px-7 py-3 text-sm font-semibold text-[#0a0a0a] shadow-lg shadow-black/20 transition hover:bg-zinc-100"
                   >
-                    ابدأ الآن مجاناً
+                    {L.priceCta}
                   </Link>
                 </div>
 
                 {/* Right — features checklist */}
                 <div className="rounded-2xl border border-white/10 bg-white/5 p-2">
                   <ul className="divide-y divide-white/5">
-                    {[
-                      'لا رسوم شهرية ثابتة – أبداً',
-                      'عمولة واضحة تُدفع فقط عند إتمام العملية',
-                      'تُحسب فقط على العمليات المكتملة',
-                      'جميع المزايا المؤسسية مفتوحة بلا حدود',
-                    ].map((t, i) => (
+                    {L.priceList.map((t, i) => (
                       <li key={i} className="flex items-center gap-4 px-4 py-4">
                         <span className="grid h-7 w-7 flex-none place-items-center rounded-full border border-indigo-400/20 bg-indigo-400/10 text-indigo-300">
                           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6 9 17l-5-5" /></svg>
@@ -298,19 +365,13 @@ export default function LandingPage() {
             <div className="mb-14 text-center">
               <div className="text-[10px] font-medium uppercase tracking-[0.4em] text-zinc-600">FAQ</div>
               <h2 className="mt-4 text-3xl font-medium tracking-tight text-white sm:text-4xl">
-                الأسئلة الشائعة
+                {L.faqTitle}
               </h2>
             </div>
           </FadeIn>
           <FadeIn delay={0.05}>
             <div className="space-y-2">
-              {[
-                ['هل فيه اشتراك شهري؟', 'لا. النظام بدون أي اشتراك شهري — تدفع عمولة رمزية فقط على العمليات المكتملة.'],
-                ['كم تأخذ عملية التسجيل؟', 'دقائق فقط. سجّل مركزك، وبعد اعتماد الطلب تدخل لوحة التحكم مباشرة.'],
-                ['هل يناسب نوع نشاطي؟', 'نعم — مغاسل، تلميع، تغيير زيوت، بطاريات، كهرباء، وميكانيكا. النظام يتشكّل حسب نوع مركزك.'],
-                ['هل الفواتير متوافقة مع هيئة الزكاة؟', 'نعم، فواتير ضريبية مبسطة متوافقة مع ZATCA مع رمز QR قابل للمسح.'],
-                ['هل أقدر أدير أكثر من فرع؟', 'نعم، تتنقّل بين كل فروعك من نفس اللوحة وبيانات منفصلة لكل فرع.'],
-              ].map(([q, a], i) => (
+              {L.faqs.map(([q, a], i) => (
                 <details key={i} className="group rounded-xl border border-white/10 bg-zinc-900/40 px-5 py-4 backdrop-blur-md transition-colors hover:border-white/20">
                   <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-sm font-medium text-white [&::-webkit-details-marker]:hidden">
                     {q}
@@ -323,12 +384,12 @@ export default function LandingPage() {
           </FadeIn>
           <FadeIn delay={0.1}>
             <p className="mt-10 text-center text-sm font-light text-zinc-500">
-              لديك المزيد من الأسئلة؟{' '}
+              {L.faqMore}{' '}
               <a
                 href="mailto:voldmotorglobal@gmail.com"
                 className="font-medium text-zinc-200 underline decoration-zinc-600 underline-offset-4 transition hover:text-white hover:decoration-white"
               >
-                تواصل معنا
+                {L.faqContact}
               </a>
             </p>
           </FadeIn>
@@ -339,7 +400,7 @@ export default function LandingPage() {
           <FadeIn>
             <div className="rounded-2xl border border-zinc-800 bg-[#121212] px-6 py-16 text-center">
               <h3 className="text-3xl font-medium tracking-tight text-white sm:text-4xl">
-                مركزك يستاهل نظام أفضل
+                {L.ctaTitle}
               </h3>
               <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
                 <Link href={registerHref} className="w-full rounded-xl bg-white px-7 py-3 text-sm font-medium text-[#0a0a0a] transition hover:bg-zinc-100 sm:w-auto">
@@ -347,7 +408,7 @@ export default function LandingPage() {
                 </Link>
                 {!authed && (
                   <Link href="/auth/signin" className="w-full rounded-xl border border-zinc-800 px-7 py-3 text-sm font-light text-zinc-400 transition hover:border-zinc-700 hover:text-white sm:w-auto">
-                    تسجيل الدخول
+                    {L.login}
                   </Link>
                 )}
               </div>
@@ -378,35 +439,35 @@ export default function LandingPage() {
 
               {/* product */}
               <div>
-                <div className="text-sm font-medium text-white">المنتج</div>
+                <div className="text-sm font-medium text-white">{L.fProduct}</div>
                 <ul className="mt-4 space-y-2.5 text-sm font-light text-zinc-500">
-                  <li><a href="#features" className="transition hover:text-white">المزايا</a></li>
-                  <li><a href="#pricing" className="transition hover:text-white">الأسعار</a></li>
-                  <li><a href="#faq" className="transition hover:text-white">الأسئلة الشائعة</a></li>
-                  <li><Link href={appHref} className="transition hover:text-white">تسجيل الدخول</Link></li>
+                  <li><a href="#features" className="transition hover:text-white">{L.navFeatures}</a></li>
+                  <li><a href="#pricing" className="transition hover:text-white">{L.navPricing}</a></li>
+                  <li><a href="#faq" className="transition hover:text-white">{L.navFaq}</a></li>
+                  <li><Link href={appHref} className="transition hover:text-white">{L.login}</Link></li>
                 </ul>
               </div>
 
               {/* company */}
               <div>
-                <div className="text-sm font-medium text-white">الشركة</div>
+                <div className="text-sm font-medium text-white">{L.fCompany}</div>
                 <ul className="mt-4 space-y-2.5 text-sm font-light text-zinc-500">
-                  <li><Link href="/about" className="transition hover:text-white">من نحن</Link></li>
-                  <li><a href="mailto:voldmotorglobal@gmail.com" className="transition hover:text-white">تواصل معنا</a></li>
+                  <li><Link href="/about" className="transition hover:text-white">{L.fAbout}</Link></li>
+                  <li><a href="mailto:voldmotorglobal@gmail.com" className="transition hover:text-white">{L.fContact}</a></li>
                   
-                  <li><Link href="/privacy" className="transition hover:text-white">سياسة الخصوصية</Link></li>
+                  <li><Link href="/privacy" className="transition hover:text-white">{L.fPrivacy}</Link></li>
                 </ul>
               </div>
 
               {/* app + contact */}
               <div>
-                <div className="text-sm font-medium text-white">حمّل التطبيق</div>
+                <div className="text-sm font-medium text-white">{L.fApp}</div>
                 <div className="mt-4 space-y-2.5">
                   {[['App Store', 'M16.4 12.9c0-2 1.6-3 1.7-3-1-1.4-2.4-1.6-2.9-1.6-1.2-.1-2.4.7-3 .7s-1.6-.7-2.6-.7c-1.3 0-2.5.8-3.2 2-1.4 2.3-.4 5.8 1 7.7.6.9 1.4 1.9 2.4 1.9s1.3-.6 2.5-.6 1.5.6 2.6.6 1.7-.9 2.3-1.8c.7-1 1-2 1-2-.1 0-2-.8-2-3.3zM14.6 6.3c.5-.7.9-1.6.8-2.5-.8 0-1.7.5-2.3 1.2-.5.6-.9 1.5-.8 2.4.9.1 1.7-.4 2.3-1.1z'], ['Google Play', 'M3.6 2.3c-.2.2-.3.5-.3.9v17.6c0 .4.1.7.3.9l.1.1L13.5 12 3.7 2.2l-.1.1zM17 8.5l-2.3-1.3-2.4 2.4 2.4 2.4L17 10.7c.8-.5.8-1.7 0-2.2zM4.3 2.1l8 4.6L14.6 9 4.3 2.1zM14.6 15l-2.3 2.3-8 4.6L14.6 15z']].map(([name, d]) => (
                     <a key={name} href="#" className="flex items-center gap-2.5 rounded-xl border border-zinc-800 bg-zinc-900/40 px-3 py-2 transition hover:border-zinc-700">
                       <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" className="flex-none text-zinc-400"><path d={d} /></svg>
                       <span className="flex-1 text-xs font-light text-zinc-400">{name}</span>
-                      <span className="rounded-full border border-zinc-800 px-2 py-0.5 text-[9px] font-medium text-zinc-600">قريباً</span>
+                      <span className="rounded-full border border-zinc-800 px-2 py-0.5 text-[9px] font-medium text-zinc-600">{L.soon}</span>
                     </a>
                   ))}
                   <a href="mailto:voldmotorglobal@gmail.com" className="flex items-center gap-2 pt-1 text-xs font-light text-zinc-500 transition hover:text-white" dir="ltr">
@@ -418,11 +479,11 @@ export default function LandingPage() {
             </div>
 
             <div className="mt-10 flex flex-col items-center justify-between gap-3 border-t border-white/10 pt-6 text-xs text-zinc-500 sm:flex-row">
-              <span>© 2026 VOLD MOTOR · جميع الحقوق محفوظة</span>
+              <span>{L.rights}</span>
               <div className="flex items-center gap-5">
-                <a href="#" className="transition hover:text-white">الخصوصية</a>
-                <a href="#faq" className="transition hover:text-white">الأسئلة الشائعة</a>
-                <a href="mailto:voldmotorglobal@gmail.com" className="transition hover:text-white">تواصل معنا</a>
+                <Link href="/privacy" className="transition hover:text-white">{L.fPrivacyShort}</Link>
+                <a href="#faq" className="transition hover:text-white">{L.navFaq}</a>
+                <a href="mailto:voldmotorglobal@gmail.com" className="transition hover:text-white">{L.fContact}</a>
               </div>
             </div>
           </div>

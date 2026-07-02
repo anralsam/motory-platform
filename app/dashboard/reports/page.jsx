@@ -1,5 +1,6 @@
 'use client';
 import { useMemo, useRef, useState } from 'react';
+import { useT } from '@/lib/i18n';
 import { useBranchStore } from '@/store/branchStore';
 import { useAuth } from '@/components/AuthProvider';
 import { usePermissions } from '@/lib/usePermissions';
@@ -37,6 +38,7 @@ function fmt(n) { return Number(n || 0).toLocaleString('en'); }
 function fmtDate(d) { try { return new Date(d).toLocaleDateString('en-GB'); } catch { return '—'; } }
 
 export default function ReportsPage() {
+  const { t } = useT();
   const { user } = useAuth();
   const { canViewFinancials } = usePermissions();
   const selectedId = useBranchStore((s) => s.selectedBranchId);

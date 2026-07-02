@@ -62,18 +62,22 @@ export const fmtCompact = (v) => {
 // ── UnifiedChart multi-filter matrix ──
 // المقاييس بالترتيب المعتمد: الإيرادات ← الأرباح (بعد عمولة المنصة 0.4%) ← العملاء ← العمليات
 export const CHART_METRICS = [
-  { key: 'revenue', label: 'الإيرادات', unit: 'sar' },
-  { key: 'profit', label: 'الأرباح', unit: 'sar' },
-  { key: 'customers', label: 'العملاء', unit: 'int' },
-  { key: 'sales', label: 'العمليات', unit: 'int' },
+  { key: 'revenue', label: 'الإيرادات', en: 'Revenue', unit: 'sar' },
+  { key: 'profit', label: 'الأرباح', en: 'Profit', unit: 'sar' },
+  { key: 'customers', label: 'العملاء', en: 'Customers', unit: 'int' },
+  { key: 'sales', label: 'العمليات', en: 'Operations', unit: 'int' },
 ];
 export const CHART_TIMELINES = [
-  { key: 'day', label: 'آخر يوم' },
-  { key: 'week', label: 'آخر أسبوع' },
-  { key: 'month', label: 'آخر شهر' },
-  { key: 'year', label: 'آخر سنة' },
-  { key: 'all', label: 'كامل المدة' },
+  { key: 'day', label: 'آخر يوم', en: 'Last day' },
+  { key: 'week', label: 'آخر أسبوع', en: 'Last week' },
+  { key: 'month', label: 'آخر شهر', en: 'Last month' },
+  { key: 'year', label: 'آخر سنة', en: 'Last year' },
+  { key: 'all', label: 'كامل المدة', en: 'All time' },
 ];
+
+/** خيارات مترجمة جاهزة للفلاتر. */
+export const localizedOptions = (list, lang) =>
+  list.map((o) => ({ ...o, label: lang === 'en' ? (o.en || o.label) : o.label }));
 
 // نسبة عمولة المنصة — الأرباح = الإيرادات المكتملة − العمولة.
 export const PLATFORM_COMMISSION = 0.004; // 0.4% لكل عملية
@@ -154,10 +158,10 @@ export function timelineWindowStart(timeline, now = new Date()) {
 }
 
 /** نص نطاق التاريخ الفعلي — «3 يونيو – 2 يوليو 2026» مثل YouTube تماماً. */
-export function timelineRangeText(timeline, orders = []) {
+export function timelineRangeText(timeline, orders = [], locale = 'ar') {
   const now = new Date();
-  const fmt = (d) => d.toLocaleDateString('ar', { day: 'numeric', month: 'short' });
-  const fmtY = (d) => d.toLocaleDateString('ar', { day: 'numeric', month: 'short', year: 'numeric' });
+  const fmt = (d) => d.toLocaleDateString(locale, { day: 'numeric', month: 'short' });
+  const fmtY = (d) => d.toLocaleDateString(locale, { day: 'numeric', month: 'short', year: 'numeric' });
   let start;
   if (timeline === 'all') {
     const stamps = orders.filter((o) => o.created_at).map((o) => new Date(o.created_at).getTime());

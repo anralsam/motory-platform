@@ -11,6 +11,7 @@
  * page is the OWNER's broadcast desk (campaigns, offers, invoices, follow-ups).
  */
 import { useMemo, useState } from 'react';
+import { useT } from '@/lib/i18n';
 import { useBranchStore } from '@/store/branchStore';
 import { useAuth } from '@/components/AuthProvider';
 import { roleOf } from '@/lib/roles';
@@ -47,6 +48,7 @@ function inject(text, c, centerName, link) {
 }
 
 export default function MessagesPage() {
+  const { t } = useT();
   const { user } = useAuth();
   const myRole = roleOf(user?.user_metadata?.role);
   const centerId = myRole === 'owner' ? user?.id : (user?.user_metadata?.center_id || user?.id);
@@ -108,7 +110,7 @@ export default function MessagesPage() {
   return (
     <div className="mx-auto max-w-6xl space-y-5">
       <div>
-        <h1 className="text-xl font-bold tracking-tight text-slate-900">الرسائل</h1>
+        <h1 className="text-xl font-bold tracking-tight text-slate-900">{t('الرسائل')}</h1>
         <p className="mt-1 text-sm text-slate-500">{centerName} · أرسل العروض والفواتير والتنبيهات لعملائك عبر واتساب — فردي أو جماعي</p>
       </div>
 
@@ -193,7 +195,7 @@ export default function MessagesPage() {
                     <span className={`grid h-5 w-5 flex-none place-items-center rounded-md border-2 transition ${on ? 'border-brand bg-brand text-white' : 'border-slate-300 bg-white'}`}>
                       {on && <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6 9 17l-5-5" /></svg>}
                     </span>
-                    <span className="grid h-8 w-8 flex-none place-items-center rounded-full bg-gradient-to-br from-brand to-brand-violet text-xs font-extrabold text-white">{(c.full_name || 'ع').charAt(0)}</span>
+                    <span className="grid h-8 w-8 flex-none place-items-center rounded-full bg-brand text-xs font-extrabold text-white">{(c.full_name || 'ع').charAt(0)}</span>
                     <span className="min-w-0 flex-1">
                       <span className="block truncate text-sm font-bold text-slate-900">{c.full_name || '—'}</span>
                       <span className="block text-xs font-semibold text-slate-400" dir="ltr">{c.phone}</span>

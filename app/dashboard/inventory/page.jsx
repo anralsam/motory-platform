@@ -1,5 +1,6 @@
 'use client';
 import { useMemo, useRef, useState } from 'react';
+import { useT } from '@/lib/i18n';
 import { useBranchStore } from '@/store/branchStore';
 import { useAuth } from '@/components/AuthProvider';
 import { useInventory } from '@/lib/useInventory';
@@ -15,6 +16,7 @@ function statusOf(item) {
 }
 
 export default function InventoryPage() {
+  const { t } = useT();
   const { user } = useAuth();
   const selectedId = useBranchStore((s) => s.selectedBranchId);
   const branches = useBranchStore((s) => s.branches);
@@ -29,6 +31,8 @@ export default function InventoryPage() {
     return prim?.center_type || 'أخرى';
   }, [selectedId, branches]);
 
+  const { items, loading, error, refetch, patchItem } = useInventory(user?.id, selectedId);
+
   // القواعد الثابتة: فئات النشاط الأساسية + أي تصنيفات رئيسية أضافها المالك بنفسه.
   const baseCategories = useMemo(() => categoriesFor(centerType), [centerType]);
   const categories = useMemo(() => {
@@ -40,7 +44,6 @@ export default function InventoryPage() {
   }, [baseCategories, items]);
   const catColor = useMemo(() => Object.fromEntries(categories.map((c) => [c.key, c.color])), [categories]);
 
-  const { items, loading, error, refetch, patchItem } = useInventory(user?.id, selectedId);
 
   const [cat, setCat] = useState('all');
   const [search, setSearch] = useState('');
@@ -139,7 +142,7 @@ export default function InventoryPage() {
       {/* Header */}
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="text-xl font-bold tracking-tight text-slate-900">المخزون</h1>
+          <h1 className="text-xl font-bold tracking-tight text-slate-900">{t('المخزون')}</h1>
           <p className="mt-1 text-sm text-slate-500">
             {branchName} · نوع النشاط: <span className="font-bold text-slate-700">{centerType}</span>
             <span className="mx-1.5 text-slate-300">·</span>

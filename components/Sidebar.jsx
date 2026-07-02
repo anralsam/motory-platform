@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { NAV_ITEMS } from './nav';
 import { useSelectedBranch } from '@/store/branchStore';
+import { useLocaleStore } from '@/store/localeStore';
 
 // href → professional lucide icon (single source; nav.js stays data-only).
 const ICON_BY_HREF = {
@@ -30,8 +31,10 @@ const ICON_BY_HREF = {
 export default function Sidebar({ onNavigate }) {
   const pathname = usePathname();
   const branch = useSelectedBranch();
+  const lang = useLocaleStore((s) => s.lang);
+  const isEn = lang === 'en';
   const isAll = !branch || branch.id === 'all';
-  const scopeName = isAll ? 'كل الفروع' : branch.name;
+  const scopeName = isAll ? (isEn ? 'All branches' : 'كل الفروع') : branch.name;
 
   return (
     <div className="flex h-full flex-col">
@@ -56,14 +59,14 @@ export default function Sidebar({ onNavigate }) {
               }`}
             >
               <Icon size={17} strokeWidth={active ? 2.3 : 2} className="flex-none" />
-              <span>{item.label}</span>
+              <span>{isEn ? (item.en || item.label) : item.label}</span>
             </Link>
           );
         })}
       </nav>
 
       <div className="border-t border-slate-200 p-3 text-center text-[10px] font-semibold text-slate-300">
-        مدعوم بواسطة VOLD MOTOR
+        {isEn ? 'Powered by VOLD MOTOR' : 'مدعوم بواسطة VOLD MOTOR'}
       </div>
     </div>
   );

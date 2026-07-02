@@ -94,14 +94,13 @@ function HeroPreview() {
               </div>
             ))}
           </div>
-          {/* chart */}
+          {/* chart — نفس منحنى اللوحة الفعلية (زوايا حادة + سماوي فاتح + خط أزرق) */}
           <div className="rounded-lg border border-white/10 bg-white/[0.03] p-3">
             <div className="mb-2 text-[9px] font-bold text-white/50">أداء آخر 7 أيام</div>
-            <div className="flex h-20 items-end gap-1.5">
-              {[40, 65, 50, 80, 60, 95, 72].map((h, i) => (
-                <div key={i} className="flex-1 rounded-t border-x border-t border-zinc-800/60 bg-gradient-to-t from-slate-900 to-slate-800" style={{ height: `${h}%` }} />
-              ))}
-            </div>
+            <svg viewBox="0 0 280 80" className="h-20 w-full" preserveAspectRatio="none" aria-hidden>
+              <polygon points="0,64 40,42 80,52 120,26 160,38 200,10 240,24 280,18 280,80 0,80" fill="#1a73e8" fillOpacity="0.18" />
+              <polyline points="0,64 40,42 80,52 120,26 160,38 200,10 240,24 280,18" fill="none" stroke="#4c8df6" strokeWidth="2.5" />
+            </svg>
           </div>
         </div>
       </div>
@@ -126,13 +125,13 @@ export default function LandingPage() {
     return () => { active = false; sub.subscription.unsubscribe(); };
   }, []);
 
-  const appHref = authed ? '/dashboard' : '/auth/signin';
-  // Registration CTAs route to the signup page when logged out; to the dashboard when in.
-  const registerHref = authed ? '/dashboard' : '/auth/signup';
-  const loginLabel = authed ? 'العودة للوحة التحكم' : 'تسجيل الدخول';
-  const heroCtaLabel = authed ? 'فتح لوحة التحكم' : 'سجّل مركزك مجاناً';
+  // صفحة تسويقية عامة: الرأس ثابت دائماً — تسجيل الدخول + سجّل الآن.
+  // (المسجّل دخوله يُحوَّل تلقائياً من /auth إلى لوحته عبر middleware.)
+  const appHref = '/auth/signin';
+  const registerHref = '/auth/signup';
+  const loginLabel = 'تسجيل الدخول';
   const finalCtaLabel = 'سجّل مركزك';
-  const navStartLabel = authed ? 'لوحة التحكم' : 'ابدأ الآن';
+  const navStartLabel = 'سجّل الآن';
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-[#0a0a0a] font-sans text-white antialiased">
@@ -188,19 +187,6 @@ export default function LandingPage() {
             <p className="mx-auto mt-6 max-w-xl text-balance text-base leading-relaxed text-zinc-400 md:text-lg">
               تحكم كامل في عمليات مركزك، من استقبال العميل وحتى إصدار الفاتورة الضريبية — في واجهة واحدة.
             </p>
-          </HeroIn>
-          <HeroIn delay={0.45}>
-            <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
-              <Link
-                href={registerHref}
-                className="w-full rounded-xl bg-[#2563eb] px-6 py-3 text-sm font-semibold text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.25),0_10px_30px_-10px_rgba(37,99,235,0.7)] transition hover:bg-[#1d4ed8] sm:w-auto"
-              >
-                {heroCtaLabel}
-              </Link>
-              <Link href="#features" className="w-full rounded-xl border border-white/10 bg-white/[0.02] px-6 py-3 text-sm font-light text-zinc-300 transition hover:border-white/20 hover:text-white sm:w-auto">
-                استكشف المنصة
-              </Link>
-            </div>
           </HeroIn>
           <HeroIn delay={0.6}>
             <div className="mt-6 flex items-center justify-center gap-2 text-sm font-light text-zinc-500">
@@ -405,10 +391,10 @@ export default function LandingPage() {
               <div>
                 <div className="text-sm font-medium text-white">الشركة</div>
                 <ul className="mt-4 space-y-2.5 text-sm font-light text-zinc-500">
-                  <li><a href="#" className="transition hover:text-white">من نحن</a></li>
+                  <li><Link href="/about" className="transition hover:text-white">من نحن</Link></li>
                   <li><a href="mailto:voldmotorglobal@gmail.com" className="transition hover:text-white">تواصل معنا</a></li>
-                  <li><a href="#faq" className="transition hover:text-white">الأسئلة الشائعة</a></li>
-                  <li><a href="#" className="transition hover:text-white">سياسة الخصوصية</a></li>
+                  
+                  <li><Link href="/privacy" className="transition hover:text-white">سياسة الخصوصية</Link></li>
                 </ul>
               </div>
 

@@ -3,6 +3,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Sidebar from './Sidebar';
 import BranchSwitcherDropdown from './BranchSwitcherDropdown';
+import NotificationsBell from './NotificationsBell';
 import { useAuth } from './AuthProvider';
 import { useLocaleStore, dirFor } from '@/store/localeStore';
 
@@ -24,6 +25,12 @@ export default function DashboardLayout({ children }) {
   const email = user?.email || '';
   const centerName = user?.user_metadata?.center_name || user?.user_metadata?.shop_name || email.split('@')[0] || 'مركزي';
   const initial = (centerName || 'م').charAt(0);
+
+  // قفل تمرير الخلفية أثناء فتح الدرج (iOS/Android)
+  useEffect(() => {
+    try { document.body.style.overflow = drawerOpen ? 'hidden' : ''; } catch {}
+    return () => { try { document.body.style.overflow = ''; } catch {} };
+  }, [drawerOpen]);
 
   useEffect(() => {
     function onDoc(e) {
@@ -54,19 +61,29 @@ export default function DashboardLayout({ children }) {
         <Sidebar />
       </aside>
 
-      {/* Mobile drawer + overlay (replaces the bottom nav) */}
+      {/* Mobile drawer + overlay — يفتح حصراً من زر الشرائط الثلاث */}
       <div
-        className={`fixed inset-0 z-40 bg-black/40 transition-opacity md:hidden ${
+        className={`fixed inset-0 z-40 bg-slate-900/50 backdrop-blur-[2px] transition-opacity md:hidden ${
           drawerOpen ? 'opacity-100' : 'pointer-events-none opacity-0'
         }`}
         onClick={() => setDrawerOpen(false)}
       />
       <aside
-        className={`fixed inset-y-0 end-0 z-50 w-60 border-s border-slate-200 bg-white shadow-xl transition-transform md:hidden ${
-          drawerOpen ? 'translate-x-0' : (dir === 'ltr' ? '-translate-x-full' : 'translate-x-full')
-        }`}
+        className={`fixed bottom-0 top-0 z-50 flex w-60 max-w-[75vw] flex-col rounded-s-2xl border-slate-200 bg-white shadow-2xl transition-transform duration-300 md:hidden ${
+          dir === 'rtl' ? 'right-0 border-l' : 'left-0 border-r rounded-s-none rounded-e-2xl'
+        } ${drawerOpen ? 'translate-x-0' : dir === 'rtl' ? 'translate-x-full' : '-translate-x-full'}`}
+        style={{ paddingTop: 'env(safe-area-inset-top)' }}
       >
-        <Sidebar onNavigate={() => setDrawerOpen(false)} />
+        <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3">
+          <span className="text-[13px] font-bold text-slate-800">القائمة</span>
+          <button onClick={() => setDrawerOpen(false)} aria-label="إغلاق"
+            className="grid h-8 w-8 place-items-center rounded-lg text-slate-400 hover:bg-slate-100">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round"><path d="M18 6 6 18M6 6l12 12" /></svg>
+          </button>
+        </div>
+        <div className="min-h-0 flex-1">
+          <Sidebar onNavigate={() => setDrawerOpen(false)} />
+        </div>
       </aside>
 
       <div className="flex flex-1 flex-col overflow-hidden">
@@ -100,12 +117,7 @@ export default function DashboardLayout({ children }) {
 
           {/* User profile / notifications */}
           <div className="flex items-center gap-2">
-            <button className="grid h-10 w-10 place-items-center rounded-lg text-slate-500 hover:bg-slate-100" aria-label="الإشعارات">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
-                <path d="M13.73 21a2 2 0 0 1-3.46 0" />
-              </svg>
-            </button>
+            <NotificationsBell centerId={user?.id} />
 
             <div className="relative" ref={menuRef}>
               <button

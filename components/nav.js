@@ -2,14 +2,14 @@
 // «الطلبات» أُزيلت عمداً: تسجيل الطلبات والعملاء يتم حصرياً من جهاز العامل،
 // وتظهر نتائجه هنا في الرئيسية/العملاء/الفواتير تلقائياً.
 export const NAV_ITEMS = [
-  { href: '/dashboard',           label: 'الرئيسية', icon: 'home' },
-  { href: '/dashboard/customers', label: 'العملاء',  icon: 'users' },
-  { href: '/dashboard/inventory', label: 'المخزون',  icon: 'box' },
-  { href: '/dashboard/invoices',  label: 'الفواتير', icon: 'receipt' },
-  { href: '/dashboard/reports',   label: 'التقارير', icon: 'chart' },
-  { href: '/dashboard/team',      label: 'الفريق',   icon: 'users' },
-  { href: '/dashboard/messages',  label: 'الرسائل',  icon: 'chat' },
-  { href: '/dashboard/settings',  label: 'الإعدادات', icon: 'gear' },
+  { href: '/dashboard',           label: 'الرئيسية',  en: 'Home',      icon: 'home' },
+  { href: '/dashboard/customers', label: 'العملاء',   en: 'Customers', icon: 'users' },
+  { href: '/dashboard/inventory', label: 'المخزون',   en: 'Inventory', icon: 'box' },
+  { href: '/dashboard/invoices',  label: 'الفواتير',  en: 'Invoices',  icon: 'receipt' },
+  { href: '/dashboard/reports',   label: 'التقارير',  en: 'Reports',   icon: 'chart' },
+  { href: '/dashboard/team',      label: 'الفريق',    en: 'Team',      icon: 'users' },
+  { href: '/dashboard/messages',  label: 'الرسائل',   en: 'Messages',  icon: 'chat' },
+  { href: '/dashboard/settings',  label: 'الإعدادات', en: 'Settings',  icon: 'gear' },
 ];
 
 // Minimal inline icon set (stroke = currentColor)

@@ -9,6 +9,9 @@ module.exports = {
       fontFamily: {
         sans: ['Riyal', 'var(--font-tajawal)', 'Tajawal', 'Almarai', 'system-ui', 'sans-serif'],
         inter: ['Riyal', 'var(--font-inter)', 'Inter', 'system-ui', 'sans-serif'],
+        // 'Riyal' first so the U+20C1 ⃁ glyph renders in monospace amount cells too
+        // (its @font-face unicode-range is U+20C1 only, so digits stay monospace).
+        mono: ['Riyal', 'ui-monospace', 'SFMono-Regular', 'Menlo', 'Consolas', 'Liberation Mono', 'monospace'],
       },
       colors: {
         brand: {

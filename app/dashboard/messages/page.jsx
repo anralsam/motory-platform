@@ -111,7 +111,7 @@ export default function MessagesPage() {
     <div className="mx-auto max-w-6xl space-y-5">
       <div>
         <h1 className="text-xl font-bold tracking-tight text-slate-900">{t('الرسائل')}</h1>
-        <p className="mt-1 text-sm text-slate-500">{centerName} · أرسل العروض والفواتير والتنبيهات لعملائك عبر واتساب — فردي أو جماعي</p>
+        <p className="mt-1 text-sm text-slate-500">{centerName} · {t('أرسل العروض والفواتير والتنبيهات لعملائك عبر واتساب — فردي أو جماعي', 'Send offers, invoices and alerts to your customers via WhatsApp — single or bulk')}</p>
       </div>
 
       <div className="grid grid-cols-1 items-start gap-5 lg:grid-cols-5">
@@ -164,7 +164,7 @@ export default function MessagesPage() {
             <button onClick={sendBulk} disabled={!pickedList.length || !baseText.trim() || !!sending}
               className="inline-flex items-center gap-2 rounded-xl bg-[#25d366] px-5 py-2.5 text-sm font-extrabold text-white shadow-lg shadow-emerald-500/25 transition hover:brightness-105 disabled:opacity-40">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2 22l5.25-1.38a9.9 9.9 0 0 0 4.79 1.22h.01c5.46 0 9.9-4.45 9.9-9.91 0-2.65-1.03-5.14-2.9-7.01A9.82 9.82 0 0 0 12.04 2z" /></svg>
-              {sending ? `جارٍ الإرسال ${sending.done}/${sending.total}...` : pickedList.length > 1 ? 'إرسال جماعي عبر واتساب' : 'إرسال عبر واتساب'}
+              {sending ? `جارٍ الإرسال ${sending.done}/${sending.total}...` : pickedList.length > 1 ? t('إرسال جماعي عبر واتساب', 'Send bulk via WhatsApp') : t('إرسال عبر واتساب', 'Send via WhatsApp')}
             </button>
           </div>
         </div>

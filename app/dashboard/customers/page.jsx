@@ -92,14 +92,14 @@ export default function CustomersPage() {
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <h1 className="text-xl font-bold tracking-tight text-slate-900">{t('العملاء')}</h1>
-          <p className="mt-1 text-sm text-slate-500">{branchName} · يُسجَّل العملاء تلقائياً من جهاز العامل وتظهر بياناتهم هنا مباشرة</p>
+          <p className="mt-1 text-sm text-slate-500">{branchName} · {t('يُسجَّل العملاء تلقائياً من جهاز العامل وتظهر بياناتهم هنا', 'Customers are registered automatically from the worker device and appear here')} مباشرة</p>
         </div>
       </div>
 
       {/* Aggregate strip */}
       <div className="grid grid-cols-1 overflow-hidden rounded-2xl border border-slate-200 bg-white sm:grid-cols-3">
         {[
-          ['إجمالي العملاء', totals.count.toLocaleString('en-US')],
+          [t('إجمالي العملاء', 'Total customers'), totals.count.toLocaleString('en-US')],
           ['إجمالي ما دفعوه', sar(totals.spent)],
           ['أعلى عميل إنفاقاً', totals.top ? `${totals.top.full_name || '—'} · ${sar(totals.top.spent)}` : '—'],
         ].map(([l, v], i) => (
@@ -121,12 +121,12 @@ export default function CustomersPage() {
           <table className="w-full text-right">
             <thead>
               <tr className="border-b border-slate-200 bg-slate-50 text-xs font-bold text-slate-500">
-                <th className="px-5 py-3 text-start">العميل</th>
+                <th className="px-5 py-3 text-start">{t('العميل', 'Customer')}</th>
                 <th className="px-5 py-3 text-start">رقم الجوال</th>
-                <th className="px-5 py-3 text-start">السيارة</th>
-                <th className="px-5 py-3 text-start">الزيارات</th>
-                <th className="px-5 py-3 text-start">إجمالي المدفوع</th>
-                <th className="px-5 py-3 text-start">آخر زيارة</th>
+                <th className="px-5 py-3 text-start">{t('السيارة', 'Car')}</th>
+                <th className="px-5 py-3 text-start">{t('الزيارات', 'Visits')}</th>
+                <th className="px-5 py-3 text-start">{t('إجمالي المدفوع', 'Total paid')}</th>
+                <th className="px-5 py-3 text-start">{t('آخر زيارة', 'Last visit')}</th>
                 <th className="px-5 py-3 text-start">الإجراءات</th>
               </tr>
             </thead>

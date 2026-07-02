@@ -223,22 +223,22 @@ export default function LandingPage() {
 
       <div className="relative">
         {/* Nav */}
-        <nav className="mx-auto flex max-w-6xl items-center justify-between px-5 py-4">
+        <nav className="mx-auto flex max-w-6xl items-center justify-between gap-2 px-4 py-3 sm:px-5 sm:py-4">
           <Link href="/" className="flex items-center" aria-label="VOLD MOTOR">
-            <Logo className="h-7 w-auto text-white" />
+            <Logo className="h-6 w-auto text-white sm:h-7" />
           </Link>
           <div className="hidden items-center gap-7 md:flex">
             <a href="#features" className="text-sm font-normal text-zinc-300 transition hover:text-white">{L.navFeatures}</a>
             <a href="#pricing" className="text-sm font-normal text-zinc-300 transition hover:text-white">{L.navPricing}</a>
             <a href="#faq" className="text-sm font-normal text-zinc-300 transition hover:text-white">{L.navFaq}</a>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-none items-center gap-1.5 sm:gap-2">
             <button onClick={() => setLang(isEn ? 'ar' : 'en')}
-              className="rounded-lg border border-white/10 bg-white/5 px-2.5 py-1.5 text-xs font-bold text-zinc-300 transition hover:border-white/25 hover:text-white">
+              className="rounded-lg border border-white/10 bg-white/5 px-2 py-1.5 text-[11px] font-bold text-zinc-300 transition hover:border-white/25 hover:text-white sm:px-2.5 sm:text-xs">
               {isEn ? 'عربي' : 'EN'}
             </button>
-            <Link href={appHref} className="rounded-lg px-3 py-2 text-sm font-light text-zinc-400 transition hover:text-white">{L.login}</Link>
-            <Link href={registerHref} className="rounded-xl bg-white px-4 py-2 text-sm font-medium text-[#0a0a0a] transition hover:bg-zinc-200">{L.signup}</Link>
+            <Link href={appHref} className="whitespace-nowrap rounded-lg px-2 py-2 text-[13px] font-light text-zinc-400 transition hover:text-white sm:px-3 sm:text-sm">{L.login}</Link>
+            <Link href={registerHref} className="whitespace-nowrap rounded-xl bg-white px-3 py-1.5 text-[13px] font-medium text-[#0a0a0a] transition hover:bg-zinc-200 sm:px-4 sm:py-2 sm:text-sm">{L.signup}</Link>
           </div>
         </nav>
 

@@ -104,7 +104,7 @@ export default function ReportsPage() {
 
       {/* ── Ordered navigation: each block gets its own tab (no more one long scroll) ── */}
       <div className="flex items-center gap-6 border-b border-slate-200">
-        {[['live', 'المتابعة الحية'], ['overview', 'نظرة عامة'], ['team', 'تحليل الفريق'], ['ai', 'التحليل الذكي'], ['log', 'سجل العمليات']].map(([k, label]) => {
+        {[['live', t('المتابعة الحية')], ['overview', t('نظرة عامة')], ['team', t('تحليل الفريق')], ['ai', t('التحليل الذكي')], ['log', t('سجل العمليات')]].map(([k, label]) => {
           const on = view === k;
           return (
             <button key={k} onClick={() => setView(k)} className="relative -mb-px pb-3 pt-1">

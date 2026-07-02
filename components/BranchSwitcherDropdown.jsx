@@ -2,6 +2,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Building2, ChevronDown, Check } from 'lucide-react';
+import { useT } from '@/lib/i18n';
 import { useBranchStore } from '@/store/branchStore';
 
 /**
@@ -26,11 +27,12 @@ export default function BranchSwitcherDropdown() {
     return () => document.removeEventListener('mousedown', onDoc);
   }, []);
 
+  const { t } = useT();
   const current = selectedId === 'all'
-    ? { id: 'all', name: 'كل الفروع' }
-    : branches.find((b) => b.id === selectedId) || { id: 'all', name: 'كل الفروع' };
+    ? { id: 'all', name: t('كل الفروع') }
+    : branches.find((b) => b.id === selectedId) || { id: 'all', name: t('كل الفروع') };
 
-  const options = [{ id: 'all', name: 'كل الفروع', all: true }, ...branches];
+  const options = [{ id: 'all', name: t('كل الفروع'), all: true }, ...branches];
 
   return (
     <div className="relative inline-block text-right" dir="rtl" ref={ref}>
@@ -54,7 +56,7 @@ export default function BranchSwitcherDropdown() {
                   className={`flex w-full items-center justify-between gap-2 rounded-lg px-3 py-2.5 text-sm transition-colors ${on ? 'bg-blue-50 font-bold text-blue-600' : 'font-medium text-slate-700 hover:bg-slate-50'}`}>
                   <span className="flex items-center gap-2 truncate">
                     {b.all ? <Building2 size={14} /> : <span className={`h-1.5 w-1.5 rounded-full ${b.is_primary ? 'bg-blue-600' : 'bg-slate-300'}`} />}
-                    <span className="truncate">{b.name}{b.is_primary ? ' · رئيسي' : ''}</span>
+                    <span className="truncate">{b.name}{b.is_primary ? t(' · رئيسي', ' · Primary') : ''}</span>
                   </span>
                   {on && <Check size={15} strokeWidth={3} />}
                 </button>

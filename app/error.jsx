@@ -17,6 +17,11 @@ export default function ErrorBoundary({ error, reset }) {
         <div style={{ marginTop: 10 }}>
           <a href="/" style={{ fontSize: 12.5, color: '#64748b', fontWeight: 600 }}>← العودة للرئيسية</a>
         </div>
+        {(error?.message || error?.digest) && (
+          <div dir="ltr" style={{ marginTop: 16, fontSize: 10, color: '#94a3b8', wordBreak: 'break-all', background: '#f1f5f9', borderRadius: 8, padding: '8px 10px' }}>
+            {String(error?.message || '').slice(0, 200)}{error?.digest ? ` · ${error.digest}` : ''}
+          </div>
+        )}
       </div>
     </div>
   );

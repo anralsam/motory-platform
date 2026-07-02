@@ -158,10 +158,16 @@ export function timelineWindowStart(timeline, now = new Date()) {
 }
 
 /** نص نطاق التاريخ الفعلي — «3 يونيو – 2 يوليو 2026» مثل YouTube تماماً. */
+const RANGE_MONTHS = {
+  ar: ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'],
+  en: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+};
 export function timelineRangeText(timeline, orders = [], locale = 'ar') {
+  const M = RANGE_MONTHS[locale === 'en' ? 'en' : 'ar'];
   const now = new Date();
-  const fmt = (d) => d.toLocaleDateString(locale, { day: 'numeric', month: 'short' });
-  const fmtY = (d) => d.toLocaleDateString(locale, { day: 'numeric', month: 'short', year: 'numeric' });
+  // تنسيق يدوي حتمي — Intl يختلف بين خادم البناء ومتصفح الجوال فيكسر الترطيب.
+  const fmt = (d) => `${d.getDate()} ${M[d.getMonth()]}`;
+  const fmtY = (d) => `${d.getDate()} ${M[d.getMonth()]} ${d.getFullYear()}`;
   let start;
   if (timeline === 'all') {
     const stamps = orders.filter((o) => o.created_at).map((o) => new Date(o.created_at).getTime());

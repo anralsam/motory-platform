@@ -144,9 +144,9 @@ export default function InventoryPage() {
         <div>
           <h1 className="text-xl font-bold tracking-tight text-slate-900">{t('المخزون')}</h1>
           <p className="mt-1 text-sm text-slate-500">
-            {branchName} · نوع النشاط: <span className="font-bold text-slate-700">{centerType}</span>
+            {branchName} · {t('نوع النشاط:', 'Activity type:')} <span className="font-bold text-slate-700">{centerType}</span>
             <span className="mx-1.5 text-slate-300">·</span>
-            أضف تصنيفاتك وأصنافك بأسعار ثابتة مرة واحدة، ثم عدّل الكمية أو السعر بالنقر عليهما مباشرة
+            {t('أضف تصنيفاتك وأصنافك بأسعار ثابتة مرة واحدة، ثم عدّل الكمية أو السعر بالنقر عليهما مباشرة', 'Add your categories and items with fixed prices once, then edit quantity or price by tapping them')}
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
@@ -155,7 +155,7 @@ export default function InventoryPage() {
             className="flex items-center gap-2 rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-bold text-white transition hover:bg-slate-800"
           >
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round"><path d="M12 5v14M5 12h14" /></svg>
-            إضافة صنف
+            {t('إضافة صنف', 'Add item')}
           </button>
         </div>
       </div>
@@ -178,7 +178,7 @@ export default function InventoryPage() {
         <input
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          placeholder="ابحث باسم الصنف أو المورّد..."
+          placeholder={t('ابحث باسم الصنف أو المورّد...', 'Search by item or supplier...')}
           className="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 pe-10 text-sm font-semibold text-slate-900 outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/15"
         />
       </div>
@@ -187,7 +187,7 @@ export default function InventoryPage() {
       {!loading && lowStock.length > 0 && (
         <div className="flex flex-wrap items-center gap-2 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3">
           <svg className="text-amber-600" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" /><path d="M12 9v4M12 17h.01" /></svg>
-          <span className="text-sm font-extrabold text-amber-800">{lowStock.length} صنف يحتاج إعادة تعبئة:</span>
+          <span className="text-sm font-extrabold text-amber-800">{lowStock.length} {t('صنف يحتاج إعادة تعبئة:', 'items need restocking:')}</span>
           <span className="text-sm font-semibold text-amber-700">{lowStock.slice(0, 4).map((i) => i.name).join('، ')}{lowStock.length > 4 ? ` +${lowStock.length - 4} أخرى` : ''}</span>
         </div>
       )}
@@ -198,11 +198,11 @@ export default function InventoryPage() {
           <table className="w-full text-right">
             <thead>
               <tr className="border-b border-slate-200 bg-slate-50 text-xs font-bold text-slate-500">
-                <th className="px-5 py-3 text-start">الصنف</th>
-                <th className="px-5 py-3 text-start">الفئة</th>
-                <th className="px-5 py-3 text-start">الكمية</th>
-                <th className="px-5 py-3 text-start">سعر الوحدة</th>
-                <th className="px-5 py-3 text-start">الحالة</th>
+                <th className="px-5 py-3 text-start">{t('الصنف', 'Item')}</th>
+                <th className="px-5 py-3 text-start">{t('الفئة', 'Category')}</th>
+                <th className="px-5 py-3 text-start">{t('الكمية', 'Quantity')}</th>
+                <th className="px-5 py-3 text-start">{t('سعر الوحدة', 'Unit price')}</th>
+                <th className="px-5 py-3 text-start">{t('الحالة', 'Status')}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">

@@ -140,6 +140,7 @@ function OwnerToolsTab({ centerId, branchId, showToast }) {
 
 /* ── Tab 1: Identity & Compliance ── */
 function IdentityTab({ user, centerId, loadBranches, showToast }) {
+  const { t } = useT();
   const m = user?.user_metadata || {};
   const [name, setName] = useState('');
   const [vat, setVat] = useState('');
@@ -202,7 +203,7 @@ function IdentityTab({ user, centerId, loadBranches, showToast }) {
           <Field label="رقم التواصل"><input value={phone} onChange={(e) => setPhone(e.target.value)} dir="ltr" placeholder="05XXXXXXXX" className={`${inp} text-right`} /></Field>
         </div>
         <div className="mt-5 flex justify-end">
-          <button onClick={saveIdentity} disabled={saving} className="rounded-xl bg-slate-900 px-5 py-2.5 text-sm font-bold text-white hover:bg-slate-800 disabled:opacity-70">حفظ البيانات</button>
+          <button onClick={saveIdentity} disabled={saving} className="rounded-xl bg-slate-900 px-5 py-2.5 text-sm font-bold text-white hover:bg-slate-800 disabled:opacity-70">{t('حفظ البيانات', 'Save')}</button>
         </div>
       </section>
 

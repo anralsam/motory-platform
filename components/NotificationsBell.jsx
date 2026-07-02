@@ -12,6 +12,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { Bell, ClipboardList, PackageOpen, Sparkles } from 'lucide-react';
+import { useT } from '@/lib/i18n';
 import { supabase } from '@/lib/supabaseClient';
 
 const POLL_MS = 30000;
@@ -25,6 +26,7 @@ function timeAgo(iso) {
 }
 
 export default function NotificationsBell({ centerId }) {
+  const { t } = useT();
   const [open, setOpen] = useState(false);
   const [items, setItems] = useState([]);
   const [unread, setUnread] = useState(0);
@@ -111,7 +113,7 @@ export default function NotificationsBell({ centerId }) {
 
       {open && (
         <div className="absolute end-0 top-full z-40 mt-2 w-[min(20rem,calc(100vw-2rem))] overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xl" dir="rtl">
-          <div className="border-b border-slate-100 px-4 py-3 text-sm font-bold text-slate-900">الإشعارات</div>
+          <div className="border-b border-slate-100 px-4 py-3 text-sm font-bold text-slate-900">{t('الإشعارات', 'Notifications')}</div>
           <div className="max-h-96 divide-y divide-slate-100 overflow-y-auto">
             {items.length ? items.map((n) => (
               <Link key={n.key} href={n.href} onClick={() => setOpen(false)}
@@ -124,7 +126,7 @@ export default function NotificationsBell({ centerId }) {
                 </span>
               </Link>
             )) : (
-              <div className="grid place-items-center py-12 text-sm text-slate-400">لا إشعارات جديدة</div>
+              <div className="grid place-items-center py-12 text-sm text-slate-400">{t('لا إشعارات جديدة', 'No new notifications')}</div>
             )}
           </div>
         </div>

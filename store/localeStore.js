@@ -1,20 +1,16 @@
 'use client';
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
 
 /**
- * Global UI locale — drives the RTL/LTR direction of the whole shell.
- * 'ar' → rtl (default) · 'en' → ltr. Persisted so the choice survives reloads.
- * (Text remains Arabic for now; this controls layout direction + alignment.)
+ * لغة اللوحة — في الذاكرة فقط: كل جلسة تفتح بالعربية دائماً.
+ * (النسخة السابقة كانت تحفظ الاختيار، وبقايا المفتاح القديم في متصفحات
+ *  المستخدمين كانت تفتح اللوحة بالإنجليزية — نطهّره هنا نهائياً.)
  */
-export const useLocaleStore = create(
-  persist(
-    (set) => ({
-      lang: 'ar',
-      setLang: (lang) => set({ lang: lang === 'en' ? 'en' : 'ar' }),
-    }),
-    { name: 'vm-locale-store', partialize: () => ({}) }, // الافتراضي عربي في كل جلسة
-  ),
-);
+try { if (typeof window !== 'undefined') localStorage.removeItem('vm-locale-store'); } catch {}
+
+export const useLocaleStore = create((set) => ({
+  lang: 'ar',
+  setLang: (lang) => set({ lang: lang === 'en' ? 'en' : 'ar' }),
+}));
 
 export const dirFor = (lang) => (lang === 'en' ? 'ltr' : 'rtl');

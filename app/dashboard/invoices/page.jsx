@@ -78,7 +78,7 @@ export default function InvoicesPage() {
           <div>
             <div className="flex items-center gap-2 text-sm font-bold opacity-90">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" /></svg>
-              مستحقات منصة VOLD MOTOR · {monthLabel}
+              {t('مستحقات منصة VOLD MOTOR', 'VOLD MOTOR platform dues')} · {monthLabel}
             </div>
             <div className="mt-1.5 text-3xl font-extrabold tabular-nums">
               {billingLoading ? '—' : fmtSar(billing ? billing.total_amount : 0)} <span className="text-lg font-bold opacity-80">⃁</span>
@@ -93,19 +93,19 @@ export default function InvoicesPage() {
           {billing && billing.status === 'PAID' ? (
             <span className="inline-flex items-center gap-1.5 rounded-xl bg-white/20 px-5 py-3 text-sm font-extrabold text-white ring-1 ring-white/30">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6 9 17l-5-5" /></svg>
-              تم السداد
+              {t('تم السداد', 'Paid')}
             </span>
           ) : billing && billing.status === 'VERIFYING' ? (
             <span className="inline-flex cursor-not-allowed items-center gap-1.5 rounded-xl bg-amber-400 px-5 py-3 text-sm font-extrabold text-amber-950 shadow-lg">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></svg>
-              جاري مراجعة الحوالة
+              {t('جاري مراجعة الحوالة', 'Verifying transfer')}
             </span>
           ) : billing && billing.status === 'PENDING' ? (
             <button
               onClick={() => setPayOpen(true)}
               className="inline-flex items-center gap-2 rounded-xl bg-white px-5 py-3 text-sm font-extrabold text-blue-700 shadow-lg transition hover:bg-blue-50"
             >
-              تسديد المستحقات
+              {t('تسديد المستحقات', 'Pay dues')}
             </button>
           ) : null}
         </div>
@@ -117,12 +117,12 @@ export default function InvoicesPage() {
           <table className="w-full text-right">
             <thead>
               <tr className="border-b border-slate-200 bg-slate-50 text-xs font-bold text-slate-500">
-                <th className="px-5 py-3 text-start">رقم الفاتورة</th>
-                <th className="px-5 py-3 text-start">التاريخ</th>
-                <th className="px-5 py-3 text-start">العميل</th>
-                <th className="px-5 py-3 text-start">الخدمة</th>
-                <th className="px-5 py-3 text-start">الإجمالي</th>
-                <th className="px-5 py-3 text-start">الإجراءات</th>
+                <th className="px-5 py-3 text-start">{t('رقم الفاتورة', 'Invoice #')}</th>
+                <th className="px-5 py-3 text-start">{t('التاريخ', 'Date')}</th>
+                <th className="px-5 py-3 text-start">{t('العميل', 'Customer')}</th>
+                <th className="px-5 py-3 text-start">{t('الخدمة', 'Service')}</th>
+                <th className="px-5 py-3 text-start">{t('الإجمالي', 'Total')}</th>
+                <th className="px-5 py-3 text-start">{t('الإجراءات', 'Actions')}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
@@ -131,7 +131,7 @@ export default function InvoicesPage() {
               ) : error ? (
                 <tr><td colSpan={6} className="px-5 py-12 text-center text-sm text-red-500">تعذّر التحميل: {error}</td></tr>
               ) : invoices.length === 0 ? (
-                <tr><td colSpan={6} className="px-5 py-12 text-center text-sm text-slate-500">لا توجد فواتير (طلبات مكتملة) في هذا الفرع بعد</td></tr>
+                <tr><td colSpan={6} className="px-5 py-12 text-center text-sm text-slate-500">{t('لا توجد فواتير (طلبات مكتملة) في هذا الفرع بعد', 'No invoices (completed orders) in this branch yet')}</td></tr>
               ) : (
                 invoices.map((o) => {
                   const t = invoiceTotals(o);
@@ -146,7 +146,7 @@ export default function InvoicesPage() {
                         <div className="flex items-center gap-2">
                           <button onClick={() => setReceipt(o)} className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-bold text-slate-600 transition hover:border-brand hover:text-brand">
                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 9V2h12v7M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" /><rect x="6" y="14" width="12" height="8" /></svg>
-                            طباعة الفاتورة
+                            {t('طباعة الفاتورة', 'Print invoice')}
                           </button>
                           <button onClick={() => sendInvoiceWhatsApp(o)} disabled={!o.customer_phone} title="إرسال الفاتورة عبر واتساب"
                             className="inline-flex items-center gap-1.5 rounded-lg bg-[#25d366] px-3 py-1.5 text-xs font-extrabold text-white transition hover:brightness-105 disabled:opacity-40">

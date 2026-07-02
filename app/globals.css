@@ -1,3 +1,19 @@
+/* ── الخط الرسمي لرمز الريال السعودي الجديد (U+20C1) — محمّل محلياً ── */
+@font-face {
+  font-family: 'Riyal';
+  src: url('/fonts/riyal-regular.woff2') format('woff2');
+  font-weight: 100 500;
+  font-display: swap;
+  unicode-range: U+20C1;
+}
+@font-face {
+  font-family: 'Riyal';
+  src: url('/fonts/riyal-bold.woff2') format('woff2');
+  font-weight: 600 900;
+  font-display: swap;
+  unicode-range: U+20C1;
+}
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;

@@ -9,6 +9,7 @@ import { supabase } from '@/lib/supabaseClient';
 export default function AddInventoryModal({ open, onClose, onSaved, categories, userId, branchId, centerType }) {
   const [name, setName] = useState('');
   const [cat, setCat] = useState(categories[0]?.key || 'general');
+  const [newCat, setNewCat] = useState('');
   const [qty, setQty] = useState('');
   const [min, setMin] = useState('');
   const [price, setPrice] = useState('');
@@ -18,7 +19,7 @@ export default function AddInventoryModal({ open, onClose, onSaved, categories, 
 
   useEffect(() => {
     if (open) {
-      setName(''); setCat(categories[0]?.key || 'general'); setQty(''); setMin(''); setPrice(''); setSupplier(''); setError('');
+      setName(''); setCat(categories[0]?.key || 'general'); setNewCat(''); setQty(''); setMin(''); setPrice(''); setSupplier(''); setError('');
     }
   }, [open, categories]);
 
@@ -27,12 +28,13 @@ export default function AddInventoryModal({ open, onClose, onSaved, categories, 
   async function save() {
     setError('');
     if (!name.trim()) { setError('الرجاء إدخال اسم الصنف'); return; }
+    if (cat === '__new' && !newCat.trim()) { setError('الرجاء إدخال اسم التصنيف الجديد'); return; }
     if (!userId) { setError('لا توجد جلسة مستخدم'); return; }
     setSaving(true);
     const { error: err } = await supabase.from('inventory').insert({
       merchant_id: userId,
       name: name.trim(),
-      category: cat,
+      category: cat === '__new' ? newCat.trim() : cat,
       quantity: parseInt(qty) || 0,
       min_quantity: parseInt(min) || 5,
       sell_price: parseFloat(price) || 0,
@@ -62,11 +64,17 @@ export default function AddInventoryModal({ open, onClose, onSaved, categories, 
           <Field label="اسم الصنف" className="col-span-2">
             <input value={name} onChange={(e) => setName(e.target.value)} placeholder="مثال: كرتون زيت 5W-30" className={inputCls} />
           </Field>
-          <Field label="الفئة">
+          <Field label="التصنيف الرئيسي">
             <select value={cat} onChange={(e) => setCat(e.target.value)} className={inputCls}>
               {categories.map((c) => <option key={c.key} value={c.key}>{c.label}</option>)}
+              <option value="__new">+ تصنيف رئيسي جديد…</option>
             </select>
           </Field>
+          {cat === '__new' && (
+            <Field label="اسم التصنيف الجديد" className="col-span-2">
+              <input value={newCat} onChange={(e) => setNewCat(e.target.value)} placeholder="مثال: إطارات · زيوت دبل · قطع كهرباء" className={inputCls} />
+            </Field>
+          )}
           <Field label="المورّد (اختياري)">
             <input value={supplier} onChange={(e) => setSupplier(e.target.value)} placeholder="اسم المورّد" className={inputCls} />
           </Field>
@@ -76,14 +84,14 @@ export default function AddInventoryModal({ open, onClose, onSaved, categories, 
           <Field label="الحد الأدنى للتنبيه">
             <input type="number" min="0" value={min} onChange={(e) => setMin(e.target.value)} placeholder="5" className={inputCls} />
           </Field>
-          <Field label="سعر الوحدة (⃀)" className="col-span-2">
+          <Field label="سعر الوحدة (⃁)" className="col-span-2">
             <input type="number" min="0" step="0.01" value={price} onChange={(e) => setPrice(e.target.value)} placeholder="0.00" className={inputCls} />
           </Field>
         </div>
 
         <div className="mt-5 flex justify-end gap-2">
           <button onClick={onClose} className="rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-bold text-slate-600 hover:bg-slate-50">إلغاء</button>
-          <button onClick={save} disabled={saving} className="flex items-center gap-2 rounded-xl bg-brand px-5 py-2.5 text-sm font-extrabold text-white hover:bg-brand-dark disabled:opacity-70">
+          <button onClick={save} disabled={saving} className="flex items-center gap-2 rounded-xl bg-slate-900 px-5 py-2.5 text-sm font-bold text-white hover:bg-slate-800 disabled:opacity-70">
             {saving && <Spinner />}
             حفظ الصنف
           </button>

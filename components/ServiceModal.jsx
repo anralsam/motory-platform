@@ -62,7 +62,7 @@ export default function ServiceModal({ open, onClose, onSaved, centerId, branchI
             <input value={name} onChange={(e) => setName(e.target.value)} placeholder="مثال: تغيير زيت 5W-30" className={inp} />
           </Field>
           <div className="grid grid-cols-2 gap-3">
-            <Field label="السعر (⃀)">
+            <Field label="السعر (⃁)">
               <input type="number" min="0" step="0.5" value={price} onChange={(e) => setPrice(e.target.value)} placeholder="0" className={inp} />
             </Field>
             <Field label="الفئة">
@@ -76,7 +76,7 @@ export default function ServiceModal({ open, onClose, onSaved, centerId, branchI
 
         <div className="mt-5 flex justify-end gap-2">
           <button onClick={onClose} className="rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-bold text-slate-600 hover:bg-slate-50">إلغاء</button>
-          <button onClick={save} disabled={saving} className="flex items-center gap-2 rounded-xl bg-brand px-5 py-2.5 text-sm font-extrabold text-white hover:bg-brand-dark disabled:opacity-70">
+          <button onClick={save} disabled={saving} className="flex items-center gap-2 rounded-xl bg-slate-900 px-5 py-2.5 text-sm font-bold text-white hover:bg-slate-800 disabled:opacity-70">
             {saving && <svg className="animate-spin" width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="#fff" strokeOpacity="0.25" strokeWidth="4" /><path d="M22 12a10 10 0 0 1-10 10" stroke="#fff" strokeWidth="4" strokeLinecap="round" /></svg>}
             حفظ
           </button>

@@ -18,13 +18,14 @@ import {
 } from 'lucide-react';
 import { supabase } from '@/lib/supabaseClient';
 import { SUPABASE_URL } from '@/lib/supabase/config';
-import { toggleMerchantFreeze, toggleMerchantAudit, resetMerchantTier } from '@/app/dashboard-pro/actions';
-import DashboardContainer from './dna/DashboardContainer';
+import { toggleMerchantFreeze } from '@/app/dashboard-pro/actions';
+import DashboardContainer, { useDashboardData } from './dna/DashboardContainer';
+import { computeComparisons } from './dna/engine';
 import UnifiedChart from './dna/UnifiedChart';
 import CentersLive from './CentersLive';
 
 const EDGE = `${SUPABASE_URL}/functions/v1/admin-merchants`;
-const sar = (n) => `${Math.round(Number(n) || 0).toLocaleString('en-US')} \u20C0`;
+const sar = (n) => `${Math.round(Number(n) || 0).toLocaleString('en-US')} \u20C1`;
 
 // ── Flat, concise nav — الترتيب المعتمد: الرئيسية ← طلبات الانضمام ← المالية
 //    ← المتابعة الحية ← الحوكمة ← الإعدادات (آخر شيء دائماً). ثنائي اللغة. ──
@@ -220,17 +221,38 @@ function CentersControl({ rows = [], onManage }) {
   );
 }
 
-/* ── شريط أرقام موحّد: بطاقة واحدة مقسّمة بفواصل — نظيف على كل المقاسات ── */
+/* ── شريط أرقام موحّد: بطاقة واحدة مقسّمة — يدعم مؤشر مقارنة أخضر/أحمر ── */
 function StatStrip({ items = [] }) {
   return (
     <div className="grid grid-cols-2 gap-px overflow-hidden rounded-2xl border border-slate-200 bg-slate-200 shadow-sm sm:grid-cols-3 xl:grid-cols-5">
-      {items.map(([l, v]) => (
+      {items.map(([l, v, growth]) => (
         <div key={l} className="bg-white px-4 py-4 sm:px-5">
           <div className="text-[11px] font-semibold text-slate-400">{l}</div>
           <div className="mt-1.5 truncate text-xl font-bold tabular-nums text-slate-900 sm:text-2xl" dir="ltr">{v}</div>
+          {growth !== undefined && growth !== null && (
+            <div className={`mt-1 inline-flex items-center gap-0.5 text-[11px] font-bold ${growth >= 0 ? 'text-emerald-600' : 'text-rose-600'}`} dir="ltr">
+              {growth >= 0 ? <ArrowUpRight size={12} /> : <ArrowDownRight size={12} />}{Math.abs(growth)}%
+            </div>
+          )}
         </div>
       ))}
     </div>
+  );
+}
+
+/* شريط الرئيسية التفاعلي — يقرأ فلتر الفترة من سياق الرسم ويقارن بالفترة السابقة */
+function AdminHomeStrip({ macro = {}, sarFn }) {
+  const { orders = [], timeline = 'week' } = useDashboardData() || {};
+  const comp = useMemo(() => computeComparisons(orders, timeline), [orders, timeline]);
+  const g = (k) => (comp.allTime ? null : comp[k]?.growth ?? null);
+  return (
+    <StatStrip items={[
+      ['المراكز النشطة', (macro.activeCenters || 0).toLocaleString('en-US')],
+      ['إجمالي الفروع', (macro.branches || 0).toLocaleString('en-US')],
+      ['العمليات (حسب الفترة)', (comp.sales?.value || 0).toLocaleString('en-US'), g('sales')],
+      ['الإيرادات (حسب الفترة)', sarFn(comp.revenue?.value || 0), g('revenue')],
+      ['عمولات المنصة (حسب الفترة)', sarFn((comp.revenue?.value || 0) * COMMISSION_RATE), g('revenue')],
+    ]} />
   );
 }
 
@@ -354,50 +376,7 @@ function GovernanceView() {
   );
 }
 
-function MerchantLeaderboard({ rows = [], onManage }) {
-  if (!rows.length) return <Empty label="لا توجد مراكز نشطة بعد" />;
-  return (
-    <div className="mt-6 w-full rounded-2xl border border-slate-200 bg-white p-8 shadow-sm">
-      <div className="text-lg font-bold tracking-tight text-slate-900">مصفوفة ترتيب وتقييم المراكز</div>
-      <div className="mt-1 mb-6 text-sm font-medium text-slate-500">ترتيب المراكز حسب الإيراد ومساهمتها في السوق</div>
-      <div className="space-y-2">
-        {rows.map((r, i) => (
-          <div key={r.id} className="flex items-center gap-4 rounded-xl px-3 py-3 transition-colors hover:bg-slate-50">
-            <span className="grid h-7 w-7 flex-none place-items-center rounded-lg bg-slate-100 font-mono text-xs font-bold text-slate-500" dir="ltr">{i + 1}</span>
-            <div className="min-w-0 flex-1">
-              <div className="mb-1.5 flex flex-wrap items-center justify-between gap-2">
-                <span className="flex min-w-0 items-center gap-2">
-                  <span className="truncate text-sm font-bold text-slate-900">{r.name}</span>
-                  {r.is_frozen && <span className="rounded-full bg-rose-50 px-2 py-0.5 text-[10px] font-bold text-rose-600">مجمّد</span>}
-                  {r.under_audit && <span className="rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-bold text-amber-600">تدقيق</span>}
-                  {r.tier_plan === 'enterprise' && <span className="rounded-full bg-blue-50 px-2 py-0.5 text-[10px] font-bold text-blue-600">Enterprise</span>}
-                </span>
-                <div className="flex flex-none items-center gap-2">
-                  <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-semibold text-slate-500">{r.branches} فرع</span>
-                  <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-semibold text-slate-500">{r.orders} عملية</span>
-                  <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-semibold text-slate-500">{r.staff} موظف</span>
-                  <span className="font-mono text-sm font-bold tabular-nums text-slate-900" dir="ltr">{sar(r.revenue)}</span>
-                </div>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="h-2 flex-1 overflow-hidden rounded-full bg-slate-100">
-                  <div className="h-full rounded-full bg-gradient-to-l from-blue-500 to-blue-600" style={{ width: `${Math.max(3, r.share)}%` }} />
-                </div>
-                <span className="font-mono text-[11px] font-semibold tabular-nums text-slate-400" dir="ltr">{r.share}%</span>
-              </div>
-            </div>
-            <button onClick={() => onManage(r.id)}
-              className="flex flex-none items-center gap-1.5 rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-600 transition-colors hover:border-blue-400 hover:text-blue-600">
-              <Settings size={13} /> إدارة الحساب
-            </button>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function ManageSheet({ row, onFreeze, onAudit, onTier, onClose }) {
+function ManageSheet({ row, onFreeze, onClose }) {
   if (!row) return null;
   return (
     <div dir="rtl" className="fixed inset-0 z-50 flex items-stretch justify-start bg-slate-900/40 backdrop-blur-sm" onClick={onClose}>
@@ -421,28 +400,23 @@ function ManageSheet({ row, onFreeze, onAudit, onTier, onClose }) {
           ))}
         </div>
 
-        {/* Tier override */}
-        <div className="mt-6 text-xs font-bold uppercase tracking-wider text-slate-400">الباقة</div>
-        <div className="mt-3 inline-flex gap-1 rounded-xl bg-slate-100 p-1">
-          {[['standard', 'قياسية'], ['enterprise', 'Enterprise']].map(([k, label]) => (
-            <button key={k} onClick={() => onTier(row.id, k)}
-              className={`rounded-lg px-4 py-1.5 text-xs font-bold transition-all ${row.tier_plan === k ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-800'}`}>
-              {label}
-            </button>
-          ))}
+        {/* التزام دفع العمولة — من واقع سجل التحصيل الشهري */}
+        <div className="mt-6 text-xs font-bold uppercase tracking-wider text-slate-400">الالتزام بدفع العمولة</div>
+        <div className={`mt-3 rounded-xl border p-4 ${row.compliance?.tone === 'ok' ? 'border-emerald-200 bg-emerald-50' : row.compliance?.tone === 'late' ? 'border-rose-200 bg-rose-50' : 'border-slate-200 bg-slate-50'}`}>
+          <div className={`text-sm font-bold ${row.compliance?.tone === 'ok' ? 'text-emerald-700' : row.compliance?.tone === 'late' ? 'text-rose-700' : 'text-slate-600'}`}>
+            {row.compliance?.label || 'لا مستحقات مسجّلة بعد'}
+          </div>
+          {row.compliance?.detail && <div className="mt-1 text-xs font-medium text-slate-500">{row.compliance.detail}</div>}
         </div>
 
-        {/* Lifecycle overrides */}
-        <div className="mt-6 text-xs font-bold uppercase tracking-wider text-slate-400">تجاوزات إدارية</div>
-        <div className="mt-3 space-y-2">
+        {/* الإجراء الإداري الوحيد: تجميد/حظر */}
+        <div className="mt-6 text-xs font-bold uppercase tracking-wider text-slate-400">إجراء إداري</div>
+        <div className="mt-3">
           <button onClick={() => onFreeze(row.id, !row.is_frozen)}
             className={`flex w-full items-center justify-center gap-2 rounded-xl py-3 text-sm font-bold text-white transition-colors ${row.is_frozen ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-rose-600 hover:bg-rose-700'}`}>
-            {row.is_frozen ? 'إلغاء تجميد الحساب' : 'تجميد الحساب'}
+            {row.is_frozen ? 'إلغاء حظر الحساب' : 'حظر / تجميد الحساب'}
           </button>
-          <button onClick={() => onAudit(row.id, !row.under_audit)}
-            className={`flex w-full items-center justify-center gap-2 rounded-xl border py-3 text-sm font-bold transition-colors ${row.under_audit ? 'border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100' : 'border-amber-200 bg-amber-50 text-amber-700 hover:bg-amber-100'}`}>
-            {row.under_audit ? 'إنهاء التدقيق الإجباري' : 'بدء تدقيق إجباري'}
-          </button>
+          <p className="mt-2 text-center text-[11px] font-medium text-slate-400">الحظر يوقف وصول المركز فوراً — قابل للعكس في أي لحظة</p>
         </div>
       </div>
     </div>
@@ -473,8 +447,6 @@ export default function AdminConsole({ data = {}, userName = 'المدير' }) {
     }).catch(() => { setLbRows(prev); flash(errMsg); });
   }
   const onFreeze = (id, status) => govMutate(id, { is_frozen: status }, () => toggleMerchantFreeze(id, status), status ? 'تم تجميد الحساب' : 'تم إلغاء التجميد', 'تعذّر تنفيذ العملية');
-  const onAudit = (id, status) => govMutate(id, { under_audit: status }, () => toggleMerchantAudit(id, status), status ? 'بدأ التدقيق الإجباري' : 'انتهى التدقيق', 'تعذّر تنفيذ العملية');
-  const onTier = (id, tier) => govMutate(id, { tier_plan: tier }, () => resetMerchantTier(id, tier), `أُعيد ضبط الباقة: ${tier}`, 'تعذّر تنفيذ العملية');
 
   function renderView() {
     switch (active) {
@@ -483,14 +455,8 @@ export default function AdminConsole({ data = {}, userName = 'المدير' }) {
           {/* الرسم أولاً — Studio parity مع فلاتره المنسدلة */}
           <UnifiedChart showControls />
 
-          {/* شريط الأرقام الموحّد — بطاقة واحدة مقسّمة، مرتبة على الجوال والكمبيوتر */}
-          <StatStrip items={[
-            ['المراكز النشطة', (macro.activeCenters || 0).toLocaleString('en-US')],
-            ['إجمالي الفروع', (macro.branches || 0).toLocaleString('en-US')],
-            ['حجم العمليات الكلي', (macro.totalOps || 0).toLocaleString('en-US')],
-            ['إجمالي الإيرادات', sar(macro.revenue)],
-            ['صافي عمولات المنصة', sar(metrics.commissions)],
-          ]} />
+          {/* شريط الأرقام — يتفاعل مع فلتر الفترة أعلاه ويقارن بالفترة السابقة */}
+          <AdminHomeStrip macro={macro} sarFn={sar} />
         </DashboardContainer>
       );
       case 'live': return <CentersLive />;
@@ -572,7 +538,7 @@ export default function AdminConsole({ data = {}, userName = 'المدير' }) {
         })}
       </nav>
 
-      <ManageSheet row={manageRow} onFreeze={onFreeze} onAudit={onAudit} onTier={onTier} onClose={() => setManageId(null)} />
+      <ManageSheet row={manageRow} onFreeze={onFreeze} onClose={() => setManageId(null)} />
 
       {toast && <div className="pointer-events-none fixed bottom-24 start-1/2 z-50 -translate-x-1/2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-xl md:bottom-6">{toast}</div>}
     </div>

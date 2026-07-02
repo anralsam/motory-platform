@@ -79,7 +79,7 @@ export default function InvoicesPage() {
               مستحقات منصة VOLD MOTOR · {monthLabel}
             </div>
             <div className="mt-1.5 text-3xl font-extrabold tabular-nums">
-              {billingLoading ? '—' : fmtSar(billing ? billing.total_amount : 0)} <span className="text-lg font-bold opacity-80">⃀</span>
+              {billingLoading ? '—' : fmtSar(billing ? billing.total_amount : 0)} <span className="text-lg font-bold opacity-80">⃁</span>
             </div>
             <div className="mt-1 text-xs opacity-80">
               {billing
@@ -123,7 +123,7 @@ export default function InvoicesPage() {
                 <th className="px-5 py-3 text-start">الإجراءات</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
+            <tbody className="divide-y divide-gray-100">
               {loading ? (
                 <tr><td colSpan={6} className="px-5 py-12 text-center text-sm text-slate-400">جاري التحميل...</td></tr>
               ) : error ? (
@@ -139,7 +139,7 @@ export default function InvoicesPage() {
                       <td className="px-5 py-3.5 text-slate-500">{fmtDate(o.created_at)}</td>
                       <td className="px-5 py-3.5 font-bold text-slate-900">{o.customer_name || o.customer_phone || '—'}</td>
                       <td className="px-5 py-3.5 text-slate-600">{o.service_type || '—'}</td>
-                      <td className="px-5 py-3.5 font-extrabold text-brand">{fmtSar(t.total)} ⃀</td>
+                      <td className="px-5 py-3.5 font-extrabold text-brand">{fmtSar(t.total)} ⃁</td>
                       <td className="px-5 py-3.5">
                         <div className="flex items-center gap-2">
                           <button onClick={() => setReceipt(o)} className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-bold text-slate-600 transition hover:border-brand hover:text-brand">

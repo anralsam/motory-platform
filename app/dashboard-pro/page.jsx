@@ -98,7 +98,18 @@ async function merchantContent(merchantId) {
 
 // ── Super-Admin console data (dark GitHub-Primer command center) ──
 async function adminConsoleData() {
-  const [adminData, intelRaw] = await Promise.all([getAdminData(), getIntelligenceData()]);
+  const [adminData, intelRaw, billingRows] = await Promise.all([
+    getAdminData(), getIntelligenceData(),
+    (async () => {
+      try {
+        const { getSupabaseAdmin } = await import('@/lib/supabase/admin');
+        const admin = getSupabaseAdmin();
+        if (!admin) return [];
+        const { data } = await admin.from('platform_billing').select('merchant_id, billing_period, status, total_amount').limit(500);
+        return data || [];
+      } catch { return []; }
+    })(),
+  ]);
   const intel = intelRaw || { orders: [] };
   const completedRev = intel.orders.filter((o) => o.status === 'completed').reduce((s, o) => s + (Number(o.price) || 0), 0);
   const total = intel.orders.length;
@@ -147,6 +158,7 @@ async function adminConsoleData() {
       name: govById[id]?.shop_name || brByOwner[id]?.name || 'مركز',
       branches: brByOwner[id]?.count || 0,
       orders: byMerchant[id]?.orders || 0,
+      compliance: complianceOf(id),
       staff: staffByCenter[id] || 0,
       revenue: byMerchant[id]?.revenue || 0,
       is_frozen: !!govById[id]?.is_frozen,
@@ -155,6 +167,23 @@ async function adminConsoleData() {
     }))
     .sort((a, b) => b.revenue - a.revenue)
     .map((m) => ({ ...m, share: totalRev ? Math.round((m.revenue / totalRev) * 100) : 0 }));
+
+  // «الالتزام بدفع العمولة» لكل مركز — من سجل التحصيل الشهري.
+  const nowPeriod = new Date().toISOString().slice(0, 7);
+  const complianceByMerchant = {};
+  (billingRows || []).forEach((b) => {
+    const c = complianceByMerchant[b.merchant_id] || (complianceByMerchant[b.merchant_id] = { paid: 0, latePeriods: [], pendingCurrent: false });
+    if (b.status === 'PAID') c.paid += 1;
+    else if ((b.billing_period || '') < nowPeriod) c.latePeriods.push(b.billing_period);
+    else c.pendingCurrent = true;
+  });
+  const complianceOf = (id) => {
+    const c = complianceByMerchant[id];
+    if (!c) return { tone: 'none', label: 'لا مستحقات مسجّلة بعد', detail: 'تُنشأ المستحقات تلقائياً مع أول عملية مكتملة' };
+    if (c.latePeriods.length) return { tone: 'late', label: `متأخر — ${c.latePeriods.length} شهر غير مسدَّد`, detail: `الشهور: ${c.latePeriods.sort().join('، ')}` };
+    if (c.pendingCurrent) return { tone: 'ok', label: 'ملتزم — مستحقات الشهر الجاري قيد الدورة', detail: c.paid ? `${c.paid} تسوية مدفوعة سابقاً` : null };
+    return { tone: 'ok', label: 'ملتزم — كل المستحقات مسدَّدة', detail: `${c.paid} تسوية مدفوعة` };
+  };
 
   const macro = { revenue: totalRev, activeCenters: merchantIds.length, totalOps: total, branches: (intel.branches || []).length };
 

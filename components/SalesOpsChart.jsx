@@ -12,7 +12,7 @@ function TooltipBox({ active, payload, label }) {
     <div dir="rtl" className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs shadow-lg">
       <div className="mb-1 font-extrabold text-slate-900">يوم {label}</div>
       <div className="flex items-center gap-1.5 font-bold" style={{ color: BLUE }}>
-        <span className="h-2 w-2 rounded-full" style={{ background: BLUE }} /> المبيعات: {Number(sales).toLocaleString('en')} ⃀
+        <span className="h-2 w-2 rounded-full" style={{ background: BLUE }} /> المبيعات: {Number(sales).toLocaleString('en')} ⃁
       </div>
       <div className="mt-0.5 flex items-center gap-1.5 font-bold" style={{ color: SLATE }}>
         <span className="h-2 w-2 rounded-full" style={{ background: SLATE }} /> العمليات: {Number(ops).toLocaleString('en')}

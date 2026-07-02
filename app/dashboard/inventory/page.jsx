@@ -3,10 +3,9 @@ import { useMemo, useRef, useState } from 'react';
 import { useBranchStore } from '@/store/branchStore';
 import { useAuth } from '@/components/AuthProvider';
 import { useInventory } from '@/lib/useInventory';
-import { categoriesFor, catLabelOf, catalogFor } from '@/lib/centerTypes';
+import { categoriesFor, catLabelOf } from '@/lib/centerTypes';
 import { supabase } from '@/lib/supabaseClient';
 import AddInventoryModal from '@/components/AddInventoryModal';
-import StockMovementModal from '@/components/StockMovementModal';
 import Toast from '@/components/Toast';
 
 function statusOf(item) {
@@ -30,7 +29,15 @@ export default function InventoryPage() {
     return prim?.center_type || 'أخرى';
   }, [selectedId, branches]);
 
-  const categories = useMemo(() => categoriesFor(centerType), [centerType]);
+  // القواعد الثابتة: فئات النشاط الأساسية + أي تصنيفات رئيسية أضافها المالك بنفسه.
+  const baseCategories = useMemo(() => categoriesFor(centerType), [centerType]);
+  const categories = useMemo(() => {
+    const known = new Set(baseCategories.map((c) => c.key));
+    const palette = ['#0f766e', '#b45309', '#6d28d9', '#be123c', '#0369a1'];
+    const customs = [...new Set(items.map((i) => i.cat).filter((c) => c && !known.has(c)))]
+      .map((c, i) => ({ key: c, label: catLabelOf(c), color: palette[i % palette.length], custom: true }));
+    return [...baseCategories, ...customs];
+  }, [baseCategories, items]);
   const catColor = useMemo(() => Object.fromEntries(categories.map((c) => [c.key, c.color])), [categories]);
 
   const { items, loading, error, refetch, patchItem } = useInventory(user?.id, selectedId);
@@ -38,7 +45,6 @@ export default function InventoryPage() {
   const [cat, setCat] = useState('all');
   const [search, setSearch] = useState('');
   const [modalOpen, setModalOpen] = useState(false);
-  const [movementItem, setMovementItem] = useState(null);
 
   // ── Premium toast ──
   const [toast, setToast] = useState({ show: false, msg: '', type: 'success' });
@@ -49,60 +55,31 @@ export default function InventoryPage() {
     toastTimer.current = setTimeout(() => setToast((t) => ({ ...t, show: false })), 2800);
   }
 
-  // ── Stock movement: optimistic update + DB write, rollback on failure ──
-  async function handleMovement({ type, qty, note }) {
-    const item = movementItem;
-    if (!item) return { error: 'لا يوجد صنف' };
-    const prevQty = item.qty;
-    const newQty = type === 'in' ? prevQty + qty : Math.max(0, prevQty - qty);
-
-    // 1) optimistic UI — reflect instantly
-    patchItem(item.id, { qty: newQty });
-
-    // 2) persist: log the movement + update the item quantity
-    const branch_id = selectedId && selectedId !== 'all' ? selectedId : null;
-    const { error: mvErr } = await supabase.from('inventory_movements').insert({
-      merchant_id: user.id, item_id: item.id, type, quantity: qty, notes: note || null, branch_id,
-    });
-    const { error: upErr } = mvErr
-      ? { error: mvErr }
-      : await supabase.from('inventory').update({ quantity: newQty, updated_at: new Date().toISOString() }).eq('id', item.id);
-
-    if (mvErr || upErr) {
-      patchItem(item.id, { qty: prevQty }); // rollback
-      showToast('تعذّر تسجيل الحركة', 'error');
-      return { error: (mvErr || upErr).message };
-    }
-
-    showToast(type === 'in' ? `تمت إضافة ${qty} ${item.unit}` : `تم سحب ${qty} ${item.unit}`, 'success');
-    return {};
-  }
-
   // reset category filter if it no longer exists for this type
   const activeCat = categories.some((c) => c.key === cat) ? cat : 'all';
 
-  // ── «تجهيز مخزون النشاط»: seed the branch with the ready-made catalog for its
-  //     activity type (oils / batteries / wash / ...). Skips items that already
-  //     exist by name, so it is safe to run on a partially-filled branch. ──
-  const [seeding, setSeeding] = useState(false);
-  const template = useMemo(() => catalogFor(centerType), [centerType]);
-  async function seedTemplate() {
-    if (!user?.id || seeding) return;
-    const existing = new Set(items.map((i) => i.name.trim()));
-    const fresh = template.filter((t) => !existing.has(t.name.trim()));
-    if (!fresh.length) { showToast('كل أصناف القالب موجودة مسبقاً', 'error'); return; }
-    setSeeding(true);
+  // ── Inline direct QUANTITY editing — replaces the removed «حركة» button.
+  //     Click the qty → edit → save: updates the row AND logs the movement
+  //     (in/out derived from the delta) so the audit trail stays intact. ──
+  const [qtyEdit, setQtyEdit] = useState(null); // { id, value }
+  async function saveQty() {
+    const e = qtyEdit;
+    if (!e) return;
+    const val = Math.max(0, parseInt(e.value) || 0);
+    setQtyEdit(null);
+    const item = items.find((i) => i.id === e.id);
+    if (!item || item.qty === val) return;
+    const prev = item.qty;
+    patchItem(e.id, { qty: val });
     const branch_id = selectedId && selectedId !== 'all' ? selectedId : null;
-    const rows = fresh.map((t) => ({
-      merchant_id: user.id, branch_id, name: t.name, category: t.cat,
-      quantity: t.qty, min_quantity: Math.max(1, Math.round(t.qty * 0.2)),
-      unit: t.unit, sell_price: t.price,
-    }));
-    const { error: err } = await supabase.from('inventory').insert(rows);
-    setSeeding(false);
-    if (err) { showToast('تعذّر تجهيز القالب: ' + err.message, 'error'); return; }
-    showToast(`تم تجهيز ${rows.length} صنفاً من قالب «${centerType}» — عدّل الأسعار بالضغط عليها`);
-    refetch();
+    const delta = val - prev;
+    const { error: mvErr } = await supabase.from('inventory_movements').insert({
+      merchant_id: user.id, item_id: item.id, type: delta >= 0 ? 'in' : 'out', quantity: Math.abs(delta), notes: 'تعديل مباشر', branch_id,
+    });
+    const { error: upErr } = mvErr ? { error: mvErr }
+      : await supabase.from('inventory').update({ quantity: val, updated_at: new Date().toISOString() }).eq('id', e.id);
+    if (mvErr || upErr) { patchItem(e.id, { qty: prev }); showToast('تعذّر حفظ الكمية', 'error'); }
+    else showToast(`كمية «${item.name}» صارت ${val.toLocaleString('en')} ${item.unit}`);
   }
 
   // ── Inline direct pricing: click the price → edit → persists to sell_price,
@@ -120,7 +97,7 @@ export default function InventoryPage() {
     const { error: err } = await supabase.from('inventory')
       .update({ sell_price: val, updated_at: new Date().toISOString() }).eq('id', e.id);
     if (err) { patchItem(e.id, { price: prev }); showToast('تعذّر حفظ السعر', 'error'); }
-    else showToast(`سعر «${item.name}» صار ${val.toLocaleString('en')} ⃀`);
+    else showToast(`سعر «${item.name}» صار ${val.toLocaleString('en')} ⃁`);
   }
 
   const filtered = useMemo(() => {
@@ -165,20 +142,11 @@ export default function InventoryPage() {
           <h1 className="text-xl font-bold tracking-tight text-slate-900">المخزون</h1>
           <p className="mt-1 text-sm text-slate-500">
             {branchName} · نوع النشاط: <span className="font-bold text-slate-700">{centerType}</span>
+            <span className="mx-1.5 text-slate-300">·</span>
+            أضف تصنيفاتك وأصنافك بأسعار ثابتة مرة واحدة، ثم عدّل الكمية أو السعر بالنقر عليهما مباشرة
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          {template.length > 0 && (
-            <button
-              onClick={seedTemplate}
-              disabled={seeding}
-              title={`تعبئة مخزون جاهز لنشاط «${centerType}» — قابل للتعديل`}
-              className="flex items-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-bold text-slate-700 transition hover:border-slate-900 hover:text-slate-900 disabled:opacity-50"
-            >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" /><path d="m3.3 7 8.7 5 8.7-5M12 22V12" /></svg>
-              {seeding ? 'جارٍ التجهيز...' : 'تجهيز مخزون النشاط'}
-            </button>
-          )}
           <button
             onClick={() => setModalOpen(true)}
             className="flex items-center gap-2 rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-bold text-white transition hover:bg-slate-800"
@@ -232,17 +200,16 @@ export default function InventoryPage() {
                 <th className="px-5 py-3 text-start">الكمية</th>
                 <th className="px-5 py-3 text-start">سعر الوحدة</th>
                 <th className="px-5 py-3 text-start">الحالة</th>
-                <th className="px-5 py-3 text-start">إجراء</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
               {loading ? (
-                <tr><td colSpan={6} className="px-5 py-12 text-center text-sm text-slate-400">جاري التحميل...</td></tr>
+                <tr><td colSpan={5} className="px-5 py-12 text-center text-sm text-slate-400">جاري التحميل...</td></tr>
               ) : error ? (
-                <tr><td colSpan={6} className="px-5 py-12 text-center text-sm text-red-500">تعذّر التحميل: {error}</td></tr>
+                <tr><td colSpan={5} className="px-5 py-12 text-center text-sm text-red-500">تعذّر التحميل: {error}</td></tr>
               ) : filtered.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="px-5 py-12 text-center">
+                  <td colSpan={5} className="px-5 py-12 text-center">
                     <div className="text-sm font-bold text-slate-700">{search || activeCat !== 'all' ? 'لا نتائج مطابقة' : 'لا يوجد مخزون لهذا الفرع بعد'}</div>
                     {!search && activeCat === 'all' && (
                       <button onClick={() => setModalOpen(true)} className="mt-3 text-sm font-extrabold text-brand">+ إضافة أول صنف</button>
@@ -254,7 +221,7 @@ export default function InventoryPage() {
                   const gcol = catColor[g.cat] || '#57606a';
                   return [
                     <tr key={'h-' + g.cat} className="bg-slate-50/80">
-                      <td colSpan={6} className="px-5 py-2">
+                      <td colSpan={5} className="px-5 py-2">
                         <span className="inline-flex items-center gap-2 text-xs font-extrabold" style={{ color: gcol }}>
                           <span className="h-2 w-2 rounded-full" style={{ background: gcol }} />
                           {catLabelOf(g.cat)}
@@ -278,9 +245,21 @@ export default function InventoryPage() {
                         <span className="rounded-md px-2 py-1 text-xs font-bold" style={{ background: col + '18', color: col }}>{catLabelOf(i.cat)}</span>
                       </td>
                       <td className="px-5 py-3.5">
-                        <span className={`font-extrabold ${low ? 'text-red-600' : 'text-slate-900'}`}>{i.qty.toLocaleString('en')}</span>
-                        <span className="text-xs text-slate-400"> {i.unit}</span>
-                        {low && <span className="ms-1 text-[11px] font-bold text-red-500">(الحد {i.min})</span>}
+                        {qtyEdit?.id === i.id ? (
+                          <input autoFocus type="number" min="0" value={qtyEdit.value}
+                            onChange={(e) => setQtyEdit({ id: i.id, value: e.target.value })}
+                            onBlur={saveQty}
+                            onKeyDown={(e) => { if (e.key === 'Enter') saveQty(); if (e.key === 'Escape') setQtyEdit(null); }}
+                            className="w-20 rounded-lg border border-slate-900 bg-white px-2 py-1 text-sm font-bold text-slate-900 outline-none" dir="ltr" />
+                        ) : (
+                          <button onClick={() => setQtyEdit({ id: i.id, value: i.qty })} title="اضغط لتعديل الكمية"
+                            className="group inline-flex items-center gap-1.5 rounded-lg px-2 py-1 transition hover:bg-slate-50">
+                            <span className={`font-extrabold ${low ? 'text-red-600' : 'text-slate-900'}`}>{i.qty.toLocaleString('en')}</span>
+                            <span className="text-xs text-slate-400">{i.unit}</span>
+                            {low && <span className="text-[11px] font-bold text-red-500">(الحد {i.min})</span>}
+                            <svg className="text-slate-300 opacity-0 transition group-hover:opacity-100" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5z" /></svg>
+                          </button>
+                        )}
                       </td>
                       <td className="px-5 py-3.5">
                         {priceEdit?.id === i.id ? (
@@ -301,23 +280,13 @@ export default function InventoryPage() {
                             title="اضغط للتسعير المباشر"
                             className="group inline-flex items-center gap-1.5 rounded-lg px-2 py-1 font-bold text-slate-700 transition hover:bg-brand/5 hover:text-brand"
                           >
-                            {i.price.toLocaleString('en')} ⃀
+                            {i.price.toLocaleString('en')} ⃁
                             <svg className="opacity-0 transition group-hover:opacity-100" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5z" /></svg>
                           </button>
                         )}
                       </td>
                       <td className="px-5 py-3.5">
                         <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-bold ring-1 ring-inset ${st.cls}`}>{st.label}</span>
-                      </td>
-                      <td className="px-5 py-3.5">
-                        <button
-                          onClick={() => setMovementItem(i)}
-                          title="تسجيل حركة مخزون"
-                          className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 px-2.5 py-1.5 text-xs font-bold text-slate-600 transition hover:border-brand hover:text-brand"
-                        >
-                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M8 7H3m0 0 3-3M3 7l3 3M16 17h5m0 0-3 3m3-3-3-3" /></svg>
-                          حركة
-                        </button>
                       </td>
                     </tr>
                   );
@@ -338,13 +307,6 @@ export default function InventoryPage() {
         userId={user?.id}
         branchId={selectedId}
         centerType={centerType}
-      />
-
-      <StockMovementModal
-        open={!!movementItem}
-        item={movementItem}
-        onClose={() => setMovementItem(null)}
-        onSubmit={handleMovement}
       />
 
       <Toast toast={toast} />

@@ -51,7 +51,7 @@ export default function BankTransferModal({ open, billing, onClose, onConfirmed 
         {/* Amount */}
         <div className="mb-4 rounded-2xl bg-gradient-to-br from-violet-600 to-blue-600 px-5 py-4 text-white">
           <div className="text-xs font-bold opacity-80">المبلغ المطلوب تحويله</div>
-          <div className="mt-1 text-2xl font-extrabold tabular-nums">{fmtSar(billing.total_amount)} <span className="text-base opacity-80">⃀</span></div>
+          <div className="mt-1 text-2xl font-extrabold tabular-nums">{fmtSar(billing.total_amount)} <span className="text-base opacity-80">⃁</span></div>
           <div className="mt-0.5 text-[11px] opacity-70">مستحقات منصة VOLD MOTOR · {billing.billing_period}</div>
         </div>
 
@@ -78,7 +78,7 @@ export default function BankTransferModal({ open, billing, onClose, onConfirmed 
 
         <div className="mt-5 flex justify-end gap-2">
           <button onClick={onClose} className="rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-bold text-slate-600 hover:bg-slate-50">إلغاء</button>
-          <button onClick={confirmTransfer} disabled={submitting} className="flex items-center gap-2 rounded-xl bg-brand px-5 py-2.5 text-sm font-extrabold text-white hover:bg-brand-dark disabled:opacity-70">
+          <button onClick={confirmTransfer} disabled={submitting} className="flex items-center gap-2 rounded-xl bg-slate-900 px-5 py-2.5 text-sm font-bold text-white hover:bg-slate-800 disabled:opacity-70">
             {submitting && <svg className="animate-spin" width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="#fff" strokeOpacity="0.25" strokeWidth="4" /><path d="M22 12a10 10 0 0 1-10 10" stroke="#fff" strokeWidth="4" strokeLinecap="round" /></svg>}
             تم التحويل
           </button>

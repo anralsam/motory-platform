@@ -125,8 +125,8 @@ export default function ReportsPage() {
       {/* Summary KPIs FIRST — the numbers before the curves */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         <KPI label="العمليات المنجزة" value={loading ? '—' : fmt(summary.count)} />
-        <KPI label="إجمالي المبيعات" value={loading ? '—' : fmt(summary.total)} suffix="⃀" accent="text-emerald-600" />
-        <KPI label="متوسط الفاتورة" value={loading ? '—' : fmt(summary.avg)} suffix="⃀" accent="text-blue-600" />
+        <KPI label="إجمالي المبيعات" value={loading ? '—' : fmt(summary.total)} suffix="⃁" accent="text-emerald-600" />
+        <KPI label="متوسط الفاتورة" value={loading ? '—' : fmt(summary.avg)} suffix="⃁" accent="text-blue-600" />
       </div>
 
       {/* ════════ Sales vs Operations trend (current month) ════════ */}
@@ -290,7 +290,7 @@ export default function ReportsPage() {
                     <td className="px-5 py-3 font-mono text-xs font-bold text-slate-700">#{r.ref}</td>
                     <td className="px-5 py-3 font-bold text-slate-900">{r.customer}</td>
                     <td className="px-5 py-3 text-slate-600">{r.service}</td>
-                    <td className="px-5 py-3 font-extrabold text-brand">{fmt(r.total)} ⃀</td>
+                    <td className="px-5 py-3 font-extrabold text-brand">{fmt(r.total)} ⃁</td>
                   </tr>
                 ))
               )}

@@ -65,7 +65,7 @@ function CheckoutSuccess() {
         </div>
         <h1 className="mt-5 text-xl font-extrabold text-slate-900">تعذّر تأكيد الدفع</h1>
         <p className="mt-1 text-sm text-slate-500">لم نتمكن من تأكيد العملية. حاول مرة أخرى من صفحة الفواتير.</p>
-        <Link href="/dashboard/invoices" className="mt-6 rounded-xl bg-brand px-5 py-2.5 text-sm font-extrabold text-white hover:bg-brand-dark">العودة للفواتير</Link>
+        <Link href="/dashboard/invoices" className="mt-6 rounded-xl bg-slate-900 px-5 py-2.5 text-sm font-bold text-white hover:bg-slate-800">العودة للفواتير</Link>
       </Centered>
     );
   }
@@ -80,7 +80,7 @@ function CheckoutSuccess() {
       {amt ? (
         <div className="mt-4 rounded-2xl border border-slate-200 bg-white px-6 py-4 text-center shadow-sm">
           <div className="text-xs font-bold text-slate-500">المبلغ المدفوع</div>
-          <div className="mt-1 text-2xl font-extrabold text-emerald-600">{Number(amt).toLocaleString('en')} <span className="text-sm">⃀</span></div>
+          <div className="mt-1 text-2xl font-extrabold text-emerald-600">{Number(amt).toLocaleString('en')} <span className="text-sm">⃁</span></div>
           {tx ? <div className="ltr mt-1 font-mono text-[11px] text-slate-400">{tx}</div> : null}
         </div>
       ) : null}

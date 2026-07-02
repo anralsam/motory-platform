@@ -95,6 +95,7 @@ export default function SignInPage() {
 function SignInForm() {
   const router = useRouter();
   const params = useSearchParams();
+  const sessionExpired = params.get('expired') === '1';
   const redirectTo = params.get('redirect') || '/dashboard';
 
   const [lang, setLang] = useState('ar');
@@ -338,6 +339,9 @@ function SignInForm() {
             <h1 className="text-xl font-extrabold tracking-tight text-gray-900">{t.title}</h1>
             <p className="mt-1 text-[13px] text-gray-500">{t.subtitle}</p>
 
+            {sessionExpired && !error && (
+              <div className="mb-4 rounded-xl border border-amber-200 bg-amber-50 px-3.5 py-2.5 text-center text-[13px] font-bold text-amber-800">انتهت جلستك تلقائيًا حفاظًا على أمان حسابك — سجّل الدخول من جديد.</div>
+            )}
             {error && (
               <div className="mt-5 flex items-start gap-2 rounded-lg border border-red-200 bg-red-50 px-3.5 py-3 text-sm font-semibold text-red-700">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" className="mt-0.5 flex-none"><circle cx="12" cy="12" r="10" /><path d="M12 8v4M12 16h.01" /></svg>

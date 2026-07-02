@@ -283,7 +283,7 @@ function ServicesTab({ centerId, branchId, centerType, showToast }) {
                 <tr key={s.id} className="text-sm transition hover:bg-slate-50/60">
                   <td className="px-5 py-3.5 font-bold text-slate-900">{s.name}</td>
                   <td className="px-5 py-3.5"><span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-bold text-slate-600">{s.category || '—'}</span></td>
-                  <td className="px-5 py-3.5 font-extrabold text-brand">{fmtSar(s.price)} ⃀</td>
+                  <td className="px-5 py-3.5 font-extrabold text-brand">{fmtSar(s.price)} ⃁</td>
                   <td className="px-5 py-3.5">
                     <div className="flex gap-2">
                       <button onClick={() => setModal({ open: true, editing: s })} className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-bold text-slate-600 hover:border-brand hover:text-brand">تعديل</button>

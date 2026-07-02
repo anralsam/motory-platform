@@ -19,7 +19,7 @@ import StatusPill from './StatusPill';
 
 const REFRESH_MS = 8000;
 const COMMISSION = 0.004; // 0.4%
-const sar = (n) => `${Math.round(Number(n) || 0).toLocaleString('en-US')} ⃀`;
+const sar = (n) => `${Math.round(Number(n) || 0).toLocaleString('en-US')} ⃁`;
 
 function timeAgo(iso) {
   if (!iso) return '—';

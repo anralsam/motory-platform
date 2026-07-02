@@ -7,8 +7,8 @@ module.exports = {
   theme: {
     extend: {
       fontFamily: {
-        sans: ['var(--font-tajawal)', 'Tajawal', 'Almarai', 'system-ui', 'sans-serif'],
-        inter: ['var(--font-inter)', 'Inter', 'system-ui', 'sans-serif'],
+        sans: ['Riyal', 'var(--font-tajawal)', 'Tajawal', 'Almarai', 'system-ui', 'sans-serif'],
+        inter: ['Riyal', 'var(--font-inter)', 'Inter', 'system-ui', 'sans-serif'],
       },
       colors: {
         brand: {

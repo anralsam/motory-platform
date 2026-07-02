@@ -17,7 +17,7 @@ function PriceInput({ s, onSave }) {
       <input type="number" min="0" value={v} onChange={(e) => setV(e.target.value)}
         onBlur={() => { if (Number(v) !== Number(s.price)) onSave(s.id, v); }} dir="ltr"
         className="w-24 rounded-md border border-slate-200 px-2.5 py-1.5 text-sm tabular-nums outline-none focus:border-blue-600" />
-      <span className="text-xs text-slate-400">⃀</span>
+      <span className="text-xs text-slate-400">⃁</span>
     </div>
   );
 }

@@ -45,7 +45,7 @@ const STATUS_META = [
 
 export const fmtValue = (v, unit) => {
   const n = Number(v) || 0;
-  if (unit === 'sar') return `${n.toLocaleString('en-US')} ⃀`;
+  if (unit === 'sar') return `${n.toLocaleString('en-US')} ⃁`;
   if (unit === 'pct') return `${n}%`;
   return n.toLocaleString('en-US');
 };
@@ -151,6 +151,22 @@ export function timelineWindowStart(timeline, now = new Date()) {
   if (timeline === 'week') return new Date(now.getFullYear(), now.getMonth(), now.getDate() - 6);
   if (timeline === 'month') return new Date(now.getFullYear(), now.getMonth(), now.getDate() - 29);
   return new Date(now.getFullYear(), 0, 1); // year
+}
+
+/** نص نطاق التاريخ الفعلي — «3 يونيو – 2 يوليو 2026» مثل YouTube تماماً. */
+export function timelineRangeText(timeline, orders = []) {
+  const now = new Date();
+  const fmt = (d) => d.toLocaleDateString('ar', { day: 'numeric', month: 'short' });
+  const fmtY = (d) => d.toLocaleDateString('ar', { day: 'numeric', month: 'short', year: 'numeric' });
+  let start;
+  if (timeline === 'all') {
+    const stamps = orders.filter((o) => o.created_at).map((o) => new Date(o.created_at).getTime());
+    start = stamps.length ? new Date(Math.min(...stamps)) : now;
+  } else {
+    start = timelineWindowStart(timeline, now);
+  }
+  if (timeline === 'day') return fmtY(now);
+  return `${fmt(start)} – ${fmtY(now)}`;
 }
 
 // Period-over-period comparison for the YouTube-style summary cards:

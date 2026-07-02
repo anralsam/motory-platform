@@ -111,7 +111,7 @@ function CategorySection({ section, items, loading, onAdd, onPrice, onStock, onR
         <div className="flex items-center gap-1.5 rounded-xl border border-slate-200 bg-slate-50 px-3 focus-within:border-blue-400 focus-within:bg-white">
           <input value={price} onChange={(e) => setPrice(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && submit()} inputMode="decimal" placeholder="0"
             className="w-full bg-transparent py-2.5 text-sm tabular-nums outline-none" dir="ltr" />
-          <span className="text-xs font-semibold text-slate-400">⃀</span>
+          <span className="text-xs font-semibold text-slate-400">⃁</span>
         </div>
         {section.withStock && (
           <input value={stock} onChange={(e) => setStock(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && submit()} placeholder="كود المخزون"
@@ -140,7 +140,7 @@ function CategorySection({ section, items, loading, onAdd, onPrice, onStock, onR
               <div className="flex items-center gap-1 rounded-lg border border-slate-200 bg-slate-50 px-2.5 focus-within:border-blue-400 focus-within:bg-white">
                 <input defaultValue={Number(it.price)} onBlur={(e) => onPrice(it, e.target.value)} inputMode="decimal"
                   className="w-16 bg-transparent py-1.5 text-sm font-semibold tabular-nums outline-none" dir="ltr" />
-                <span className="text-[11px] font-semibold text-slate-400">⃀</span>
+                <span className="text-[11px] font-semibold text-slate-400">⃁</span>
               </div>
               <button onClick={() => onRemove(it)} aria-label="حذف"
                 className="grid h-8 w-8 place-items-center rounded-lg text-slate-400 transition-colors hover:bg-rose-50 hover:text-rose-500">

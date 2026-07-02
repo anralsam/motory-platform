@@ -14,12 +14,12 @@ import { ResponsiveContainer, ComposedChart, Area, Line, CartesianGrid, XAxis, Y
 import { ArrowUpRight, ArrowDownRight } from 'lucide-react';
 import { useDashboardData } from './DashboardContainer';
 import FilterSelect from './FilterSelect';
-import { CHART_METRICS, CHART_TIMELINES, computeChartSeries, computeComparisons } from './engine';
+import { CHART_METRICS, CHART_TIMELINES, computeChartSeries, computeComparisons, timelineRangeText, fmtValue } from './engine';
 
 function CustomTooltip({ active, payload, label, unit }) {
   if (!active || !payload || !payload.length) return null;
   const v = Number(payload[0].value) || 0;
-  const text = unit === 'sar' ? `${v.toLocaleString('en-US')} ⃀` : v.toLocaleString('en-US');
+  const text = unit === 'sar' ? `${v.toLocaleString('en-US')} ⃁` : v.toLocaleString('en-US');
   return (
     <div dir="rtl" className="rounded-xl border border-slate-800 bg-slate-900 p-3.5 text-sm font-medium text-white shadow-xl">
       <div className="mb-1 font-mono text-xs text-slate-400" dir="ltr">{label}</div>
@@ -42,15 +42,16 @@ export default function UnifiedChart({ showControls = false, bare = false }) {
   }, [orders, metric, timeline]);
 
   // YT-style headline: window total for the ACTIVE metric + growth vs previous window.
+  const comp = useMemo(() => computeComparisons(orders, timeline), [orders, timeline]);
+  const rangeText = useMemo(() => timelineRangeText(timeline, orders), [timeline, orders]);
   const head = useMemo(() => {
-    const comp = computeComparisons(orders, timeline);
     const key = ['revenue', 'profit', 'customers', 'sales'].includes(metric) ? metric : 'revenue';
-    const { value, growth } = comp[key] || { value: 0, growth: 0 };
-    const metricLabel = (CHART_METRICS.find((m) => m.key === metric) || {}).label || '';
-    const period = comp.days === 1 ? 'آخر ٢٤ ساعة' : comp.days === 7 ? 'آخر ٧ أيام' : comp.days === 30 ? 'آخر ٣٠ يومًا' : 'آخر ١٢ شهرًا';
-    const fmt = unit === 'sar' ? `${(Number(value) || 0).toLocaleString('en-US')} ⃀` : (Number(value) || 0).toLocaleString('en-US');
-    return { metricLabel, period, fmt, growth };
-  }, [orders, metric, timeline, unit]);
+    const { value } = comp[key] || { value: 0 };
+    const metricLabel = (CHART_METRICS.find((m) => m.key === metric) || CHART_METRICS[0]).label;
+    const unit = (CHART_METRICS.find((m) => m.key === metric) || CHART_METRICS[0]).unit;
+    const period = comp.allTime ? 'كامل المدة' : comp.days === 1 ? 'آخر ٢٤ ساعة' : comp.days === 7 ? 'آخر ٧ أيام' : comp.days === 30 ? 'آخر ٣٠ يومًا' : 'آخر ١٢ شهرًا';
+    return { fmt: fmtValue(value, unit), metricLabel, period };
+  }, [comp, metric]);
 
   const shell = bare
     ? 'w-full px-4 pb-5 pt-2 sm:px-6'
@@ -58,26 +59,40 @@ export default function UnifiedChart({ showControls = false, bare = false }) {
   return (
     <div className={shell}>
       {showControls && (
-        <div dir="rtl" className="mb-6 flex w-full flex-col items-start justify-between gap-4 border-b border-slate-100 pb-5 sm:flex-row sm:items-start">
-          {/* Context headline — Studio parity */}
-          <div>
+        <div dir="rtl" className="mb-4">
+          {/* Headline + period (with the ACTUAL date range — YT parity) */}
+          <div className="flex w-full flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
             <div className="text-base font-bold leading-snug text-slate-900 md:text-lg">
-              حصدت المنصة <span className="font-mono tabular-nums" dir="ltr">{head.fmt}</span>
-              <span className="mx-1">{head.metricLabel === 'الأرباح' ? 'أرباحًا' : ''}</span>
-              خلال {head.period}.
+              حصدت المنصة <span className="tabular-nums" dir="ltr">{head.fmt}</span> خلال {head.period}.
             </div>
-            <div className="mt-1.5 flex items-center gap-1.5 text-xs font-semibold">
-              {head.growth >= 0
-                ? <span className="inline-flex items-center gap-0.5 text-emerald-600"><ArrowUpRight size={14} /><span dir="ltr">{head.growth}%</span></span>
-                : <span className="inline-flex items-center gap-0.5 text-rose-600"><ArrowDownRight size={14} /><span dir="ltr">{Math.abs(head.growth)}%</span></span>}
-              <span className="font-medium text-slate-400">مقارنةً بالفترة السابقة</span>
+            <div className="flex flex-none flex-col items-end gap-1">
+              <FilterSelect label="الفترة" options={CHART_TIMELINES} value={timeline} onChange={setTimeline} />
+              <span className="text-[11px] font-semibold text-slate-400">{rangeText}</span>
             </div>
           </div>
 
-          {/* Filters — compact dropdowns, never open pill rows */}
-          <div className="flex flex-none items-center gap-2">
-            <FilterSelect label="المقياس" options={CHART_METRICS} value={metric} onChange={setMetric} />
-            <FilterSelect label="الفترة" options={CHART_TIMELINES} value={timeline} onChange={setTimeline} />
+          {/* Metric tabs — YouTube Studio exact: label / number / delta per tab */}
+          <div className="mt-5 grid grid-cols-2 divide-x divide-x-reverse divide-slate-200 overflow-hidden rounded-t-2xl border border-b-0 border-slate-200 sm:grid-cols-4">
+            {CHART_METRICS.map((m) => {
+              const d = comp[m.key] || { value: 0, growth: 0 };
+              const on = metric === m.key;
+              const up = (d.growth || 0) >= 0;
+              return (
+                <button key={m.key} onClick={() => setMetric(m.key)}
+                  className={`relative px-4 py-4 text-center transition-colors sm:py-5 ${on ? 'bg-white' : 'bg-slate-50/70 hover:bg-white'}`}>
+                  <div className={`text-[12px] ${on ? 'font-bold text-slate-900' : 'font-semibold text-slate-500'}`}>{m.label}</div>
+                  <div className={`mt-1 text-xl font-bold tabular-nums sm:text-2xl ${on ? 'text-slate-900' : 'text-slate-400'}`} dir="ltr">
+                    {fmtValue(d.value, m.unit)}
+                  </div>
+                  {!comp.allTime && (
+                    <div className={`mt-0.5 inline-flex items-center gap-0.5 text-[11px] font-bold ${up ? 'text-emerald-600' : 'text-rose-600'}`} dir="ltr">
+                      {up ? <ArrowUpRight size={12} /> : <ArrowDownRight size={12} />}{Math.abs(d.growth || 0)}%
+                    </div>
+                  )}
+                  {on && <span className="absolute inset-x-0 bottom-0 h-[3px] bg-blue-600" />}
+                </button>
+              );
+            })}
           </div>
         </div>
       )}

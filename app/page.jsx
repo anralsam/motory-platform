@@ -223,9 +223,9 @@ export default function LandingPage() {
 
       <div className="relative">
         {/* Nav */}
-        <nav className="mx-auto flex max-w-6xl items-center justify-between gap-2 px-4 py-3 sm:px-5 sm:py-4">
+        <nav className="mx-auto flex max-w-6xl items-center justify-between gap-2 px-4 py-4 sm:px-5 sm:py-5">
           <Link href="/" className="flex items-center" aria-label="VOLD MOTOR">
-            <Logo className="h-6 w-auto text-white sm:h-7" />
+            <Logo className="h-8 w-auto text-white sm:h-9" />
           </Link>
           <div className="hidden items-center gap-7 md:flex">
             <a href="#features" className="text-sm font-normal text-zinc-300 transition hover:text-white">{L.navFeatures}</a>
@@ -234,22 +234,16 @@ export default function LandingPage() {
           </div>
           <div className="flex flex-none items-center gap-1.5 sm:gap-2">
             <button onClick={() => setLang(isEn ? 'ar' : 'en')}
-              className="rounded-lg border border-white/10 bg-white/5 px-2 py-1.5 text-[11px] font-bold text-zinc-300 transition hover:border-white/25 hover:text-white sm:px-2.5 sm:text-xs">
+              className="rounded-lg border border-white/10 bg-white/5 px-2.5 py-2 text-xs font-bold text-zinc-300 transition hover:border-white/25 hover:text-white sm:px-3">
               {isEn ? 'عربي' : 'EN'}
             </button>
-            <Link href={appHref} className="whitespace-nowrap rounded-lg px-2 py-2 text-[13px] font-light text-zinc-400 transition hover:text-white sm:px-3 sm:text-sm">{L.login}</Link>
-            <Link href={registerHref} className="whitespace-nowrap rounded-xl bg-white px-3 py-1.5 text-[13px] font-medium text-[#0a0a0a] transition hover:bg-zinc-200 sm:px-4 sm:py-2 sm:text-sm">{L.signup}</Link>
+            <Link href={appHref} className="whitespace-nowrap rounded-lg px-2.5 py-2 text-sm font-light text-zinc-400 transition hover:text-white sm:px-3">{L.login}</Link>
+            <Link href={registerHref} className="whitespace-nowrap rounded-xl bg-white px-4 py-2 text-sm font-medium text-[#0a0a0a] transition hover:bg-zinc-200 sm:px-5">{L.signup}</Link>
           </div>
         </nav>
 
         {/* Hero */}
         <header className="mx-auto max-w-4xl px-5 pt-2 text-center sm:pt-4">
-          <HeroIn delay={0.05}>
-            <div className="mx-auto mb-7 inline-flex items-center gap-2 whitespace-nowrap rounded-full border border-white/10 bg-zinc-900/60 px-4 py-1.5 text-xs font-medium text-zinc-300">
-              <span className="h-1.5 w-1.5 flex-none rounded-full bg-emerald-400/80" />
-              <span>{L.badge}</span>
-            </div>
-          </HeroIn>
           <HeroIn delay={0.15}>
             <h1 className="mx-auto max-w-3xl text-balance bg-gradient-to-b from-white to-zinc-400 bg-clip-text py-3 text-4xl font-extrabold leading-[1.45] tracking-tight text-transparent sm:text-5xl md:text-6xl">
               {L.heroTitle}

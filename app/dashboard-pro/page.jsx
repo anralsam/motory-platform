@@ -7,7 +7,7 @@
  */
 import { createServerSupabase } from '@/lib/supabase/server';
 import { getSupabaseAdmin } from '@/lib/supabase/admin';
-import { getAdminData, getMerchantData, getWorkerData, getIntelligenceData, getOperationsData, getMerchantServices, getMerchantGovernance } from '@/lib/dashboard-pro/queries';
+import { getAdminData, getMerchantData, getWorkerData, getIntelligenceData, getMerchantServices, getMerchantGovernance } from '@/lib/dashboard-pro/queries';
 import Lockdown from '@/components/Lockdown';
 import DashboardLayout from '@/components/dashboard-pro/DashboardLayout';
 import AdminConsole from '@/components/dashboard-pro/AdminConsole';
@@ -201,6 +201,14 @@ export default async function DashboardProPage() {
   if (role === 'admin') {
     return <AdminConsole data={await adminConsoleData()} userName={userName} />;
   }
+
+  // ── Single merchant workspace ──
+  // /dashboard is THE merchant dashboard (routed sub-pages, branch switcher,
+  // permission tiers, per-page URLs). This route is the ADMIN + WORKER console
+  // only. Without this gate a merchant could open a second, parallel workspace
+  // here — different shell, no branch switcher, yet silently filtered by the
+  // branch picked on /dashboard — which reads as "the dashboards are merged".
+  if (role === 'merchant') redirect('/dashboard');
 
   // ── Platform governance gate (merchant + worker) ──
   let centerId = user?.id;

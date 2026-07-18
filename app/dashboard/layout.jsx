@@ -21,7 +21,16 @@ export default async function DashboardRouteLayout({ children }) {
   // RBAC gate: technicians have NO business in the owner dashboard (financials,
   // invoices, customers). Their workspace is the task board. This runs on every
   // /dashboard/* page because they all share this layout.
-  const role = roleOf((user.user_metadata || {}).role);
+  // SECURITY: the role MUST come from a trusted source. user_metadata is
+  // client-writable (supabase.auth.updateUser({data})), so a technician could
+  // set role='owner' to keep the owner shell AND dodge the freeze/audit wall
+  // below. The authoritative source is the workers table (service-role read):
+  // an ACTIVE workers row ⇒ staff with that row's role; no row ⇒ the owner.
+  const admin = getSupabaseAdmin();
+  const { data: staffRow } = admin
+    ? await admin.from('workers').select('center_id, role').eq('user_id', user.id).eq('status', 'active').maybeSingle()
+    : { data: null };
+  const role = staffRow ? roleOf(staffRow.role) : 'owner';
   if (role === 'technician') redirect('/worker-tasks');
 
   // ── Platform governance gate ── (Super-Admins bypass.)
@@ -29,15 +38,10 @@ export default async function DashboardRouteLayout({ children }) {
   // and middleware bounces authed users off /auth/* — a redirect would loop.
   const isPlatformAdmin = (user.email || '').toLowerCase().endsWith('@' + ADMIN_DOMAIN);
   if (!isPlatformAdmin) {
-    // Resolve the center from a TRUSTED source. user_metadata.center_id is
-    // client-writable, so a manager could repoint it at an unfrozen center to
-    // dodge the wall — use the authoritative workers table for non-owners.
-    let centerId = user.id;
-    if (role !== 'owner') {
-      const admin = getSupabaseAdmin();
-      const { data: w } = admin ? await admin.from('workers').select('center_id').eq('user_id', user.id).maybeSingle() : { data: null };
-      centerId = w?.center_id || user.id;
-    }
+    // The center comes from the SAME trusted lookup as the role above: staff are
+    // governed by their center's flags, owners by their own. user_metadata.center_id
+    // is client-writable and is deliberately never consulted here.
+    const centerId = staffRow?.center_id || user.id;
     const gov = await getMerchantGovernance(centerId);
     const blocked = gov.is_frozen ? 'frozen' : (gov.under_audit ? 'audit' : null);
     if (blocked) {

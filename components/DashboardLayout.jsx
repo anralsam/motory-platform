@@ -1,8 +1,9 @@
 'use client';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, Suspense } from 'react';
 import { useRouter } from 'next/navigation';
 import Sidebar from './Sidebar';
 import BranchSwitcherDropdown from './BranchSwitcherDropdown';
+import BranchUrlSync from './BranchUrlSync';
 import NotificationsBell from './NotificationsBell';
 import { useAuth } from './AuthProvider';
 import { useLocaleStore, dirFor } from '@/store/localeStore';
@@ -56,6 +57,9 @@ export default function DashboardLayout({ children }) {
 
   return (
     <div dir={dir} className="flex h-screen bg-[var(--app-bg)] text-slate-900">
+      {/* Keeps ?branch=<id> and the branch store in sync — every branch gets its
+          own shareable URL and each tab stays independent. */}
+      <Suspense fallback={null}><BranchUrlSync /></Suspense>
       {/* 1. Sidebar (desktop, white-labeled) — inline-start, flips with dir */}
       <aside className="hidden w-56 flex-col border-e border-slate-200 bg-white md:flex">
         <Sidebar />

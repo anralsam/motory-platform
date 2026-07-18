@@ -38,7 +38,7 @@ export default function MasterCatalog({ centerId, branchId, showToast }) {
     const id = `tmp-${(tmp.current += 1)}`;
     const temp = { id, name: name.trim(), price: Number(price) || 0, category: section.key, stock_code: stock?.trim() || null, active: true };
     setItems((p) => [...p, temp]);
-    const r = await addService(temp.name, temp.price, section.key, temp.stock_code);
+    const r = await addService(temp.name, temp.price, section.key, temp.stock_code, branchId);
     if (r?.ok && r.service) setItems((p) => p.map((x) => (x.id === id ? r.service : x)));
     else { setItems((p) => p.filter((x) => x.id !== id)); showToast?.(r?.error || 'تعذّرت الإضافة', 'error'); }
   }

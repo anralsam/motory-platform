@@ -27,9 +27,10 @@ const STATUS_CLS = {
 
 export default function CustomersPage() {
   const { t } = useT();
-  const { user } = useAuth();
-  const myRole = roleOf(user?.user_metadata?.role);
-  const centerId = myRole === 'owner' ? user?.id : (user?.user_metadata?.center_id || user?.id);
+  const { user, centerId, role } = useAuth();
+  const myRole = role; // server-resolved from the workers table — never user_metadata
+  // centerId is resolved server-side in the dashboard layout and passed through
+  // AuthProvider; deriving it from user_metadata let the client pick its own tenant.
 
   const selectedId = useBranchStore((s) => s.selectedBranchId);
   const branches = useBranchStore((s) => s.branches);

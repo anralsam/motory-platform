@@ -294,16 +294,30 @@ async function ownsServiceOrAdmin(supabase, admin, user, serviceId) {
   return s && s.merchant_id === user.id;
 }
 
-export async function addService(name, price, category, stockCode) {
+export async function addService(name, price, category, stockCode, branchId = null) {
   if (!name?.trim()) return { ok: false, error: 'اسم الصنف مطلوب' };
   const supabase = createServerSupabase();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { ok: false, error: 'غير مصرّح' };
   const admin = getSupabaseAdmin();
   if (!admin) return { ok: false, error: 'مفتاح الخدمة غير مهيّأ' };
+
+  // Resolve a CONCRETE branch. Inserting with branch_id NULL made every service
+  // created from the "all branches" view invisible in every branch-specific
+  // settings tab. A caller-supplied branch is honoured only if the caller owns it.
+  let resolved = null;
+  if (branchId && branchId !== 'all') {
+    const { data: br } = await admin.from('branches').select('id').eq('id', branchId).eq('owner_id', user.id).maybeSingle();
+    resolved = br?.id || null;
+  }
+  if (!resolved) {
+    const { data: brs } = await admin.from('branches').select('id, is_primary').eq('owner_id', user.id);
+    resolved = (brs || []).find((b) => b.is_primary)?.id || (brs || [])[0]?.id || null;
+  }
+
   const { data, error } = await admin.from('service_menu')
-    .insert({ merchant_id: user.id, name: name.trim(), price: Number(price) || 0, category: category?.trim() || 'عام', stock_code: stockCode?.trim() || null, active: true })
-    .select('id, name, price, category, stock_code, active').maybeSingle();
+    .insert({ merchant_id: user.id, branch_id: resolved, name: name.trim(), price: Number(price) || 0, category: category?.trim() || 'عام', stock_code: stockCode?.trim() || null, active: true })
+    .select('id, name, price, category, stock_code, active, branch_id').maybeSingle();
   if (error) return { ok: false, error: error.message };
   revalidatePath('/dashboard-pro');
   revalidatePath('/dashboard/settings');

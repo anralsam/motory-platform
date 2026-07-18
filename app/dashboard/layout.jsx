@@ -33,15 +33,20 @@ export default async function DashboardRouteLayout({ children }) {
   const role = staffRow ? roleOf(staffRow.role) : 'owner';
   if (role === 'technician') redirect('/worker-tasks');
 
+  // The tenant id every page filters by. Resolved ONCE here from the trusted
+  // workers row and handed down through AuthProvider, so no client component has
+  // to re-derive it from user_metadata (which the user can rewrite at will, and
+  // which previously let the app issue genuinely cross-tenant queries with only
+  // RLS standing between that and a leak).
+  const centerId = staffRow?.center_id || user.id;
+
   // ── Platform governance gate ── (Super-Admins bypass.)
   // We RENDER a lockdown wall rather than redirect: the user is still authenticated,
   // and middleware bounces authed users off /auth/* — a redirect would loop.
   const isPlatformAdmin = (user.email || '').toLowerCase().endsWith('@' + ADMIN_DOMAIN);
   if (!isPlatformAdmin) {
-    // The center comes from the SAME trusted lookup as the role above: staff are
-    // governed by their center's flags, owners by their own. user_metadata.center_id
-    // is client-writable and is deliberately never consulted here.
-    const centerId = staffRow?.center_id || user.id;
+    // Staff are governed by their center's flags, owners by their own — using the
+    // same trusted centerId resolved above.
     const gov = await getMerchantGovernance(centerId);
     const blocked = gov.is_frozen ? 'frozen' : (gov.under_audit ? 'audit' : null);
     if (blocked) {
@@ -60,7 +65,7 @@ export default async function DashboardRouteLayout({ children }) {
   };
 
   return (
-    <AuthProvider initialUser={initialUser}>
+    <AuthProvider initialUser={initialUser} initialCenterId={centerId} initialRole={role}>
       <DashboardLayout>{children}</DashboardLayout>
     </AuthProvider>
   );

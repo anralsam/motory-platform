@@ -20,8 +20,8 @@ const ROLE_LABEL = { manager: 'مشرف', technician: 'فني' };
 
 export default function TeamPage() {
   const { t } = useT();
-  const { user } = useAuth();
-  const myRole = roleOf(user?.user_metadata?.role);
+  const { user, centerId, role } = useAuth();
+  const myRole = role; // server-resolved from the workers table — never user_metadata
 
   const selectedId = useBranchStore((s) => s.selectedBranchId);
   const branches = useBranchStore((s) => s.branches);

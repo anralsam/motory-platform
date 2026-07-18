@@ -61,6 +61,13 @@ export default function DashboardContainer({ role = 'merchant', orders = [], wor
     [expenses, currentBranchId],
   );
 
+  // Inventory is branch-owned stock: a branch view must not offer another
+  // branch's items for deduction. Company-wide items (branch_id NULL) stay.
+  const branchInventory = useMemo(
+    () => (currentBranchId && currentBranchId !== 'all' ? invState.filter((i) => !i.branch_id || i.branch_id === currentBranchId) : invState),
+    [invState, currentBranchId],
+  );
+
   const derived = useMemo(() => computeDerived(branchOrders, branchWorkers, timeline), [branchOrders, branchWorkers, timeline]);
 
   // ── Centralized optimistic mutators ──
@@ -112,7 +119,7 @@ export default function DashboardContainer({ role = 'merchant', orders = [], wor
     () => ({ role, metric, setMetric, timeline, setTimeline, orders: branchOrders, workers: branchWorkers, expenses: branchExpenses, currentBranchId, setCurrentBranchId, branches, permissions, ...derived }),
     [role, metric, timeline, branchOrders, branchWorkers, branchExpenses, currentBranchId, setCurrentBranchId, branches, permissions, derived],
   );
-  const actionsValue = useMemo(() => ({ role, orders: ordersState, inventory: invState, workers: workersState, updateStatus, assign, deduct, start, patchOrder, transferWorker }), [role, ordersState, invState, workersState, updateStatus, assign, deduct, start, patchOrder, transferWorker]);
+  const actionsValue = useMemo(() => ({ role, orders: ordersState, inventory: branchInventory, workers: workersState, updateStatus, assign, deduct, start, patchOrder, transferWorker }), [role, ordersState, branchInventory, workersState, updateStatus, assign, deduct, start, patchOrder, transferWorker]);
 
   return (
     <ActionsCtx.Provider value={actionsValue}>

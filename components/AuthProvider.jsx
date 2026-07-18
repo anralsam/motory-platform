@@ -2,14 +2,24 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 
-const AuthContext = createContext({ user: null, loading: true, signOut: async () => {} });
+const AuthContext = createContext({ user: null, centerId: null, role: 'owner', loading: true, signOut: async () => {} });
 
 /**
  * Wraps the app so any client component (header, DashboardLayout, pages) can read the
  * current user. Seeded from the server (`initialUser`) to avoid a flash, then kept live
  * via Supabase's onAuthStateChange.
  */
-export function AuthProvider({ initialUser = null, children }) {
+/**
+ * `centerId` and `role` are resolved SERVER-SIDE (app/dashboard/layout.jsx) from
+ * the authoritative workers table and passed in. They are deliberately NOT
+ * derived from `user.user_metadata`, which the client can rewrite via
+ * supabase.auth.updateUser({data}) — doing so previously meant every page filter
+ * (merchant_id = centerId) was built from attacker-controlled input, leaving RLS
+ * as the only thing between the app and a cross-tenant read.
+ * They are held as their own state, not recomputed from the refreshed auth user,
+ * because the auth user carries no tenant claim.
+ */
+export function AuthProvider({ initialUser = null, initialCenterId = null, initialRole = 'owner', children }) {
   const [user, setUser] = useState(initialUser);
   const [loading, setLoading] = useState(!initialUser);
 
@@ -89,7 +99,7 @@ export function AuthProvider({ initialUser = null, children }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, loading, signOut }}>{children}</AuthContext.Provider>
+    <AuthContext.Provider value={{ user, centerId: initialCenterId || user?.id || null, role: initialRole, loading, signOut }}>{children}</AuthContext.Provider>
   );
 }
 

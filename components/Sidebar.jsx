@@ -10,7 +10,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
-  Home, Users, Package, ReceiptText, BarChart3, UsersRound, MessageSquare, Settings, Building2, Wallet,
+  Home, Users, Package, ReceiptText, BarChart3, UsersRound, MessageSquare, Settings, Building2, Wallet, Truck,
 } from 'lucide-react';
 import { NAV_ITEMS } from './nav';
 import { usePermissions } from '@/lib/usePermissions';
@@ -20,6 +20,7 @@ import { useLocaleStore } from '@/store/localeStore';
 // href → professional lucide icon (single source; nav.js stays data-only).
 const ICON_BY_HREF = {
   '/dashboard/expenses': Wallet,
+  '/dashboard/workers-fleet': Truck,
   '/dashboard': Home,
   '/dashboard/customers': Users,
   '/dashboard/inventory': Package,

@@ -14,7 +14,7 @@
 import { useMemo, useState } from 'react';
 import {
   LayoutDashboard, RadioTower, Inbox, Wallet, ShieldCheck, Settings,
-  ArrowUpRight, ArrowDownRight,
+  ArrowUpRight, ArrowDownRight, LogOut,
 } from 'lucide-react';
 import { supabase } from '@/lib/supabaseClient';
 import { SUPABASE_URL } from '@/lib/supabase/config';
@@ -434,6 +434,13 @@ export default function AdminConsole({ data = {}, userName = 'المدير' }) {
   const [lbRows, setLbRows] = useState(leaderboard);
   const [manageId, setManageId] = useState(null);
   const [toast, setToast] = useState(null);
+  const [signingOut, setSigningOut] = useState(false);
+
+  async function handleSignOut() {
+    setSigningOut(true);
+    try { await supabase.auth.signOut(); } catch (e) { /* redirect regardless */ }
+    window.location.href = '/auth/signin';
+  }
   const flash = (msg) => { setToast(msg); setTimeout(() => setToast(null), 2400); };
 
   const manageRow = lbRows.find((r) => r.id === manageId) || null;
@@ -488,9 +495,15 @@ export default function AdminConsole({ data = {}, userName = 'المدير' }) {
             );
           })}
         </nav>
-        <div className="flex items-center gap-3 border-t border-slate-200 p-4">
-          <div className="grid h-9 w-9 place-items-center rounded-full bg-blue-600 text-sm font-black text-white">{(userName || 'A').charAt(0).toUpperCase()}</div>
-          <div className="min-w-0"><div className="truncate text-sm font-bold">{userName}</div><div className="text-xs text-slate-400">Super Admin</div></div>
+        <div className="border-t border-slate-200 p-4">
+          <div className="flex items-center gap-3">
+            <div className="grid h-9 w-9 place-items-center rounded-full bg-blue-600 text-sm font-black text-white">{(userName || 'A').charAt(0).toUpperCase()}</div>
+            <div className="min-w-0"><div className="truncate text-sm font-bold">{userName}</div><div className="text-xs text-slate-400">Super Admin</div></div>
+          </div>
+          <button onClick={handleSignOut} disabled={signingOut}
+            className="mt-3 flex w-full items-center justify-center gap-2 rounded-lg border border-slate-200 py-2.5 text-sm font-bold text-rose-600 transition hover:bg-rose-50 disabled:opacity-60">
+            <LogOut size={16} />{signingOut ? 'جارٍ الخروج…' : (isAr ? 'تسجيل الخروج' : 'Sign out')}
+          </button>
         </div>
       </aside>
 
@@ -516,7 +529,13 @@ export default function AdminConsole({ data = {}, userName = 'المدير' }) {
               بث مباشر
             </span>
           ) : (
-            <div className="grid h-9 w-9 place-items-center rounded-full bg-blue-600 text-sm font-black text-white md:hidden">{(userName || 'A').charAt(0).toUpperCase()}</div>
+            <div className="flex items-center gap-2 md:hidden">
+              <div className="grid h-9 w-9 place-items-center rounded-full bg-blue-600 text-sm font-black text-white">{(userName || 'A').charAt(0).toUpperCase()}</div>
+              <button onClick={handleSignOut} disabled={signingOut} title="تسجيل الخروج" aria-label="تسجيل الخروج"
+                className="grid h-9 w-9 place-items-center rounded-lg border border-slate-200 text-rose-600 transition hover:bg-rose-50 disabled:opacity-60">
+                <LogOut size={16} />
+              </button>
+            </div>
           )}
           </div>
         </header>

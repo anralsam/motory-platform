@@ -15,12 +15,14 @@ function json(obj: unknown, status = 200) {
  * Settles a `platform_billing` row using the SERVICE ROLE (bypasses RLS — calls come
  * from an external gateway, not a logged-in user).
  *
- * Authorization (one of):
- *   1) Gateway → header `x-webhook-secret: <PAYMENT_WEBHOOK_SECRET>`  (server-to-server)
- *   2) Owner self-confirm (mock checkout) → `Authorization: Bearer <user JWT>` where the
- *      caller owns the targeted billing row.
+ * Authorization — scoped by the TARGET state, not just by identity:
+ *   • PAID / FAILED (final, money-affecting) → gateway secret
+ *     (`x-webhook-secret: <PAYMENT_WEBHOOK_SECRET>`) or a platform admin.
+ *   • VERIFYING (a merchant declaring "I sent the bank transfer") → the owner of
+ *     the billing row, via `Authorization: Bearer <user JWT>`.
+ *   An owner can NEVER settle their own dues as PAID.
  *
- * Body: { transaction_id?, billing_id?, status }   status: 'paid' | 'failed'
+ * Body: { transaction_id?, billing_id?, status }   status: 'paid' | 'verifying' | 'failed'
  */
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: cors })

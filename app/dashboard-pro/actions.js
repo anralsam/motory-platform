@@ -601,6 +601,10 @@ export async function addExpense(data = {}) {
       merchant_id: user.id,           // NEVER from the client
       branch_id: branchId,
       title,
+      // Legacy mirror: the pre-existing table carries a `description` column that
+      // the old vanilla page used as the label. Writing both keeps that surface
+      // (and any NOT NULL restored on it) working alongside the new `title`.
+      description: title,
       amount: Math.round(amount * 100) / 100,
       category,
       expense_date: expenseDate.toISOString(),

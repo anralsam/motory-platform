@@ -1,13 +1,13 @@
 import { redirect } from 'next/navigation';
 import { createServerSupabase } from '@/lib/supabase/server';
 import { getSupabaseAdmin } from '@/lib/supabase/admin';
+import { isPlatformAdmin } from '@/lib/platformAdmin';
 import { roleOf } from '@/lib/roles';
 import { getMerchantGovernance } from '@/lib/dashboard-pro/queries';
 import { AuthProvider } from '@/components/AuthProvider';
 import DashboardLayout from '@/components/DashboardLayout';
 import Lockdown from '@/components/Lockdown';
 
-const ADMIN_DOMAIN = process.env.ADMIN_EMAIL_DOMAIN || 'voldmotor.com';
 
 export default async function DashboardRouteLayout({ children }) {
   const supabase = createServerSupabase();
@@ -43,8 +43,8 @@ export default async function DashboardRouteLayout({ children }) {
   // ── Platform governance gate ── (Super-Admins bypass.)
   // We RENDER a lockdown wall rather than redirect: the user is still authenticated,
   // and middleware bounces authed users off /auth/* — a redirect would loop.
-  const isPlatformAdmin = (user.email || '').toLowerCase().endsWith('@' + ADMIN_DOMAIN);
-  if (!isPlatformAdmin) {
+  const platformAdmin = await isPlatformAdmin(supabase, user);
+  if (!platformAdmin) {
     // Staff are governed by their center's flags, owners by their own — using the
     // same trusted centerId resolved above.
     const gov = await getMerchantGovernance(centerId);

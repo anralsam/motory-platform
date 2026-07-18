@@ -14,24 +14,18 @@ import { createServerSupabase } from '@/lib/supabase/server';
 import { getSupabaseAdmin } from '@/lib/supabase/admin';
 import { sendAutomatedWhatsApp } from '@/lib/whatsapp';
 import { revalidatePath } from 'next/cache';
+import { isPlatformAdmin } from '@/lib/platformAdmin';
 
 const ALLOWED = ['pending', 'in_progress', 'ready', 'completed'];
 const STAMP = { in_progress: 'started_at', ready: 'ready_at', completed: 'completed_at' };
-const ADMIN_DOMAIN = process.env.ADMIN_EMAIL_DOMAIN || 'voldmotor.com';
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.voldmotor.com';
 // Order status → automation trigger. (ready & completed both notify "ready for pickup".)
 const STATUS_TRIGGER = { in_progress: 'job_start', ready: 'job_ready', completed: 'job_ready' };
 
+// Admin identity lives in ONE place — see lib/platformAdmin.js for why the
+// email-domain grant was removed.
 async function isAdmin(supabase, user) {
-  // SECURITY: never trust user_metadata.role — it is client-writable via
-  // supabase.auth.updateUser({ data }). Only the @voldmotor.com email, the
-  // service-role-only app_metadata.role, and the DB users.role column are trusted.
-  if (
-    (user.email || '').toLowerCase().endsWith('@' + ADMIN_DOMAIN) ||
-    user.app_metadata?.role === 'admin'
-  ) return true;
-  const { data: urow } = await supabase.from('users').select('role').eq('id', user.id).maybeSingle();
-  return urow?.role === 'admin';
+  return isPlatformAdmin(supabase, user);
 }
 
 /**

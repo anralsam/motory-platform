@@ -1,10 +1,10 @@
 import { redirect } from 'next/navigation';
 import { createServerSupabase } from '@/lib/supabase/server';
 import { getSupabaseAdmin } from '@/lib/supabase/admin';
+import { isPlatformAdmin } from '@/lib/platformAdmin';
 import { getMerchantGovernance } from '@/lib/dashboard-pro/queries';
 import Lockdown from '@/components/Lockdown';
 
-const ADMIN_DOMAIN = process.env.ADMIN_EMAIL_DOMAIN || 'voldmotor.com';
 
 /**
  * Governance gate for the technician workspace. /worker-tasks previously had no
@@ -18,8 +18,8 @@ export default async function WorkerTasksLayout({ children }) {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect('/auth/signin');
 
-  const isPlatformAdmin = (user.email || '').toLowerCase().endsWith('@' + ADMIN_DOMAIN);
-  if (!isPlatformAdmin) {
+  const platformAdmin = await isPlatformAdmin(supabase, user);
+  if (!platformAdmin) {
     const admin = getSupabaseAdmin();
     let centerId = user.id;
     if (admin) {

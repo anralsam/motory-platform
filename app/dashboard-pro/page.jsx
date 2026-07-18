@@ -7,6 +7,7 @@
  */
 import { createServerSupabase } from '@/lib/supabase/server';
 import { getSupabaseAdmin } from '@/lib/supabase/admin';
+import { isPlatformAdmin } from '@/lib/platformAdmin';
 import { getAdminData, getMerchantData, getWorkerData, getIntelligenceData, getMerchantServices, getMerchantGovernance } from '@/lib/dashboard-pro/queries';
 import Lockdown from '@/components/Lockdown';
 import DashboardLayout from '@/components/dashboard-pro/DashboardLayout';
@@ -24,17 +25,12 @@ import NoData from '@/components/dashboard-pro/NoData';
 
 export const dynamic = 'force-dynamic';
 
-const ADMIN_DOMAIN = process.env.ADMIN_EMAIL_DOMAIN || 'voldmotor.com';
 
 async function detectRole(supabase, user) {
   if (!user) return 'merchant';
-  // SECURITY: user_metadata.role is client-writable (auth.updateUser) — never trust it
-  // for admin. A merchant self-setting role:'admin' must NOT gain the console or escape
-  // a governance lockdown. Trust only email domain, app_metadata, and the DB users.role.
-  if (
-    (user.email || '').toLowerCase().endsWith('@' + ADMIN_DOMAIN) ||
-    user.app_metadata?.role === 'admin'
-  ) return 'admin';
+  // SECURITY: admin comes only from the protected users.role column (or the
+  // service-role-only app_metadata claim) — see lib/platformAdmin.js.
+  if (await isPlatformAdmin(supabase, user)) return 'admin';
   const admin = getSupabaseAdmin();
   if (admin) {
     const { data: w } = await admin.from('workers').select('id').eq('user_id', user.id).eq('status', 'active').maybeSingle();

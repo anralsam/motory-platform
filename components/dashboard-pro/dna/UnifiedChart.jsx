@@ -14,7 +14,7 @@ import { ResponsiveContainer, ComposedChart, Area, Line, CartesianGrid, XAxis, Y
 import { ArrowUpRight, ArrowDownRight } from 'lucide-react';
 import { useDashboardData } from './DashboardContainer';
 import FilterSelect from './FilterSelect';
-import { CHART_METRICS, CHART_TIMELINES, computeChartSeries, computeComparisons, timelineRangeText, fmtValue } from './engine';
+import { CHART_METRICS, CHART_TIMELINES, NET_METRIC, computeChartSeries, computeComparisons, timelineRangeText, fmtValue } from './engine';
 
 function CustomTooltip({ active, payload, label, unit }) {
   if (!active || !payload || !payload.length) return null;
@@ -31,27 +31,35 @@ function CustomTooltip({ active, payload, label, unit }) {
 export default function UnifiedChart({ showControls = false, bare = false }) {
   const ctx = useDashboardData() || {};
   const orders = ctx.orders || [];
+  const expenses = ctx.expenses || [];
   const metric = ctx.metric || 'revenue';
   const timeline = ctx.timeline || 'week';
   const setMetric = ctx.setMetric || (() => {});
   const setTimeline = ctx.setTimeline || (() => {});
 
+  // Opt-in: the net-profit tab appears only on surfaces that actually carry
+  // expenses in context, so existing dashboards keep the exact four-tab strip.
+  const metrics = useMemo(
+    () => (expenses.length ? [...CHART_METRICS, NET_METRIC] : CHART_METRICS),
+    [expenses.length],
+  );
+
   const { data, unit } = useMemo(() => {
-    const r = computeChartSeries(orders, metric, timeline);
+    const r = computeChartSeries(orders, metric, timeline, expenses);
     return { data: r.series, unit: r.unit };
-  }, [orders, metric, timeline]);
+  }, [orders, metric, timeline, expenses]);
 
   // YT-style headline: window total for the ACTIVE metric + growth vs previous window.
-  const comp = useMemo(() => computeComparisons(orders, timeline), [orders, timeline]);
+  const comp = useMemo(() => computeComparisons(orders, timeline, expenses), [orders, timeline, expenses]);
   const rangeText = useMemo(() => timelineRangeText(timeline, orders), [timeline, orders]);
   const head = useMemo(() => {
-    const key = ['revenue', 'profit', 'customers', 'sales'].includes(metric) ? metric : 'revenue';
+    const key = ['revenue', 'profit', 'customers', 'sales', 'net'].includes(metric) ? metric : 'revenue';
     const { value } = comp[key] || { value: 0 };
-    const metricLabel = (CHART_METRICS.find((m) => m.key === metric) || CHART_METRICS[0]).label;
-    const unit = (CHART_METRICS.find((m) => m.key === metric) || CHART_METRICS[0]).unit;
+    const metricLabel = (metrics.find((m) => m.key === metric) || metrics[0]).label;
+    const unit = (metrics.find((m) => m.key === metric) || metrics[0]).unit;
     const period = comp.allTime ? 'كامل المدة' : comp.days === 1 ? 'آخر ٢٤ ساعة' : comp.days === 7 ? 'آخر ٧ أيام' : comp.days === 30 ? 'آخر ٣٠ يومًا' : 'آخر ١٢ شهرًا';
     return { fmt: fmtValue(value, unit), metricLabel, period };
-  }, [comp, metric]);
+  }, [comp, metric, metrics]);
 
   const shell = bare
     ? 'w-full px-4 pb-5 pt-2 sm:px-6'
@@ -72,8 +80,8 @@ export default function UnifiedChart({ showControls = false, bare = false }) {
           </div>
 
           {/* Metric tabs — YouTube Studio exact: label / number / delta per tab */}
-          <div className="mt-5 grid grid-cols-2 divide-x divide-x-reverse divide-slate-200 overflow-hidden rounded-t-2xl border border-b-0 border-slate-200 sm:grid-cols-4">
-            {CHART_METRICS.map((m) => {
+          <div className={`mt-5 grid grid-cols-2 divide-x divide-x-reverse divide-slate-200 overflow-hidden rounded-t-2xl border border-b-0 border-slate-200 ${metrics.length > 4 ? 'sm:grid-cols-5' : 'sm:grid-cols-4'}`}>
+            {metrics.map((m) => {
               const d = comp[m.key] || { value: 0, growth: 0 };
               const on = metric === m.key;
               const up = (d.growth || 0) >= 0;

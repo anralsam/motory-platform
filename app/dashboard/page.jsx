@@ -4,6 +4,7 @@ import { useAuth } from '@/components/AuthProvider';
 import { roleOf } from '@/lib/roles';
 import { useDashboard } from '@/lib/useDashboard';
 import { usePermissions } from '@/lib/usePermissions';
+import { useExpenses } from '@/lib/useExpenses';
 import DashboardContainer from '@/components/dashboard-pro/dna/DashboardContainer';
 import AnalyticsPanel from '@/components/dashboard-pro/dna/AnalyticsPanel';
 import { transferWorkerBranch } from '@/app/dashboard-pro/actions';
@@ -30,6 +31,9 @@ export default function DashboardHome() {
   const { loading, kpis, activity, orders, workers } = useDashboard(centerId, selectedId);
 
   const { canViewFinancials, canTransferStaff } = usePermissions();
+  // Expenses feed the opt-in «صافي الأرباح» curve. Fetched only for users who
+  // may see financials — RLS would return nothing for staff anyway.
+  const { expenses } = useExpenses(canViewFinancials ? centerId : null, selectedId);
   const isOwner = myRole === 'owner';
   // W-2: revenue + customer financials are owner-only; managers see operational KPIs only.
   const CARDS = [
@@ -48,7 +52,7 @@ export default function DashboardHome() {
       {canViewFinancials ? (
         /* Full Unified DNA analytics — gated by the can_view_financials permission.
            (Owners always pass; staff need the key toggled on.) */
-        <DashboardContainer role="merchant" orders={orders || []} workers={workers || []} inventory={[]}
+        <DashboardContainer role="merchant" orders={orders || []} workers={workers || []} inventory={[]} expenses={expenses || []}
           actions={{ transferWorkerBranch }} permissions={{ canTransfer: canTransferStaff }}>
           <AnalyticsPanel />
         </DashboardContainer>

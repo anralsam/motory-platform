@@ -67,6 +67,14 @@ export const CHART_METRICS = [
   { key: 'customers', label: 'العملاء', en: 'Customers', unit: 'int' },
   { key: 'sales', label: 'العمليات', en: 'Operations', unit: 'int' },
 ];
+
+/**
+ * Opt-in net-profit metric. Kept OUT of CHART_METRICS so the four-tab strip and
+ * every existing caller stay byte-identical; surfaces that have expenses in
+ * context append it explicitly (see UnifiedChart).
+ *   net = completed revenue − platform commission − OPEX in the same bucket
+ */
+export const NET_METRIC = { key: 'net', label: 'صافي الأرباح', en: 'Net profit', unit: 'sar' };
 export const CHART_TIMELINES = [
   { key: 'day', label: 'آخر يوم', en: 'Last day' },
   { key: 'week', label: 'آخر أسبوع', en: 'Last week' },
@@ -88,7 +96,7 @@ export const PLATFORM_COMMISSION = 0.004; // 0.4% لكل عملية
  *   timeline: day (24 hourly) · week (7 daily) · month (30 daily) · year (12 monthly)
  * Returns { series: [{label, value}], unit }. Pure — recomputes instantly client-side.
  */
-export function computeChartSeries(orders = [], metric = 'revenue', timeline = 'week') {
+export function computeChartSeries(orders = [], metric = 'revenue', timeline = 'week', expenses = []) {
   const now = new Date();
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   const buckets = [];
@@ -133,13 +141,33 @@ export function computeChartSeries(orders = [], metric = 'revenue', timeline = '
     }
     if (idx < 0 || idx >= acc.length) return;
     if (metric === 'revenue') { if (o.status === 'completed') acc[idx] += Number(o.price) || 0; }
-    else if (metric === 'profit') { if (o.status === 'completed') acc[idx] += (Number(o.price) || 0) * (1 - PLATFORM_COMMISSION); }
+    else if (metric === 'profit' || metric === 'net') { if (o.status === 'completed') acc[idx] += (Number(o.price) || 0) * (1 - PLATFORM_COMMISSION); }
     else if (metric === 'sales') { acc[idx] += 1; }
     else if (o.customer_name) acc[idx].add(o.customer_name);
   });
 
+  // ── Net profit: subtract OPEX from the very same bucket the revenue landed in,
+  //    so the margin curve is exact at every granularity (day/week/month/year/all).
+  if (metric === 'net') {
+    const bucketOf = (dt) => {
+      if (timeline === 'day') return dt >= today ? dt.getHours() : -1;
+      if (timeline === 'year') return dt.getFullYear() === now.getFullYear() ? dt.getMonth() : -1;
+      if (timeline === 'all') return mkeyIndex[`${dt.getFullYear()}-${dt.getMonth()}`] ?? -1;
+      return keyIndex[dt.toISOString().slice(0, 10)] ?? -1;
+    };
+    expenses.forEach((e) => {
+      const stamp = e.expense_date || e.created_at;
+      if (!stamp) return;
+      const dt = new Date(stamp);
+      if (Number.isNaN(dt.getTime())) return;
+      const idx = bucketOf(dt);
+      if (idx < 0 || idx >= acc.length) return;
+      acc[idx] -= Number(e.amount) || 0;
+    });
+  }
+
   const series = buckets.map((b, i) => ({ label: b.label, value: metric === 'customers' ? acc[i].size : Math.round(acc[i]) }));
-  const unit = metric === 'revenue' || metric === 'profit' ? 'sar' : 'int';
+  const unit = metric === 'revenue' || metric === 'profit' || metric === 'net' ? 'sar' : 'int';
   return { series, unit };
 }
 
@@ -181,21 +209,29 @@ export function timelineRangeText(timeline, orders = [], locale = 'ar') {
 
 // Period-over-period comparison for the YouTube-style summary cards:
 // current window vs the immediately-preceding equal window.
-export function computeComparisons(orders = [], timeline = 'week') {
+export function computeComparisons(orders = [], timeline = 'week', expenses = []) {
   const now = new Date();
   const start = timelineWindowStart(timeline, now);
   const span = now.getTime() - start.getTime();
   const prevStart = new Date(start.getTime() - span);
   const cur = orders.filter((o) => o.created_at && new Date(o.created_at) >= start);
   const prev = orders.filter((o) => { if (!o.created_at) return false; const d = new Date(o.created_at); return d >= prevStart && d < start; });
+  const expAt = (e) => new Date(e.expense_date || e.created_at || 0);
+  const opex = (from, to) => expenses
+    .filter((e) => { const d = expAt(e); return !Number.isNaN(d.getTime()) && d >= from && (!to || d < to); })
+    .reduce((s, e) => s + (Number(e.amount) || 0), 0);
   const rev = (a) => a.filter((o) => o.status === 'completed').reduce((s, o) => s + (Number(o.price) || 0), 0);
   const cust = (a) => new Set(a.filter((o) => o.customer_name).map((o) => o.customer_name)).size;
   const grow = (c, p) => (p > 0 ? Math.round(((c - p) / p) * 100) : c > 0 ? 100 : 0);
   const revenueCur = rev(cur);
+  // Net = revenue after platform commission, minus the OPEX booked in the window.
+  const netCur = Math.round(revenueCur * (1 - PLATFORM_COMMISSION) - opex(start, null));
+  const netPrev = Math.round(rev(prev) * (1 - PLATFORM_COMMISSION) - opex(prevStart, start));
   return {
     sales: { value: cur.length, growth: grow(cur.length, prev.length) },
     revenue: { value: revenueCur, growth: grow(revenueCur, rev(prev)) },
     profit: { value: Math.round(revenueCur * (1 - PLATFORM_COMMISSION)), growth: grow(rev(cur), rev(prev)) },
+    net: { value: netCur, growth: grow(netCur, netPrev) },
     customers: { value: cust(cur), growth: grow(cust(cur), cust(prev)) },
     allTime: timeline === 'all',
     days: timeline === 'day' ? 1 : timeline === 'week' ? 7 : timeline === 'month' ? 30 : timeline === 'year' ? 365 : 0,

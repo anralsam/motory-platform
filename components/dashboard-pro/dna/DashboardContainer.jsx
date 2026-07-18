@@ -21,7 +21,7 @@ const ActionsCtx = createContext(null);
 export const useDashboardData = () => useContext(DataCtx);
 export const useActions = () => useContext(ActionsCtx);
 
-export default function DashboardContainer({ role = 'merchant', orders = [], workers = [], inventory = [], actions = {}, headerActions = null, permissions = { canTransfer: true }, children }) {
+export default function DashboardContainer({ role = 'merchant', orders = [], workers = [], inventory = [], expenses = [], actions = {}, headerActions = null, permissions = { canTransfer: true }, children }) {
   // The UnifiedChart matrix is the master controller: it owns metric + timeline,
   // and the whole dashboard (cards/tables) re-derives from this single state.
   const [metric, setMetric] = useState('revenue');
@@ -52,6 +52,13 @@ export default function DashboardContainer({ role = 'merchant', orders = [], wor
   const branchWorkers = useMemo(
     () => (currentBranchId && currentBranchId !== 'all' ? workersState.filter((w) => w.branch_id === currentBranchId) : workersState),
     [workersState, currentBranchId],
+  );
+
+  // Company-wide overhead (branch_id === null) still reduces a branch's real margin,
+  // so it is kept in every branch slice rather than filtered out.
+  const branchExpenses = useMemo(
+    () => (currentBranchId && currentBranchId !== 'all' ? expenses.filter((e) => !e.branch_id || e.branch_id === currentBranchId) : expenses),
+    [expenses, currentBranchId],
   );
 
   const derived = useMemo(() => computeDerived(branchOrders, branchWorkers, timeline), [branchOrders, branchWorkers, timeline]);
@@ -102,8 +109,8 @@ export default function DashboardContainer({ role = 'merchant', orders = [], wor
   }, [workersState, actions]);
 
   const dataValue = useMemo(
-    () => ({ role, metric, setMetric, timeline, setTimeline, orders: branchOrders, workers: branchWorkers, currentBranchId, setCurrentBranchId, branches, permissions, ...derived }),
-    [role, metric, timeline, branchOrders, branchWorkers, currentBranchId, setCurrentBranchId, branches, permissions, derived],
+    () => ({ role, metric, setMetric, timeline, setTimeline, orders: branchOrders, workers: branchWorkers, expenses: branchExpenses, currentBranchId, setCurrentBranchId, branches, permissions, ...derived }),
+    [role, metric, timeline, branchOrders, branchWorkers, branchExpenses, currentBranchId, setCurrentBranchId, branches, permissions, derived],
   );
   const actionsValue = useMemo(() => ({ role, orders: ordersState, inventory: invState, workers: workersState, updateStatus, assign, deduct, start, patchOrder, transferWorker }), [role, ordersState, invState, workersState, updateStatus, assign, deduct, start, patchOrder, transferWorker]);
 

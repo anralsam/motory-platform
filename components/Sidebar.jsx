@@ -10,14 +10,16 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
-  Home, Users, Package, ReceiptText, BarChart3, UsersRound, MessageSquare, Settings, Building2,
+  Home, Users, Package, ReceiptText, BarChart3, UsersRound, MessageSquare, Settings, Building2, Wallet,
 } from 'lucide-react';
 import { NAV_ITEMS } from './nav';
+import { usePermissions } from '@/lib/usePermissions';
 import { useSelectedBranch } from '@/store/branchStore';
 import { useLocaleStore } from '@/store/localeStore';
 
 // href → professional lucide icon (single source; nav.js stays data-only).
 const ICON_BY_HREF = {
+  '/dashboard/expenses': Wallet,
   '/dashboard': Home,
   '/dashboard/customers': Users,
   '/dashboard/inventory': Package,
@@ -30,6 +32,10 @@ const ICON_BY_HREF = {
 
 export default function Sidebar({ onNavigate }) {
   const pathname = usePathname();
+  // Least privilege: financial nav entries are dropped entirely for staff whose
+  // can_view_financials flag is OFF — they never see the door, and the route
+  // behind it still answers with Forbidden403 if reached directly.
+  const { canViewFinancials } = usePermissions();
   const branch = useSelectedBranch();
   const lang = useLocaleStore((s) => s.lang);
   const isEn = lang === 'en';
@@ -46,7 +52,7 @@ export default function Sidebar({ onNavigate }) {
 
       {/* Canonical nav — compact */}
       <nav className="flex-1 space-y-0.5 overflow-y-auto p-2.5 no-scrollbar">
-        {NAV_ITEMS.map((item) => {
+        {NAV_ITEMS.filter((item) => !item.financial || canViewFinancials).map((item) => {
           const active = pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href));
           const Icon = ICON_BY_HREF[item.href] || Home;
           return (

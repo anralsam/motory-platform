@@ -549,3 +549,96 @@ export async function getCentersLive() {
     .map((o) => ({ merchant_id: o.merchant_id, status: o.status, price: Number(o.price) || 0, hour: new Date(o.created_at).getHours() }));
   return { ok: true, at: new Date().toISOString(), centers: rows, todayOrders };
 }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   OPEX — Expense & Net Profit engine
+   Expenses are an OWNER-level financial record. Unlike orders (which technicians
+   also touch), there is no delegated path here: the only authorized writer is the
+   merchant who owns the row, or a platform admin. Every id that arrives from the
+   client is re-checked against the session server-side before any write.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+const EXPENSE_CATEGORIES = ['salaries', 'rent', 'utilities', 'government_fees', 'inventory_purchase', 'miscellaneous'];
+
+/**
+ * Log a new operating expense.
+ * @param {{title:string, amount:number|string, category:string, branchId?:string|null, expenseDate?:string, receiptUrl?:string|null}} data
+ * @returns {Promise<{ok:boolean, expense?:object, error?:string}>}
+ */
+export async function addExpense(data = {}) {
+  const supabase = createServerSupabase();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { ok: false, error: 'غير مصرّح — سجّل الدخول' };
+
+  const admin = getSupabaseAdmin();
+  if (!admin) return { ok: false, error: 'مفتاح الخدمة غير مهيّأ' };
+
+  // ── Localized input validation ──
+  const title = String(data.title || '').trim();
+  if (!title) return { ok: false, error: 'عنوان المصروف مطلوب' };
+  if (title.length > 160) return { ok: false, error: 'عنوان المصروف طويل جداً' };
+
+  const amount = Number(data.amount);
+  if (!Number.isFinite(amount) || amount < 0) return { ok: false, error: 'أدخل مبلغاً صحيحاً' };
+  if (amount > 99999999.99) return { ok: false, error: 'المبلغ يتجاوز الحد المسموح' };
+
+  const category = String(data.category || 'miscellaneous');
+  if (!EXPENSE_CATEGORIES.includes(category)) return { ok: false, error: 'تصنيف غير معروف' };
+
+  const expenseDate = data.expenseDate ? new Date(data.expenseDate) : new Date();
+  if (Number.isNaN(expenseDate.getTime())) return { ok: false, error: 'تاريخ غير صالح' };
+
+  // ── Ownership: a branch may only be attached if it belongs to THIS merchant ──
+  let branchId = data.branchId && data.branchId !== 'all' ? String(data.branchId) : null;
+  if (branchId) {
+    const { data: br } = await admin.from('branches').select('id').eq('id', branchId).eq('owner_id', user.id).maybeSingle();
+    if (!br) return { ok: false, error: 'الفرع غير موجود أو لا تملكه' };
+  }
+
+  const { data: row, error } = await admin
+    .from('expenses')
+    .insert({
+      merchant_id: user.id,           // NEVER from the client
+      branch_id: branchId,
+      title,
+      amount: Math.round(amount * 100) / 100,
+      category,
+      expense_date: expenseDate.toISOString(),
+      receipt_url: data.receiptUrl ? String(data.receiptUrl).trim() : null,
+    })
+    .select('id, merchant_id, branch_id, title, amount, category, expense_date, receipt_url, created_at')
+    .single();
+
+  if (error) return { ok: false, error: error.message };
+
+  revalidatePath('/dashboard');
+  return { ok: true, expense: row };
+}
+
+/**
+ * Permanently remove an expense. Only its owner (or a platform admin) may delete.
+ * @returns {Promise<{ok:boolean, id?:string, error?:string}>}
+ */
+export async function deleteExpense(expenseId) {
+  if (!expenseId) return { ok: false, error: 'معرّف المصروف مفقود' };
+
+  const supabase = createServerSupabase();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { ok: false, error: 'غير مصرّح — سجّل الدخول' };
+
+  const admin = getSupabaseAdmin();
+  if (!admin) return { ok: false, error: 'مفتاح الخدمة غير مهيّأ' };
+
+  // Re-verify ownership server-side — the client-supplied id proves nothing.
+  const { data: row } = await admin.from('expenses').select('merchant_id').eq('id', expenseId).maybeSingle();
+  if (!row) return { ok: false, error: 'المصروف غير موجود' };
+  if (row.merchant_id !== user.id && !(await isAdmin(supabase, user))) {
+    return { ok: false, error: 'لا تملك صلاحية على هذا المصروف' };
+  }
+
+  const { error } = await admin.from('expenses').delete().eq('id', expenseId);
+  if (error) return { ok: false, error: error.message };
+
+  revalidatePath('/dashboard');
+  return { ok: true, id: expenseId };
+}

@@ -1,12 +1,16 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabaseClient';
+import { useBranchStore, resolveWriteBranchId } from '@/store/branchStore';
 
 /**
  * Clean add-item modal. Category options come from the active branch's center type,
- * and the new row is stamped with the active branch_id (null → DB trigger assigns primary).
+ * and the new row is stamped with a CONCRETE branch_id — the active branch, or the
+ * primary branch when the switcher sits on "all" — so it can never land in a state
+ * that no branch-filtered view can display.
  */
 export default function AddInventoryModal({ open, onClose, onSaved, categories, userId, branchId, centerType }) {
+  const branches = useBranchStore((st) => st.branches);
   const [name, setName] = useState('');
   const [cat, setCat] = useState(categories[0]?.key || 'general');
   const [newCat, setNewCat] = useState('');
@@ -39,7 +43,7 @@ export default function AddInventoryModal({ open, onClose, onSaved, categories, 
       min_quantity: parseInt(min) || 5,
       sell_price: parseFloat(price) || 0,
       supplier: supplier.trim() || null,
-      branch_id: branchId && branchId !== 'all' ? branchId : null,
+      branch_id: resolveWriteBranchId(branchId, branches),
     });
     setSaving(false);
     if (err) { setError(err.message); return; }

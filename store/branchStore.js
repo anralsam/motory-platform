@@ -42,6 +42,20 @@ export const useBranchStore = create((set, get) => ({
   },
 }));
 
+/**
+ * Resolve a CONCRETE branch id for INSERTs.
+ * Creation paths used to write `branch_id: null` whenever the switcher sat on
+ * 'all' (the default), trusting a DB trigger to backfill the primary branch. Even
+ * where that trigger exists, depending on it means any row created in the 'all'
+ * view is invisible in every branch-filtered view if it ever stops firing. Being
+ * explicit here is strictly safer and keeps the behaviour visible in the code.
+ */
+export function resolveWriteBranchId(selectedId, branches = []) {
+  if (selectedId && selectedId !== 'all') return selectedId;
+  const primary = branches.find((b) => b.is_primary) || branches[0];
+  return primary?.id ?? null;
+}
+
 /** Helper selector used by layout/header. */
 export function useSelectedBranch() {
   const id = useBranchStore((s) => s.selectedBranchId);

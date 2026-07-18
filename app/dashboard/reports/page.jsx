@@ -14,19 +14,69 @@ import WorkforcePanel from '@/components/dashboard-pro/dna/WorkforcePanel';
 import { useDashboard } from '@/lib/useDashboard';
 import Toast from '@/components/Toast';
 
-/* ── Tier B: Operational & bottleneck analysis ── */
-const OPS_ANALYSIS = [
-  { tone: 'rose', title: 'اختناق تشغيلي', text: "خدمة 'تغيير الزيت' تستهلك 45 دقيقة بالمتوسط — أعلى من المستهدف (30 دقيقة)، ما يبطئ دوران الطلبات." },
-  { tone: 'blue', title: 'ركود صباحي', text: 'انخفاض ملحوظ في المبيعات يوم الثلاثاء بين 9 ص و12 م مقارنة ببقية أيام الأسبوع.' },
-  { tone: 'amber', title: 'ضغط في الذروة', text: 'يوم الجمعة يسجّل أعلى إقبال مع نقص في عدد الفنيين المتاحين، ما يرفع زمن الانتظار.' },
-];
+const WEEKDAYS = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
 
-/* ── Tier C: Strategic recommendations ── */
-const RECOMMENDATIONS = [
-  { text: 'أطلق عرضاً ترويجياً صباح الثلاثاء (9–12) لرفع الإشغال في وقت الركود.', cta: 'إنشاء عرض' },
-  { text: 'أضف فنياً إضافياً لمناوبة الجمعة لتقليل زمن الانتظار خلال الذروة.', cta: 'إدارة المناوبات' },
-  { text: 'راجع سير عمل «تغيير الزيت» لخفض المتوسط من 45 إلى 30 دقيقة (~33% أسرع).', cta: 'مراجعة الأداء' },
-];
+/**
+ * Tier B/C insights derived from the merchant's OWN completed operations.
+ * These used to be hardcoded Arabic paragraphs about a fictional oil-change
+ * bottleneck, shown identically to every account — including brand-new ones with
+ * zero orders, which read as someone else's history presented as your own.
+ * Everything below is computed from `rows` (visits: date / service / total) and
+ * the caller renders nothing at all when there is no data to speak from.
+ */
+function deriveInsights(rows) {
+  if (!rows || rows.length === 0) return null;
+
+  const byService = {};
+  const byDay = Array(7).fill(0);
+  const byHour = Array(24).fill(0);
+  let revenue = 0;
+
+  rows.forEach((r) => {
+    const svc = r.service && r.service !== '—' ? r.service : 'غير محدّد';
+    if (!byService[svc]) byService[svc] = { name: svc, count: 0, revenue: 0 };
+    byService[svc].count += 1;
+    byService[svc].revenue += Number(r.total) || 0;
+    revenue += Number(r.total) || 0;
+    const d = r.date ? new Date(r.date) : null;
+    if (d && !Number.isNaN(d.getTime())) { byDay[d.getDay()] += 1; byHour[d.getHours()] += 1; }
+  });
+
+  const services = Object.values(byService).sort((a, b) => b.count - a.count);
+  const topService = services[0] || null;
+  const activeDays = byDay.map((c, i) => ({ i, c })).filter((d) => d.c > 0);
+  const busiest = activeDays.length ? activeDays.reduce((a, b) => (b.c > a.c ? b : a)) : null;
+  const quietest = activeDays.length > 1 ? activeDays.reduce((a, b) => (b.c < a.c ? b : a)) : null;
+  const peakHour = byHour.some((c) => c > 0) ? byHour.indexOf(Math.max(...byHour)) : null;
+  const avgTicket = rows.length ? Math.round(revenue / rows.length) : 0;
+
+  const ops = [];
+  if (topService) {
+    ops.push({
+      tone: 'blue', title: 'الخدمة الأكثر طلباً',
+      text: `«${topService.name}» تصدّرت بـ ${topService.count} عملية من أصل ${rows.length}، بإيراد ${Math.round(topService.revenue).toLocaleString('en-US')} ⃁.`,
+    });
+  }
+  if (busiest) {
+    ops.push({
+      tone: 'amber', title: 'يوم الذروة',
+      text: `${WEEKDAYS[busiest.i]} هو أنشط أيامك (${busiest.c} عملية)${peakHour !== null ? ` وأكثر ساعة ازدحاماً حوالي ${peakHour}:00` : ''}.`,
+    });
+  }
+  if (quietest) {
+    ops.push({
+      tone: 'rose', title: 'أهدأ يوم',
+      text: `${WEEKDAYS[quietest.i]} هو الأقل إقبالاً (${quietest.c} عملية) — فرصة لعرض ترويجي.`,
+    });
+  }
+
+  const recs = [];
+  if (quietest) recs.push({ text: `أطلق عرضاً ترويجياً يوم ${WEEKDAYS[quietest.i]} لرفع الإشغال في أهدأ أيامك.`, cta: 'إنشاء عرض' });
+  if (busiest) recs.push({ text: `عزّز مناوبة ${WEEKDAYS[busiest.i]} بفنّي إضافي لتقليل زمن الانتظار في الذروة.`, cta: 'إدارة الفريق' });
+  if (topService) recs.push({ text: `راجع تسعير «${topService.name}» — متوسط فاتورتك الحالي ${avgTicket.toLocaleString('en-US')} ⃁.`, cta: 'مراجعة الأسعار' });
+
+  return { ops, recs, avgTicket, count: rows.length };
+}
 
 const OPS_TONES = {
   blue: { card: 'bg-blue-50/50 border-blue-100', ic: 'bg-blue-100 text-blue-600' },
@@ -47,6 +97,8 @@ export default function ReportsPage() {
 
   const { rows, loading, error } = useCompletedOps(user?.id, selectedId);
   const { metrics, series, loading: metricsLoading } = useReportMetrics(user?.id, selectedId);
+  // Insights are derived from THIS merchant's own completed operations (null = no data yet).
+  const insights = useMemo(() => deriveInsights(rows), [rows]);
   const { orders: teamOrders, workers: teamWorkers } = useDashboard(user?.id, selectedId);
   const [view, setView] = useState('live'); // live | overview | team | ai | log
 
@@ -212,10 +264,18 @@ export default function ReportsPage() {
             )}
           </div>
 
-          {/* ── Tier B: Operational & bottleneck analysis ── */}
-          <TierLabel n="2" title="تحليل العمليات والركود" sub="أين تضيع الكفاءة هذا الشهر" />
+          {/* ── Tier B + C: only when there is real data to speak from ── */}
+          {!insights ? (
+            <div className="rounded-2xl border border-dashed border-slate-200 bg-white p-8 text-center">
+              <div className="text-sm font-extrabold text-slate-700">لا توجد بيانات كافية للتحليل بعد</div>
+              <p className="mt-1.5 text-sm text-slate-500">سجّل أول عملياتك المكتملة وستظهر هنا رؤى وتوصيات مبنية على أرقام مركزك أنت.</p>
+            </div>
+          ) : (
+          <>
+          {/* ── Tier B: Operational analysis — derived from this merchant's data ── */}
+          <TierLabel n="2" title="تحليل العمليات" sub={`مبني على ${insights.count} عملية من سجلّك`} />
           <div className="mb-6 grid gap-3 md:grid-cols-3">
-            {OPS_ANALYSIS.map((o, i) => {
+            {insights.ops.map((o, i) => {
               const t = OPS_TONES[o.tone];
               return (
                 <div key={i} className={`flex flex-col gap-2 rounded-2xl border p-4 ${t.card}`}>
@@ -232,7 +292,7 @@ export default function ReportsPage() {
           {/* ── Tier C: Strategic recommendations ── */}
           <TierLabel n="3" title="التوصيات الاستراتيجية" sub="خطوات قابلة للتنفيذ لرفع الربحية" />
           <div className="space-y-2.5">
-            {RECOMMENDATIONS.map((r, i) => (
+            {insights.recs.map((r, i) => (
               <div key={i} className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white p-3.5">
                 <span className="grid h-8 w-8 flex-none place-items-center rounded-full bg-violet-100 text-sm font-extrabold text-violet-700">{i + 1}</span>
                 <p className="flex-1 text-sm font-semibold text-slate-700">{r.text}</p>
@@ -240,6 +300,8 @@ export default function ReportsPage() {
               </div>
             ))}
           </div>
+          </>
+          )}
         </div>
       </section>
       )}

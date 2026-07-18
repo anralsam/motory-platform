@@ -1,7 +1,7 @@
 'use client';
 import Link from 'next/link';
 import { useRef, useState } from 'react';
-import { useBranchStore } from '@/store/branchStore';
+import { useBranchStore, resolveWriteBranchId } from '@/store/branchStore';
 import { useAuth } from '@/components/AuthProvider';
 import { useTeam } from '@/lib/useTeam';
 import { roleOf } from '@/lib/roles';
@@ -69,7 +69,7 @@ export default function TeamPage() {
       phone,
       role,
       pin,
-      branch_id: selectedId && selectedId !== 'all' ? selectedId : null,
+      branch_id: resolveWriteBranchId(selectedId, branches),
     });
     if (err) return { error: err };
     setPin(worker.id, pin);

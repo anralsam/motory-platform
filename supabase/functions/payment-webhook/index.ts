@@ -55,18 +55,33 @@ Deno.serve(async (req) => {
     if (!row) return json({ error: 'billing record not found' }, 404)
 
     // ── Authorization ──
+    // PAID and FAILED are FINAL, money-affecting states: only the payment gateway
+    // (shared secret) or a platform admin may set them. A merchant may ONLY declare
+    // 'VERIFYING' ("I sent the bank transfer") on their OWN row.
+    // Previously ANY owner could POST {status:'paid'} on their own row with a plain
+    // JWT and zero out their platform commission dues — and then render as
+    // "ملتزم — كل المستحقات مسدَّدة" in the Super-Admin compliance view.
     const secretHeader = req.headers.get('x-webhook-secret') || ''
     const bySecret = webhookSecret.length > 0 && secretHeader === webhookSecret
-    let authorized = bySecret
-    if (!authorized) {
-      // Owner self-confirm path: validate the bearer JWT owns this row.
+
+    let isOwner = false
+    let isPlatformAdmin = false
+    if (!bySecret) {
       const authHeader = req.headers.get('Authorization') || ''
       if (authHeader.startsWith('Bearer ')) {
         const caller = createClient(url, anon, { global: { headers: { Authorization: authHeader } } })
         const { data: { user } } = await caller.auth.getUser()
-        if (user && user.id === row.merchant_id) authorized = true
+        if (user) {
+          isOwner = user.id === row.merchant_id
+          // is_admin() reads public.users.role (DB-backed, trigger-protected) —
+          // it cannot be spoofed from client-writable metadata.
+          const { data: adminFlag } = await caller.rpc('is_admin')
+          isPlatformAdmin = adminFlag === true
+        }
       }
     }
+
+    const authorized = bySecret || isPlatformAdmin || (isOwner && newStatus === 'VERIFYING')
     if (!authorized) return json({ error: 'unauthorized' }, 401)
 
     // Idempotent: already settled → return ok without re-writing

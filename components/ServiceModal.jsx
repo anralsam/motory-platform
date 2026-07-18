@@ -2,11 +2,13 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import { categoriesFor } from '@/lib/centerTypes';
+import { useBranchStore, resolveWriteBranchId } from '@/store/branchStore';
 
 /**
  * Add / edit a service. onSaved() → parent refetch. Stamps branch_id on insert.
  */
 export default function ServiceModal({ open, onClose, onSaved, centerId, branchId, centerType, editing }) {
+  const branches = useBranchStore((st) => st.branches);
   const cats = categoriesFor(centerType);
   const [name, setName] = useState('');
   const [price, setPrice] = useState('');
@@ -36,7 +38,7 @@ export default function ServiceModal({ open, onClose, onSaved, centerId, branchI
     } else {
       res = await supabase.from('service_menu').insert({
         merchant_id: centerId, name: name.trim(), price: p, category,
-        branch_id: branchId && branchId !== 'all' ? branchId : null,
+        branch_id: resolveWriteBranchId(branchId, branches),
       });
     }
     setSaving(false);

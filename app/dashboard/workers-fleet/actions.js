@@ -123,7 +123,7 @@ export async function getWorkerActivities(limit = 100) {
   if (c.error) return { ok: false, error: c.error, activities: [] };
   const { data, error } = await c.admin
     .from('worker_activities')
-    .select('id, worker_id, action_type, description, timestamp')
+    .select('id, worker_id, action_type, description, timestamp, duration_min')
     .eq('merchant_id', c.user.id)
     .order('timestamp', { ascending: false })
     .limit(Math.min(Number(limit) || 100, 300));

@@ -234,7 +234,12 @@ export default function WorkersFleetManager({ centerId, branches = [], members, 
                     <span className="absolute -start-[21px] top-1.5 h-2.5 w-2.5 rounded-full bg-blue-500 ring-4 ring-white" />
                     <div className="text-sm font-bold text-slate-900">{ACTION_LABEL[a.action_type] || a.action_type}</div>
                     {a.description ? <div className="text-xs font-medium text-slate-500">{a.description}</div> : null}
-                    <div className="mt-0.5 text-[11px] font-semibold tabular-nums text-slate-400" dir="ltr">{new Date(a.timestamp).toLocaleString('en-GB')}</div>
+                    <div className="mt-1 flex items-center gap-2">
+                      <span className="text-[11px] font-semibold tabular-nums text-slate-400" dir="ltr">{new Date(a.timestamp).toLocaleString('en-GB')}</span>
+                      {a.duration_min != null && (
+                        <span className="rounded-md bg-slate-100 px-1.5 py-0.5 text-[10px] font-black text-slate-600">المدة: {a.duration_min} د</span>
+                      )}
+                    </div>
                   </li>
                 ))}
               </ol>

@@ -10,40 +10,48 @@
  */
 import { useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeftRight, Check } from 'lucide-react';
+import { ArrowLeftRight, Check, Gauge, Hash } from 'lucide-react';
 import { useDashboardData, useActions } from './DashboardContainer';
+import { computeWorkforce, fmtDuration } from './engine';
 
 export default function WorkforcePanel() {
-  const { orders = [], workers = [], branches = [], currentBranchId = 'all', permissions = {} } = useDashboardData() || {};
+  const { orders = [], workers = [], branches = [], permissions = {} } = useDashboardData() || {};
   const { transferWorker } = useActions() || {};
   const canTransfer = permissions.canTransfer !== false;
   const [openId, setOpenId] = useState(null);
+  const [sortBy, setSortBy] = useState('volume'); // 'volume' | 'speed'
 
-  const statsByTech = useMemo(() => {
-    const m = {};
-    orders.forEach((o) => {
-      if (!o.assigned_to) return;
-      const s = m[o.assigned_to] || (m[o.assigned_to] = { total: 0, completed: 0, active: 0 });
-      s.total++;
-      if (o.status === 'completed') s.completed++;
-      if (o.status === 'in_progress' || o.status === 'ready') s.active++;
-    });
-    return m;
-  }, [orders]);
+  // Duration-aware per-technician matrix (ready−started production speed).
+  const base = useMemo(() => computeWorkforce(orders, workers), [orders, workers]);
+  const rows = useMemo(() => {
+    const arr = [...base];
+    if (sortBy === 'speed') {
+      // Fastest first; technicians with no measured speed sink to the bottom.
+      arr.sort((a, b) => (a.avgProdMin ?? Infinity) - (b.avgProdMin ?? Infinity) || b.completed - a.completed);
+    } else {
+      arr.sort((a, b) => b.completed - a.completed || b.total - a.total);
+    }
+    return arr;
+  }, [base, sortBy]);
 
-  const rows = useMemo(() => workers
-    .map((w) => {
-      const s = statsByTech[w.user_id] || { total: 0, completed: 0, active: 0 };
-      return { ...w, ...s, eff: s.total ? Math.round((s.completed / s.total) * 100) : 0 };
-    })
-    .sort((a, b) => b.total - a.total), [workers, statsByTech]);
-
-  const maxTotal = Math.max(1, ...rows.map((r) => r.total));
+  const maxCompleted = Math.max(1, ...rows.map((r) => r.completed));
 
   return (
     <div className="mt-6 w-full rounded-2xl border border-slate-200 bg-white p-6 shadow-sm md:p-8">
-      <div className="mb-1 text-lg font-bold tracking-tight text-slate-900">إحصائيات مقارنة العمّال</div>
-      <div className="mb-6 text-sm font-medium text-slate-500">ترتيب الفنّيين حسب حجم العمليات المنجزة</div>
+      <div className="mb-1 flex flex-wrap items-center justify-between gap-3">
+        <div className="text-lg font-bold tracking-tight text-slate-900">مصفوفة أداء الفنّيين</div>
+        <div className="flex items-center gap-1 rounded-xl bg-slate-100 p-1">
+          <button onClick={() => setSortBy('volume')}
+            className={`inline-flex items-center gap-1 rounded-lg px-3 py-1.5 text-xs font-bold transition ${sortBy === 'volume' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500'}`}>
+            <Hash size={12} /> الأكثر إنجازاً
+          </button>
+          <button onClick={() => setSortBy('speed')}
+            className={`inline-flex items-center gap-1 rounded-lg px-3 py-1.5 text-xs font-bold transition ${sortBy === 'speed' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500'}`}>
+            <Gauge size={12} /> الأسرع
+          </button>
+        </div>
+      </div>
+      <div className="mb-6 text-sm font-medium text-slate-500">متوسط سرعة الإنجاز = زمن العمل الفعلي (من «بدء العمل» إلى «جاهزة»).</div>
 
       {rows.length === 0 ? (
         <div className="py-16 text-center text-sm font-medium text-slate-400">لا يوجد فنيون مكلّفون بهذا الفرع حالياً</div>
@@ -56,14 +64,20 @@ export default function WorkforcePanel() {
               <div className="min-w-0 flex-1">
                 <div className="mb-1.5 flex items-center justify-between gap-2">
                   <span className="truncate text-sm font-bold text-slate-900">{r.full_name || 'فنّي'}</span>
-                  <div className="flex flex-none items-center gap-2">
-                    <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-semibold text-slate-500">كفاءة {r.eff}%</span>
-                    <span className="rounded-full bg-blue-50 px-2 py-0.5 text-[11px] font-semibold text-blue-600">{r.active} نشطة</span>
-                    <span className="font-mono text-sm font-bold tabular-nums text-slate-900" dir="ltr">{r.total}</span>
+                  <div className="flex flex-none items-center gap-3">
+                    {/* Metric B — average production speed (ready − started) */}
+                    <span className="inline-flex items-baseline gap-1" title="متوسط سرعة الإنجاز (زمن العمل الفعلي)">
+                      <Gauge size={13} className="translate-y-0.5 text-slate-400" />
+                      <span className="font-mono text-sm font-bold tabular-nums text-slate-900" dir="ltr">{r.avgProdMin != null ? fmtDuration(r.avgProdMin) : '—'}</span>
+                    </span>
+                    {/* Metric C — active in_progress load */}
+                    <span className="rounded-full bg-blue-50 px-2 py-0.5 text-[11px] font-bold text-blue-600" title="الحمل النشط (قيد العمل الآن)">{r.active} نشطة</span>
+                    {/* Metric A — completed tasks */}
+                    <span className="font-mono text-sm font-black tabular-nums text-slate-900" dir="ltr" title="عدد المهام المنجزة">{r.completed}</span>
                   </div>
                 </div>
                 <div className="h-2 overflow-hidden rounded-full bg-slate-100">
-                  <motion.div initial={{ width: 0 }} animate={{ width: `${Math.max(3, Math.round((r.total / maxTotal) * 100))}%` }} transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1], delay: 0.05 * i }}
+                  <motion.div initial={{ width: 0 }} animate={{ width: `${Math.max(3, Math.round((r.completed / maxCompleted) * 100))}%` }} transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1], delay: 0.05 * i }}
                     className="h-full rounded-full bg-gradient-to-l from-blue-500 to-blue-600" />
                 </div>
               </div>

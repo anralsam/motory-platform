@@ -86,10 +86,16 @@ export async function workerToggleOrder(orderId, newStatus) {
   const label = newStatus === 'in_progress' ? 'job_started'
     : newStatus === 'ready' ? 'job_ready'
     : newStatus === 'completed' ? 'job_completed' : 'job_update';
-  const { data: ord } = await admin.from('orders').select('plate, customer_name').eq('id', orderId).maybeSingle();
+  const { data: ord } = await admin.from('orders').select('plate, customer_name, started_at, ready_at, completed_at').eq('id', orderId).maybeSingle();
+  // Stage duration for this transition: production (ready−started) on «جاهزة»,
+  // handover (completed−ready) on «تم التسليم».
+  const mins = (a, b) => (a && b ? (new Date(b).getTime() - new Date(a).getTime()) / 60000 : null);
+  const durationMin = newStatus === 'ready' ? mins(ord?.started_at, ord?.ready_at)
+    : newStatus === 'completed' ? mins(ord?.ready_at, ord?.completed_at) : null;
   await logWorkerActivity(admin, {
     workerId: worker.id, merchantId: worker.center_id, actionType: label,
     description: `${worker.full_name || 'عامل'} · ${ord?.plate || ord?.customer_name || 'طلب'}`,
+    durationMin,
   });
 
   return { ok: true, fallback: res.fallback };

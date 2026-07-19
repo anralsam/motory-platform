@@ -96,7 +96,7 @@ export default function ReportsPage() {
   const branchName = selectedId === 'all' ? 'كل الفروع' : (branches.find((b) => b.id === selectedId)?.name || 'فرع');
 
   const { rows, loading, error } = useCompletedOps(user?.id, selectedId);
-  const { metrics, series, loading: metricsLoading } = useReportMetrics(user?.id, selectedId);
+  const { metrics, series, durations, loading: metricsLoading } = useReportMetrics(user?.id, selectedId);
   // Insights are derived from THIS merchant's own completed operations (null = no data yet).
   const insights = useMemo(() => deriveInsights(rows), [rows]);
   const { orders: teamOrders, workers: teamWorkers } = useDashboard(user?.id, selectedId);
@@ -181,6 +181,26 @@ export default function ReportsPage() {
         <KPI label="العمليات المنجزة" value={loading ? '—' : fmt(summary.count)} />
         <KPI label="إجمالي المبيعات" value={loading ? '—' : fmt(summary.total)} suffix="⃁" accent="text-emerald-600" />
         <KPI label="متوسط الفاتورة" value={loading ? '—' : fmt(summary.avg)} suffix="⃁" accent="text-blue-600" />
+      </div>
+
+      {/* ════════ Dual-stage lifecycle efficiency ════════ */}
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <DurationBlock
+          title="مؤشر كفاءة الورشة التشغيلية"
+          sub="متوسط زمن العمل الفعلي (من «بدء العمل» إلى «جاهزة»)"
+          min={metricsLoading ? null : durations?.production}
+          loading={metricsLoading}
+          goodBelow={45}
+          sample={durations?.sample}
+        />
+        <DurationBlock
+          title="مؤشر سرعة تسليم الفواتير"
+          sub="متوسط زمن الانتظار قبل الاستلام (من «جاهزة» إلى «تم التسليم»)"
+          min={metricsLoading ? null : durations?.handover}
+          loading={metricsLoading}
+          goodBelow={null}
+          neutral
+        />
       </div>
 
       {/* ════════ Sales vs Operations trend (current month) ════════ */}
@@ -395,6 +415,39 @@ function TrendBadge({ tone, dir, text }) {
       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round"><path d={arrow} /></svg>
       {text}
     </span>
+  );
+}
+
+function fmtDur(min) {
+  if (min == null) return '—';
+  if (min < 60) return `${min}`;
+  const h = Math.floor(min / 60), m = min % 60;
+  return m ? `${h}:${String(m).padStart(2, '0')}` : `${h}:00`;
+}
+
+/* Dual-stage duration indicator. Green when under `goodBelow`, amber above; neutral blocks stay slate. */
+function DurationBlock({ title, sub, min, loading, goodBelow, neutral = false, sample }) {
+  const has = min != null;
+  const good = goodBelow != null && has && min < goodBelow;
+  const tone = neutral || !has ? 'text-slate-900' : good ? 'text-emerald-600' : 'text-amber-600';
+  const chip = neutral || !has ? null : good
+    ? { c: 'bg-emerald-50 text-emerald-700', t: 'ضمن المستهدف' }
+    : { c: 'bg-amber-50 text-amber-700', t: 'أعلى من المستهدف' };
+  const unit = has && min >= 60 ? 'ساعة' : 'دقيقة';
+  return (
+    <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+      <div className="flex items-start justify-between gap-2">
+        <div className="text-sm font-bold text-slate-900">{title}</div>
+        {chip && <span className={`rounded-full px-2.5 py-0.5 text-[11px] font-black ${chip.c}`}>{chip.t}</span>}
+      </div>
+      <div className="mt-3 flex items-baseline gap-2">
+        <span className={`font-mono text-4xl font-black tabular-nums tracking-tight ${tone}`} dir="ltr">{loading ? '—' : fmtDur(min)}</span>
+        {has && !loading && <span className="text-sm font-bold text-slate-400">{unit}</span>}
+      </div>
+      <p className="mt-2 text-xs font-medium leading-relaxed text-slate-500">{sub}</p>
+      {sample != null && sample > 0 && <p className="mt-1 text-[11px] font-bold text-slate-400">مبني على {sample} عملية مقيسة</p>}
+      {!loading && !has && <p className="mt-1 text-[11px] font-bold text-slate-400">لا توجد عمليات مكتملة المراحل بعد.</p>}
+    </div>
   );
 }
 

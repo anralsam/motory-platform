@@ -238,6 +238,72 @@ export function computeComparisons(orders = [], timeline = 'week', expenses = []
   };
 }
 
+// ═══════════════════════════════════════════════════════════════════════════
+//  Lifecycle duration engine — the ONE place stage durations are computed.
+//  Production = ready − started (the technician's hands-on time).
+//  Handover   = completed − ready (idle time before customer pickup).
+//  Lifecycle  = completed − started (the whole operation).
+//  Every helper returns null when a stamp is missing or the order is still open,
+//  so averages simply skip it — never NaN, never a zero that drags the mean down.
+// ═══════════════════════════════════════════════════════════════════════════
+export function minutesBetween(a, b) {
+  if (!a || !b) return null;
+  const d = (new Date(b).getTime() - new Date(a).getTime()) / 60000;
+  return Number.isFinite(d) && d >= 0 ? Math.round(d) : null;
+}
+export const productionMin = (o) => minutesBetween(o?.started_at, o?.ready_at);
+export const handoverMin = (o) => minutesBetween(o?.ready_at, o?.completed_at);
+export const lifecycleMin = (o) => minutesBetween(o?.started_at, o?.completed_at);
+
+/** Mean of the non-null, sane values only. Returns null on an empty set. */
+export function avgMinutes(values = []) {
+  const xs = values.filter((v) => v != null && Number.isFinite(v) && v >= 0);
+  return xs.length ? Math.round(xs.reduce((s, v) => s + v, 0) / xs.length) : null;
+}
+
+/** Localized duration label. null → «—» so empty data reads honestly. */
+export function fmtDuration(min, isEn = false) {
+  if (min == null) return '—';
+  if (min < 60) return isEn ? `${min} min` : `${min} دقيقة`;
+  const h = Math.floor(min / 60);
+  const m = min % 60;
+  return isEn ? `${h}h ${m}m` : (m ? `${h} س ${m} د` : `${h} ساعة`);
+}
+
+/**
+ * Per-technician performance matrix.
+ *   completed  — closed tasks (Metric A)
+ *   avgProdMin — mean production speed, ready−started, over EVERY order that has
+ *                both stamps (works even before the vehicle is delivered) (Metric B)
+ *   active     — current in_progress load (Metric C)
+ */
+export function computeWorkforce(orders = [], workers = []) {
+  const by = {};
+  orders.forEach((o) => {
+    if (!o.assigned_to) return;
+    const t = by[o.assigned_to] || (by[o.assigned_to] = { total: 0, completed: 0, active: 0, prod: [] });
+    t.total += 1;
+    if (o.status === 'completed') t.completed += 1;
+    if (o.status === 'in_progress') t.active += 1;
+    const p = productionMin(o);
+    if (p != null) t.prod.push(p);
+  });
+  return workers.map((w) => {
+    const t = by[w.user_id] || { total: 0, completed: 0, active: 0, prod: [] };
+    return { ...w, total: t.total, completed: t.completed, active: t.active, avgProdMin: avgMinutes(t.prod) };
+  });
+}
+
+/** Global workshop-efficiency roll-up over a set of orders (for the report blocks). */
+export function computeEfficiency(orders = []) {
+  return {
+    avgProduction: avgMinutes(orders.map(productionMin)),
+    avgHandover: avgMinutes(orders.map(handoverMin)),
+    avgLifecycle: avgMinutes(orders.map(lifecycleMin)),
+    producedCount: orders.filter((o) => productionMin(o) != null).length,
+  };
+}
+
 export function computeDerived(orders = [], workers = [], timeline = 'week') {
   const windowStart = timelineWindowStart(timeline);
   const inWindow = orders.filter((o) => o.created_at && new Date(o.created_at) >= windowStart);

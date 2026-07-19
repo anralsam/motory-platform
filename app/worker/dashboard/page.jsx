@@ -56,6 +56,7 @@ export default async function WorkerDashboardPage() {
       workerName={worker.full_name || 'فنّي'}
       branchName={branch?.name || null}
       initialOrders={data.orders || []}
+      services={data.services || []}
     />
   );
 }

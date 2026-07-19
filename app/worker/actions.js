@@ -13,6 +13,7 @@ import { createServerSupabase } from '@/lib/supabase/server';
 import { getSupabaseAdmin } from '@/lib/supabase/admin';
 import { isWellFormedToken, logWorkerActivity } from '@/lib/workerFleet';
 import { updateOrderStatus } from '@/app/dashboard-pro/actions';
+import { revalidatePath } from 'next/cache';
 
 /**
  * Redeem a magic token → establish the worker's real Supabase session.
@@ -92,6 +93,87 @@ export async function workerToggleOrder(orderId, newStatus) {
   });
 
   return { ok: true, fallback: res.fallback };
+}
+
+// Saudi phone → international digits (no +). Server-authoritative; the client
+// only formats for display.
+function canonPhone(p) {
+  let s = String(p || '').replace(/\D/g, '');
+  if (s.startsWith('00966')) return s.slice(2);
+  if (s.startsWith('966')) return s;
+  if (s.startsWith('0')) return '966' + s.slice(1);
+  if (s.length === 9 && s.startsWith('5')) return '966' + s;
+  return s;
+}
+
+/**
+ * Atomic order intake from the shop floor. Tenancy is injected SERVER-SIDE from
+ * the worker's trusted, ACTIVE workers row — center_id, branch_id and the creator
+ * (assigned_to) can never be forged by the client. Pricing is read from the
+ * center's service_menu, so the "fixed price" is enforced, not trusted from the
+ * form. Inserts through the service-role client because technicians have no RLS
+ * INSERT on orders by design.
+ */
+export async function createWorkerOrder(form = {}) {
+  const supabase = createServerSupabase();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { ok: false, error: 'انتهت الجلسة — سجّل الدخول مجدداً' };
+
+  const admin = getSupabaseAdmin();
+  if (!admin) return { ok: false, error: 'الخدمة غير مهيّأة' };
+
+  // is_active gating: an ACTIVE row is required for any write. A blocked/deleted
+  // worker fails here even mid-session.
+  const { data: worker } = await admin
+    .from('workers')
+    .select('id, center_id, branch_id, full_name, status')
+    .eq('user_id', user.id).eq('status', 'active').maybeSingle();
+  if (!worker) return { ok: false, error: 'الحساب موقوف — تواصل مع المركز' };
+
+  const plate = String(form.plate || '').trim();
+  if (!plate) return { ok: false, error: 'رقم اللوحة مطلوب' };
+  const customerName = String(form.customerName || '').trim() || null;
+  const customerPhone = form.customerPhone ? canonPhone(form.customerPhone) : null;
+  const carModel = String(form.carModel || '').trim() || null;
+
+  // Service + FIXED price resolved from the menu (never from the client).
+  let serviceType = String(form.serviceType || '').trim() || null;
+  let price = null;
+  if (form.serviceId) {
+    const { data: svc } = await admin
+      .from('service_menu').select('name, price')
+      .eq('id', form.serviceId).eq('merchant_id', worker.center_id).eq('active', true).maybeSingle();
+    if (!svc) return { ok: false, error: 'الخدمة غير متاحة في هذا المركز' };
+    serviceType = svc.name;
+    price = Number(svc.price) || 0;
+  }
+
+  const status = form.startNow ? 'in_progress' : 'pending';
+  const now = new Date().toISOString();
+  const row = {
+    merchant_id: worker.center_id,   // injected — tenancy isolation
+    branch_id: worker.branch_id,     // injected from the worker's branch
+    assigned_to: user.id,            // creator = this worker
+    plate, car_model: carModel, customer_name: customerName, customer_phone: customerPhone,
+    service_type: serviceType, price,
+    status, updated_at: now,
+    ...(status === 'in_progress' ? { started_at: now } : {}),
+  };
+
+  const { data: order, error } = await admin
+    .from('orders')
+    .insert(row)
+    .select('id, customer_name, customer_phone, car_make, car_model, plate, service_type, status, price, created_at, started_at')
+    .single();
+  if (error) return { ok: false, error: error.message };
+
+  await logWorkerActivity(admin, {
+    workerId: worker.id, merchantId: worker.center_id, actionType: 'order_created',
+    description: `${worker.full_name || 'عامل'} · ${plate}${serviceType ? ' · ' + serviceType : ''}`,
+  });
+
+  revalidatePath('/worker/dashboard');
+  return { ok: true, order };
 }
 
 /** Clean session teardown for the cockpit's sign-out. */
